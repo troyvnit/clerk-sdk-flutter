@@ -1,0 +1,14 @@
+name: clerk_auth
+description: Package that will allow you to authenticate and use Clerk from Dart code.
+version: 0.0.1
+
+environment:
+  sdk: '>=3.2.5 <4.0.0'
+
+dependencies:
+  clerk_api: any
+
+dev_dependencies:
+  clerk_analysis:
+    path: ../clerk_analysis
+  test: ^1.24.0

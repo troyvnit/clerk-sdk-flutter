@@ -1,0 +1,9 @@
+name: clerk_sdk
+description: >
+  Clerk SDK containing all packages that define use of Clerk 
+  services for Dart and Flutter code.
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dev_dependencies:
+  melos: ^6.1.0

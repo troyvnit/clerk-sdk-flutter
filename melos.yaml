@@ -1,0 +1,9 @@
+name: clerk_sdk
+
+packages:
+  - packages/**
+
+ide:
+  intellij:
+    enabled: true
+    moduleNamePrefix: ''

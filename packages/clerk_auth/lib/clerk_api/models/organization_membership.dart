@@ -4,7 +4,7 @@ import 'models.dart';
 
 part 'organization_membership.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class OrganizationMembership {
   final String id;
   final String role;

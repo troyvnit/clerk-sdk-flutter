@@ -4,7 +4,7 @@ import 'models.dart';
 
 part 'user_detail.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UserDetail {
   final String id;
   final String firstName;

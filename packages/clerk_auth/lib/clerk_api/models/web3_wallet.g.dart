@@ -19,7 +19,7 @@ Map<String, dynamic> _$Web3WalletToJson(Web3Wallet instance) =>
     <String, dynamic>{
       'id': instance.id,
       'web2_wallet': instance.web2Wallet,
-      'verification': instance.verification,
+      'verification': instance.verification.toJson(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
     };

@@ -34,7 +34,8 @@ SignUp _$SignUpFromJson(Map<String, dynamic> json) => SignUp(
       externalId: json['external_id'] as String,
       createdSessionId: json['created_session_id'] as String,
       createdUserId: json['created_user_id'] as String,
-      abandonAt: (json['abandon_at'] as num).toInt(),
+      abandonAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['abandon_at'] as num).toInt()),
     );
 
 Map<String, dynamic> _$SignUpToJson(SignUp instance) => <String, dynamic>{
@@ -57,10 +58,11 @@ Map<String, dynamic> _$SignUpToJson(SignUp instance) => <String, dynamic>{
       'external_id': instance.externalId,
       'created_session_id': instance.createdSessionId,
       'created_user_id': instance.createdUserId,
-      'abandon_at': instance.abandonAt,
+      'abandon_at': instance.abandonAt.toIso8601String(),
     };
 
 const _$StatusEnumMap = {
   Status.active: 'active',
   Status.abandoned: 'abandoned',
+  Status.needsFirstFactor: 'needs_first_factor',
 };

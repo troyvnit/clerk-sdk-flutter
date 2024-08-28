@@ -2,13 +2,15 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class User {
   final String identifier;
-  final String firstName;
-  final String lastName;
-  final String profileImageUrl;
-  final String imageUrl;
+  final String? firstName;
+  final String? lastName;
+  final String? profileImageUrl;
+  final String? imageUrl;
+
+  @JsonKey(defaultValue: false)
   final bool hasImage;
 
   User({

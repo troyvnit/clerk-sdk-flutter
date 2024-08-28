@@ -4,7 +4,7 @@ import 'models.dart';
 
 part 'sign_up.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SignUp {
   final String id;
   final Status status;
@@ -25,7 +25,9 @@ class SignUp {
   final String externalId;
   final String createdSessionId;
   final String createdUserId;
-  final int abandonAt;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
+  final DateTime abandonAt;
 
   const SignUp({
     required this.id,

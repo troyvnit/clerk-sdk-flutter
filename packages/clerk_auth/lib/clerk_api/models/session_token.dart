@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'session_token.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SessionToken {
   final String jwt;
 

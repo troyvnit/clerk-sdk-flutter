@@ -8,11 +8,11 @@ part of 'user.dart';
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
       identifier: json['identifier'] as String,
-      firstName: json['first_name'] as String,
-      lastName: json['last_name'] as String,
-      profileImageUrl: json['profile_image_url'] as String,
-      imageUrl: json['image_url'] as String,
-      hasImage: json['has_image'] as bool,
+      firstName: json['first_name'] as String?,
+      lastName: json['last_name'] as String?,
+      profileImageUrl: json['profile_image_url'] as String?,
+      imageUrl: json['image_url'] as String?,
+      hasImage: json['has_image'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{

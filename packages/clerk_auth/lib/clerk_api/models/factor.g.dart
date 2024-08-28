@@ -8,13 +8,13 @@ part of 'factor.dart';
 
 Factor _$FactorFromJson(Map<String, dynamic> json) => Factor(
       strategy: $enumDecode(_$StrategyEnumMap, json['strategy']),
-      safeIdentifier: json['safe_identifier'] as String,
-      emailAddressId: json['email_address_id'] as String,
-      phoneNumberId: json['phone_number_id'] as String,
-      web3WalletId: json['web3_wallet_id'] as String,
-      passkeyId: json['passkey_id'] as String,
-      isPrimary: json['is_primary'] as bool,
-      isDefault: json['is_default'] as bool,
+      safeIdentifier: json['safe_identifier'] as String?,
+      emailAddressId: json['email_address_id'] as String?,
+      phoneNumberId: json['phone_number_id'] as String?,
+      web3WalletId: json['web3_wallet_id'] as String?,
+      passkeyId: json['passkey_id'] as String?,
+      isPrimary: json['primary'] as bool? ?? false,
+      isDefault: json['default'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
@@ -24,13 +24,14 @@ Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
       'phone_number_id': instance.phoneNumberId,
       'web3_wallet_id': instance.web3WalletId,
       'passkey_id': instance.passkeyId,
-      'is_primary': instance.isPrimary,
-      'is_default': instance.isDefault,
+      'primary': instance.isPrimary,
+      'default': instance.isDefault,
     };
 
 const _$StrategyEnumMap = {
   Strategy.emailCode: 'email_code',
   Strategy.emailLink: 'email_link',
+  Strategy.password: 'password',
   Strategy.phoneCode: 'phone_code',
   Strategy.web3MetamaskSignature: 'web3_metamask_signature',
   Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',

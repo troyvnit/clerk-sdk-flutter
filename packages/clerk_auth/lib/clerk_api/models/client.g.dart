@@ -8,22 +8,29 @@ part of 'client.dart';
 
 Client _$ClientFromJson(Map<String, dynamic> json) => Client(
       id: json['id'] as String,
-      signIn: SignIn.fromJson(json['sign_in'] as Map<String, dynamic>),
-      signUp: SignUp.fromJson(json['sign_up'] as Map<String, dynamic>),
-      sessions: (json['sessions'] as List<dynamic>)
-          .map((e) => Session.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      lastActiveSessionId: json['last_active_session_id'] as String,
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      createdAt: DateTime.parse(json['created_at'] as String),
+      signIn: json['sign_in'] == null
+          ? null
+          : SignIn.fromJson(json['sign_in'] as Map<String, dynamic>),
+      signUp: json['sign_up'] == null
+          ? null
+          : SignUp.fromJson(json['sign_up'] as Map<String, dynamic>),
+      sessions: (json['sessions'] as List<dynamic>?)
+              ?.map((e) => Session.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      lastActiveSessionId: json['last_active_session_id'] as String?,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['updated_at'] as num).toInt()),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['created_at'] as num).toInt()),
     );
 
 Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
       'id': instance.id,
-      'sign_in': instance.signIn,
-      'sign_up': instance.signUp,
-      'sessions': instance.sessions,
+      'sign_in': instance.signIn?.toJson(),
+      'sign_up': instance.signUp?.toJson(),
       'last_active_session_id': instance.lastActiveSessionId,
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
+      'sessions': instance.sessions.map((e) => e.toJson()).toList(),
     };

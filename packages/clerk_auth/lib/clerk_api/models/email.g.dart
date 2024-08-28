@@ -20,7 +20,7 @@ Map<String, dynamic> _$EmailToJson(Email instance) => <String, dynamic>{
       'id': instance.id,
       'email_address': instance.emailAddress,
       'reserved': instance.reserved,
-      'verification': instance.verification,
+      'verification': instance.verification.toJson(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
     };

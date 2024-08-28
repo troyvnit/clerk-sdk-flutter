@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'organization.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Organization {
   final String id;
   final String name;

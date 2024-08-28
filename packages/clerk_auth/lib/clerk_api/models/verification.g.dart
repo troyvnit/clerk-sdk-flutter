@@ -26,11 +26,13 @@ Map<String, dynamic> _$VerificationToJson(Verification instance) =>
 const _$StatusEnumMap = {
   Status.active: 'active',
   Status.abandoned: 'abandoned',
+  Status.needsFirstFactor: 'needs_first_factor',
 };
 
 const _$StrategyEnumMap = {
   Strategy.emailCode: 'email_code',
   Strategy.emailLink: 'email_link',
+  Strategy.password: 'password',
   Strategy.phoneCode: 'phone_code',
   Strategy.web3MetamaskSignature: 'web3_metamask_signature',
   Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',

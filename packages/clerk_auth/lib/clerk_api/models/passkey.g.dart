@@ -19,7 +19,7 @@ Passkey _$PasskeyFromJson(Map<String, dynamic> json) => Passkey(
 Map<String, dynamic> _$PasskeyToJson(Passkey instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'verification': instance.verification,
+      'verification': instance.verification.toJson(),
       'last_used_at': instance.lastUsedAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),

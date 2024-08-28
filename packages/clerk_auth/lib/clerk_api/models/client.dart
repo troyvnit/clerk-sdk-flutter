@@ -4,15 +4,21 @@ import 'models.dart';
 
 part 'client.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Client {
   final String id;
-  final SignIn signIn;
-  final SignUp signUp;
-  final List<Session> sessions;
-  final String lastActiveSessionId;
+  final SignIn? signIn;
+  final SignUp? signUp;
+  final String? lastActiveSessionId;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
   final DateTime updatedAt;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
   final DateTime createdAt;
+
+  @JsonKey(defaultValue: const [])
+  final List<Session> sessions;
 
   const Client({
     required this.id,

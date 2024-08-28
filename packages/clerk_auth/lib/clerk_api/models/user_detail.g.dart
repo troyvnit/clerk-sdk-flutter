@@ -67,11 +67,13 @@ Map<String, dynamic> _$UserDetailToJson(UserDetail instance) =>
       'public_metadata': instance.publicMetadata,
       'private_metadata': instance.privateMetadata,
       'unsafe_metadata': instance.unsafeMetadata,
-      'email_addresses': instance.emailAddresses,
-      'phone_numbers': instance.phoneNumbers,
-      'web3_wallets': instance.web3Wallets,
-      'passkeys': instance.passkeys,
-      'organization_memberships': instance.organizationMemberships,
+      'email_addresses':
+          instance.emailAddresses.map((e) => e.toJson()).toList(),
+      'phone_numbers': instance.phoneNumbers.map((e) => e.toJson()).toList(),
+      'web3_wallets': instance.web3Wallets.map((e) => e.toJson()).toList(),
+      'passkeys': instance.passkeys.map((e) => e.toJson()).toList(),
+      'organization_memberships':
+          instance.organizationMemberships.map((e) => e.toJson()).toList(),
       'password_enabled': instance.passwordEnabled,
       'two_factor_enabled': instance.twoFactorEnabled,
       'totp_enabled': instance.totpEnabled,

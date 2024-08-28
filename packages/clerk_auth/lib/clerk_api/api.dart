@@ -16,15 +16,13 @@ enum HttpMethod {
   delete;
 
   bool get isGet => this == get;
+  bool get isNotGet => isGet == false;
+
+  @override
+  String toString() => name.toUpperCase();
 }
 
 class Api {
-  static const _kJwtKey = 'jwt';
-  static const _kIsNative = '_is_native';
-
-  static final _client = http.Client();
-  static Api? _instance;
-
   Api._({required this.tokenCache, required this.domain});
 
   factory Api({
@@ -41,10 +39,20 @@ class Api {
 
   final logger = Logger();
 
+  static final _client = http.Client();
+  static Api? _instance;
+
+  static const _apiVersion = 'v1';
+  static const _scheme = 'https';
+  static const _kJwtKey = 'jwt';
+  static const _kIsNative = '_is_native';
+  static const _kClerkJsVersion = '_clerk_js_version';
+  static const _vClerkJsVersion = '4.70.0';
+
   // Sign out
 
   Future<void> signOut() async {
-    await _fetchApiResponse('client', method: HttpMethod.delete);
+    await _fetchApiResponse('/client', method: HttpMethod.delete);
     tokenCache.clear();
   }
 
@@ -122,7 +130,7 @@ class Api {
         method: method,
         url: url,
         params: params,
-        headers: _headersFrom(params, headers),
+        headers: headers,
       );
 
       final body = json.decode(resp.body) as Map<String, dynamic>;
@@ -160,24 +168,24 @@ class Api {
     Map<String, String> headers = const {},
     Map<String, dynamic> params = const {},
   }) async {
-    final query = {
-      ..._standardParams(),
-      ...params,
-    }.entries.map(_queryParamFrom).join('&');
-    final uri = Uri.parse('https://$domain/v1$url?$query');
-    return await _client.sendHttpRequest(method, uri, headers: headers);
+    final query = _queryStringFrom({
+      _kIsNative: 'true',
+      _kClerkJsVersion: _vClerkJsVersion,
+      if (method.isGet) ...params,
+    });
+    final body = method.isNotGet ? _queryStringFrom(params) : '';
+    final authHeaders = _headersFrom(method, headers);
+    final uri = Uri(scheme: _scheme, host: domain, path: '$_apiVersion$url', query: query);
+    return await _client.sendHttpRequest(method, uri, body: body, headers: authHeaders);
   }
 
-  String _queryParamFrom(MapEntry e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}';
+  String _queryStringFrom(Map<String, dynamic> params) =>
+      params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}').join('&');
 
-  Map<String, String> _standardParams() => {
-        _kIsNative: 'true',
-      };
-
-  Map<String, String> _headersFrom(Map<String, dynamic> params, Map<String, String> headers) => {
+  Map<String, String> _headersFrom(HttpMethod method, Map<String, String> headers) => {
         HttpHeaders.acceptHeader: 'application/json',
         HttpHeaders.contentTypeHeader:
-            params.isNotEmpty ? 'application/x-www-form-urlencoded' : 'application/json',
+            method.isGet ? 'application/json' : 'application/x-www-form-urlencoded',
         if (tokenCache.clientToken.isNotEmpty) //
           HttpHeaders.authorizationHeader: tokenCache.clientToken,
         ...headers,
@@ -207,7 +215,7 @@ extension SendExtension on http.Client {
     Map<String, String> headers = const {},
     String? body,
   }) async {
-    final request = http.Request(method.name.toUpperCase(), uri)
+    final request = http.Request(method.toString(), uri)
       ..headers.addAll(headers)
       ..body = body ?? '';
     final streamedResponse = await request.send();

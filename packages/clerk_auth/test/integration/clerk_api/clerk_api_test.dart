@@ -30,23 +30,20 @@ void main() {
   group('Can sign in:', () {
     test('with email and password', () async {
       final r1 = await api.createSignIn(identifier: email);
+      expect(r1.client?.signIn?.status, Status.needsFirstFactor);
 
-      final signIn = r1.client?.signIn;
-      if (signIn is SignIn) {
-        expect(signIn.status, Status.needsFirstFactor);
+      final signIn = r1.client!.signIn!;
+      final r2 = await api.attemptVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.password,
+        password: password,
+      );
 
-        final r2 = await api.attemptVerification(
-          id: signIn.id,
-          stage: FactorStage.first,
-          strategy: Strategy.password,
-          password: password,
-        );
-
-        final client = r2.client;
-        expect(client?.signIn, null);
-        expect(client?.activeSession?.status, Status.active);
-        expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
-      }
+      final client = r2.client;
+      expect(client?.signIn, null);
+      expect(client?.activeSession?.status, Status.active);
+      expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
     });
   });
 }

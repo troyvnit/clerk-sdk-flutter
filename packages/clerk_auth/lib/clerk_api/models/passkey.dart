@@ -4,7 +4,7 @@ import 'models.dart';
 
 part 'passkey.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Passkey {
   final String id;
   final String name;

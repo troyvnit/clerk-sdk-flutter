@@ -26,6 +26,6 @@ Map<String, dynamic> _$OrganizationMembershipToJson(
       'role': instance.role,
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
-      'organization': instance.organization,
-      'public_user_data': instance.publicUserData,
+      'organization': instance.organization.toJson(),
+      'public_user_data': instance.publicUserData.toJson(),
     };

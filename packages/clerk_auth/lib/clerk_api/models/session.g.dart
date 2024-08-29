@@ -9,9 +9,12 @@ part of 'session.dart';
 Session _$SessionFromJson(Map<String, dynamic> json) => Session(
       id: json['id'] as String,
       status: $enumDecode(_$StatusEnumMap, json['status']),
-      lastActiveAt: (json['last_active_at'] as num).toInt(),
-      expireAt: (json['expire_at'] as num).toInt(),
-      abandonAt: (json['abandon_at'] as num).toInt(),
+      lastActiveAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['last_active_at'] as num).toInt()),
+      expireAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['expire_at'] as num).toInt()),
+      abandonAt: DateTime.fromMillisecondsSinceEpoch(
+          (json['abandon_at'] as num).toInt()),
       publicUserData:
           User.fromJson(json['public_user_data'] as Map<String, dynamic>),
       lastActiveToken: json['last_active_token'] == null
@@ -23,14 +26,16 @@ Session _$SessionFromJson(Map<String, dynamic> json) => Session(
 Map<String, dynamic> _$SessionToJson(Session instance) => <String, dynamic>{
       'id': instance.id,
       'status': _$StatusEnumMap[instance.status]!,
-      'last_active_at': instance.lastActiveAt,
-      'expire_at': instance.expireAt,
-      'abandon_at': instance.abandonAt,
-      'public_user_data': instance.publicUserData,
-      'last_active_token': instance.lastActiveToken,
+      'public_user_data': instance.publicUserData.toJson(),
+      'last_active_token': instance.lastActiveToken?.toJson(),
+      'last_active_at': instance.lastActiveAt.toIso8601String(),
+      'expire_at': instance.expireAt.toIso8601String(),
+      'abandon_at': instance.abandonAt.toIso8601String(),
     };
 
 const _$StatusEnumMap = {
   Status.active: 'active',
   Status.abandoned: 'abandoned',
+  Status.needsFirstFactor: 'needs_first_factor',
+  Status.unverified: 'unverified',
 };

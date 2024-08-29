@@ -4,11 +4,11 @@ import 'models.dart';
 
 part 'verification.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Verification {
   final Status status;
   final Strategy strategy;
-  final int attempts;
+  final int? attempts;
   final int expireAt;
   final String? nonce;
 

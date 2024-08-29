@@ -4,15 +4,19 @@ import 'models.dart';
 
 part 'factor.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Factor {
   final Strategy strategy;
-  final String safeIdentifier;
-  final String emailAddressId;
-  final String phoneNumberId;
-  final String web3WalletId;
-  final String passkeyId;
+  final String? safeIdentifier;
+  final String? emailAddressId;
+  final String? phoneNumberId;
+  final String? web3WalletId;
+  final String? passkeyId;
+
+  @JsonKey(name: 'primary', defaultValue: false)
   final bool isPrimary;
+
+  @JsonKey(name: 'default', defaultValue: false)
   final bool isDefault;
 
   const Factor({

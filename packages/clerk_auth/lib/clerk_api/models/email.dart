@@ -4,7 +4,7 @@ import 'models.dart';
 
 part 'email.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Email {
   final String id;
   final String emailAddress;

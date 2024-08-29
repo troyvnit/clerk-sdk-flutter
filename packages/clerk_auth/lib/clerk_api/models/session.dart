@@ -4,15 +4,21 @@ import 'models.dart';
 
 part 'session.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Session {
   final String id;
   final Status status;
-  final int lastActiveAt;
-  final int expireAt;
-  final int abandonAt;
   final User publicUserData;
   final SessionToken? lastActiveToken;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
+  final DateTime lastActiveAt;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
+  final DateTime expireAt;
+
+  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
+  final DateTime abandonAt;
 
   Session({
     required this.id,

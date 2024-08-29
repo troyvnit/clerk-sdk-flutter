@@ -25,7 +25,7 @@ Map<String, dynamic> _$PhoneNumberToJson(PhoneNumber instance) =>
       'reserved': instance.reserved,
       'reserved_for_second_factor': instance.reservedForSecondFactor,
       'default_second_factor': instance.defaultSecondFactor,
-      'verification': instance.verification,
+      'verification': instance.verification.toJson(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
     };

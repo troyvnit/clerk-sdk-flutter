@@ -8,7 +8,7 @@ part 'verification.g.dart';
 class Verification {
   final Status status;
   final Strategy strategy;
-  final int attempts;
+  final int? attempts;
   final int expireAt;
   final String? nonce;
 

@@ -9,7 +9,7 @@ part of 'verification.dart';
 Verification _$VerificationFromJson(Map<String, dynamic> json) => Verification(
       status: $enumDecode(_$StatusEnumMap, json['status']),
       strategy: $enumDecode(_$StrategyEnumMap, json['strategy']),
-      attempts: (json['attempts'] as num).toInt(),
+      attempts: (json['attempts'] as num?)?.toInt(),
       expireAt: (json['expire_at'] as num).toInt(),
       nonce: json['nonce'] as String?,
     );

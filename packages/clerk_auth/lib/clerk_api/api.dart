@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus, HttpHeaders;
 
+import 'package:common/common.dart';
 import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
 
 import 'models/models.dart';
 import 'token_cache.dart';
@@ -22,7 +22,7 @@ enum HttpMethod {
   String toString() => name.toUpperCase();
 }
 
-class Api {
+class Api with Logging {
   Api._({required this.tokenCache, required this.domain});
 
   factory Api({
@@ -36,8 +36,6 @@ class Api {
 
   final TokenCache tokenCache;
   final String domain;
-
-  final logger = Logger();
 
   static final _client = http.Client();
   static Api? _instance;
@@ -57,11 +55,11 @@ class Api {
       if (resp.statusCode == 200) {
         tokenCache.clear();
       } else {
-        logger.e('HTTP error on sign out: ${resp.statusCode}');
-        logger.e(resp);
+        logSevere('HTTP error on sign out: ${resp.statusCode}');
+        logSevere(resp);
       }
     } catch (error, stacktrace) {
-      logger.e('$error', stackTrace: stacktrace);
+      logSevere('Error during sign out', error, stacktrace);
     }
   }
 
@@ -85,6 +83,7 @@ class Api {
     required Strategy strategy,
     String? emailAddressId,
     String? phoneNumberId,
+    String? redirectUrl,
   }) async {
     return _fetchApiResponse(
       '/client/sign_ins/$id/prepare_${stage}_factor',
@@ -94,6 +93,8 @@ class Api {
           'email_address_id': emailAddressId,
         if (phoneNumberId?.isNotEmpty == true) //
           'phone_number_id': phoneNumberId,
+        if (redirectUrl is String) //
+          'redirect_url': redirectUrl,
       },
     );
   }
@@ -152,21 +153,21 @@ class Api {
             return response;
 
           case 422: // Clerk-handled error
-            logger.e(body.toString());
+            logSevere(body.toString());
             final client = Client.fromJson(clientJson);
             return ApiResponse(client: client, status: resp.statusCode);
 
           default:
-            logger.e(body.toString());
+            logSevere(body.toString());
             return ApiResponse(status: resp.statusCode);
         }
       } else {
-        logger.e('No client json received');
-        // logger.e(body);
+        logSevere('No client json received');
+        // logSevere(body);
         return ApiResponse(status: HttpStatus.noContent, errorDetail: 'No data received');
       }
     } catch (error, stacktrace) {
-      logger.e('$error', stackTrace: stacktrace);
+      logSevere('Error during fetch', error, stacktrace);
       return ApiResponse(status: HttpStatus.internalServerError, errorDetail: error.toString());
     }
   }

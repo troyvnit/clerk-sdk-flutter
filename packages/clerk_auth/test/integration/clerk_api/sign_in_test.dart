@@ -75,6 +75,28 @@ void main() {
       await api.signOut();
     });
 
+    test('with email link', () async {
+      late ApiResponse response;
+      late SignIn signIn;
+
+      response = await api.createSignIn(identifier: env.email);
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      final redirectUrl = 'https://redirect.to.somewhere';
+
+      signIn = response.client!.signIn!;
+      response = await api.prepareVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.emailLink,
+        emailAddressId: signIn.firstFactorFor(Strategy.emailCode)?.emailAddressId,
+        redirectUrl: redirectUrl,
+      );
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      // no way to test onward journey easily
+    });
+
     test('with phone code', () async {
       late ApiResponse response;
       late SignIn signIn;

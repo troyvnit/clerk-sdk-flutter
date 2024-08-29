@@ -3,35 +3,27 @@ import 'package:dart_dotenv/dart_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:test/test.dart';
 
-const _kPublicKey = 'public_key';
-const _kPublishableKey = 'publishable_key';
-const _kEmail = 'email';
-const _kPassword = 'password';
+import '../../test_helpers.dart';
 
 void main() {
-  late final String email;
-  late final String password;
   late final Api api;
   late final Logger logger;
+
+  final env = TestEnv();
 
   setUpAll(() {
     logger = Logger();
 
-    final env = DotEnv(filePath: '.env.test')..getDotEnv();
-    email = env.get(_kEmail) ?? '';
-    password = env.get(_kPassword) ?? '';
+    env.addAll(DotEnv(filePath: '.env.test').getDotEnv());
 
-    final publicKey = (env.get(_kPublicKey) ?? '').replaceAll('\\n', '\n');
-    final publishableKey = env.get(_kPublishableKey) ?? '';
-
-    api = Api(publicKey: publicKey, publishableKey: publishableKey);
+    api = Api(publicKey: env.publicKey, publishableKey: env.publishableKey);
   });
 
   group('Can sign in:', () {
     test('with email and password', () async {
       late ApiResponse response;
 
-      response = await api.createSignIn(identifier: email);
+      response = await api.createSignIn(identifier: env.email);
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       final signIn = response.client!.signIn!;
@@ -39,7 +31,7 @@ void main() {
         id: signIn.id,
         stage: FactorStage.first,
         strategy: Strategy.password,
-        password: password,
+        password: env.password,
       );
 
       final client = response.client;
@@ -54,7 +46,7 @@ void main() {
       late ApiResponse response;
       late SignIn signIn;
 
-      response = await api.createSignIn(identifier: email);
+      response = await api.createSignIn(identifier: env.email);
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
@@ -71,7 +63,40 @@ void main() {
         id: signIn.id,
         stage: FactorStage.first,
         strategy: Strategy.emailCode,
-        code: '424242', // set in Clerk dashboard
+        code: env.code,
+      );
+      expect(response.client!.sessions.length > 0, true);
+
+      final client = response.client;
+      expect(client?.signIn, null);
+      expect(client?.activeSession?.status, Status.active);
+      expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
+
+      await api.signOut();
+    });
+
+    test('with phone code', () async {
+      late ApiResponse response;
+      late SignIn signIn;
+
+      response = await api.createSignIn(identifier: env.phoneNumber);
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      signIn = response.client!.signIn!;
+      response = await api.prepareVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.phoneCode,
+        phoneNumberId: signIn.firstFactorFor(Strategy.phoneCode)?.phoneNumberId,
+      );
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      signIn = response.client!.signIn!;
+      response = await api.attemptVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.phoneCode,
+        code: env.code,
       );
       expect(response.client!.sessions.length > 0, true);
 

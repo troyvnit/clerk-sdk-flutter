@@ -42,10 +42,11 @@ class SignIn {
 
   Map<String, dynamic> toJson() => _$SignInToJson(this);
 
-  Factor? firstFactorFor(Strategy strategy) => _factorFor(strategy, supportedFirstFactors);
-  Factor? secondFactorFor(Strategy strategy) => _factorFor(strategy, supportedSecondFactors);
-
-  Factor? _factorFor(Strategy strategy, List<Factor> factors) {
+  Factor? factorFor(Strategy strategy, FactorStage stage) {
+    final factors = switch (stage) {
+      FactorStage.first => supportedFirstFactors,
+      FactorStage.second => supportedSecondFactors,
+    };
     for (final factor in factors) {
       if (factor.strategy == strategy) {
         return factor;

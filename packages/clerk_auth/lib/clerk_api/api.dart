@@ -77,37 +77,45 @@ class Api with Logging {
         params: {'identifier': identifier},
       );
 
-  Future<ApiResponse> prepareVerification({
-    required String id,
+  Future<ApiResponse> prepareVerification(
+    SignIn signIn, {
     required FactorStage stage,
     required Strategy strategy,
-    String? emailAddressId,
-    String? phoneNumberId,
     String? redirectUrl,
   }) async {
+    final factor = signIn.factorFor(strategy, stage);
+    if (factor is! Factor) {
+      return ApiResponse(status: HttpStatus.badRequest);
+    }
+
     return _fetchApiResponse(
-      '/client/sign_ins/$id/prepare_${stage}_factor',
+      '/client/sign_ins/${signIn.id}/prepare_${stage}_factor',
       params: {
         'strategy': strategy,
-        if (emailAddressId?.isNotEmpty == true) //
-          'email_address_id': emailAddressId,
-        if (phoneNumberId?.isNotEmpty == true) //
-          'phone_number_id': phoneNumberId,
-        if (redirectUrl is String) //
+        if (factor.emailAddressId?.isNotEmpty == true) //
+          'email_address_id': factor.emailAddressId,
+        if (factor.phoneNumberId?.isNotEmpty == true) //
+          'phone_number_id': factor.phoneNumberId,
+        if (redirectUrl?.isNotEmpty == true) //
           'redirect_url': redirectUrl,
       },
     );
   }
 
-  Future<ApiResponse> attemptVerification({
-    required String id,
+  Future<ApiResponse> attemptVerification(
+    SignIn signIn, {
     required FactorStage stage,
     required Strategy strategy,
     String? code,
     String? password,
   }) async {
+    final factor = signIn.factorFor(strategy, stage);
+    if (factor is! Factor) {
+      return ApiResponse(status: HttpStatus.badRequest);
+    }
+
     return _fetchApiResponse(
-      '/client/sign_ins/$id/attempt_${stage}_factor',
+      '/client/sign_ins/${signIn.id}/attempt_${stage}_factor',
       params: {
         'strategy': strategy,
         if (code is String) //

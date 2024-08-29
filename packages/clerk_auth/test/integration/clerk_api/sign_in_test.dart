@@ -26,7 +26,7 @@ void main() {
 
       final signIn = response.client!.signIn!;
       response = await api.attemptVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.password,
         password: env.password,
@@ -49,16 +49,15 @@ void main() {
 
       signIn = response.client!.signIn!;
       response = await api.prepareVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailCode,
-        emailAddressId: signIn.firstFactorFor(Strategy.emailCode)?.emailAddressId,
       );
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
       response = await api.attemptVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailCode,
         code: env.code,
@@ -84,10 +83,9 @@ void main() {
 
       signIn = response.client!.signIn!;
       response = await api.prepareVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailLink,
-        emailAddressId: signIn.firstFactorFor(Strategy.emailCode)?.emailAddressId,
         redirectUrl: redirectUrl,
       );
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
@@ -104,16 +102,15 @@ void main() {
 
       signIn = response.client!.signIn!;
       response = await api.prepareVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.phoneCode,
-        phoneNumberId: signIn.firstFactorFor(Strategy.phoneCode)?.phoneNumberId,
       );
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
       response = await api.attemptVerification(
-        id: signIn.id,
+        signIn,
         stage: FactorStage.first,
         strategy: Strategy.phoneCode,
         code: env.code,

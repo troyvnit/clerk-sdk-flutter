@@ -42,7 +42,6 @@ class Api {
   static final _client = http.Client();
   static Api? _instance;
 
-  static const _apiVersion = 'v1';
   static const _scheme = 'https';
   static const _kJwtKey = 'jwt';
   static const _kIsNative = '_is_native';
@@ -126,12 +125,8 @@ class Api {
     Map<String, dynamic> params = const {},
   }) async {
     try {
-      final resp = await _fetch(
-        method: method,
-        url: url,
-        params: params,
-        headers: headers,
-      );
+      headers = _headersFrom(method, headers);
+      final resp = await _fetch(method: method, url: url, params: params, headers: headers);
 
       final body = json.decode(resp.body) as Map<String, dynamic>;
       if (body['client'] case Map<String, dynamic> clientJson) {
@@ -165,30 +160,27 @@ class Api {
   Future<http.Response> _fetch({
     required String url,
     HttpMethod method = HttpMethod.post,
-    Map<String, String> headers = const {},
-    Map<String, dynamic> params = const {},
+    Map<String, String>? headers,
+    Map<String, dynamic>? params,
   }) async {
-    final query = _queryStringFrom({
-      _kIsNative: 'true',
+    final queryParams = {
+      _kIsNative: true,
       _kClerkJsVersion: _vClerkJsVersion,
-      if (method.isGet) ...params,
-    });
-    final body = method.isNotGet ? _queryStringFrom(params) : '';
-    final authHeaders = _headersFrom(method, headers);
-    final uri = Uri(scheme: _scheme, host: domain, path: '$_apiVersion$url', query: query);
-    return await _client.sendHttpRequest(method, uri, body: body, headers: authHeaders);
+      if (method.isGet && params is Map<String, dynamic>) //
+        ...params.toStringMap(),
+    };
+    final body = method.isNotGet ? params : null;
+    final uri = Uri(scheme: _scheme, host: domain, path: 'v1$url', queryParameters: queryParams);
+    return await _client.sendHttpRequest(method, uri, body: body, headers: headers);
   }
 
-  String _queryStringFrom(Map<String, dynamic> params) =>
-      params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}').join('&');
-
-  Map<String, String> _headersFrom(HttpMethod method, Map<String, String> headers) => {
+  Map<String, String> _headersFrom(HttpMethod method, Map<String, String>? headers) => {
         HttpHeaders.acceptHeader: 'application/json',
         HttpHeaders.contentTypeHeader:
             method.isGet ? 'application/json' : 'application/x-www-form-urlencoded',
         if (tokenCache.clientToken.isNotEmpty) //
           HttpHeaders.authorizationHeader: tokenCache.clientToken,
-        ...headers,
+        if (headers is Map<String, String>) ...headers,
       };
 
   static String deriveDomainFrom(String key) {
@@ -212,14 +204,21 @@ extension SendExtension on http.Client {
   Future<http.Response> sendHttpRequest(
     HttpMethod method,
     Uri uri, {
-    Map<String, String> headers = const {},
-    String? body,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
   }) async {
-    final request = http.Request(method.toString(), uri)
-      ..headers.addAll(headers)
-      ..body = body ?? '';
+    final request = http.Request(method.toString(), uri);
+    if (headers != null) {
+      request.headers.addAll(headers);
+    }
+    if (body != null) {
+      request.bodyFields = body.toStringMap();
+    }
     final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-    return response;
+    return http.Response.fromStream(streamedResponse);
   }
+}
+
+extension StringMapExtension on Map {
+  Map<String, String> toStringMap() => map((k, v) => MapEntry(k.toString(), v.toString()));
 }

@@ -29,21 +29,58 @@ void main() {
 
   group('Can sign in:', () {
     test('with email and password', () async {
-      final r1 = await api.createSignIn(identifier: email);
-      expect(r1.client?.signIn?.status, Status.needsFirstFactor);
+      late ApiResponse response;
 
-      final signIn = r1.client!.signIn!;
-      final r2 = await api.attemptVerification(
+      response = await api.createSignIn(identifier: email);
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      final signIn = response.client!.signIn!;
+      response = await api.attemptVerification(
         id: signIn.id,
         stage: FactorStage.first,
         strategy: Strategy.password,
         password: password,
       );
 
-      final client = r2.client;
+      final client = response.client;
       expect(client?.signIn, null);
       expect(client?.activeSession?.status, Status.active);
       expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
+
+      await api.signOut();
+    });
+
+    test('with email code', () async {
+      late ApiResponse response;
+      late SignIn signIn;
+
+      response = await api.createSignIn(identifier: email);
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      signIn = response.client!.signIn!;
+      response = await api.prepareVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.emailCode,
+        emailAddressId: signIn.firstFactorFor(Strategy.emailCode)?.emailAddressId,
+      );
+      expect(response.client?.signIn?.status, Status.needsFirstFactor);
+
+      signIn = response.client!.signIn!;
+      response = await api.attemptVerification(
+        id: signIn.id,
+        stage: FactorStage.first,
+        strategy: Strategy.emailCode,
+        code: '424242', // set in Clerk dashboard
+      );
+      expect(response.client!.sessions.length > 0, true);
+
+      final client = response.client;
+      expect(client?.signIn, null);
+      expect(client?.activeSession?.status, Status.active);
+      expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
+
+      await api.signOut();
     });
   });
 }

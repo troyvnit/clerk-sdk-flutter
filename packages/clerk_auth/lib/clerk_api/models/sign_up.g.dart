@@ -65,4 +65,5 @@ const _$StatusEnumMap = {
   Status.active: 'active',
   Status.abandoned: 'abandoned',
   Status.needsFirstFactor: 'needs_first_factor',
+  Status.unverified: 'unverified',
 };

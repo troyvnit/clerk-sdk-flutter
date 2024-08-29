@@ -51,8 +51,18 @@ class Api {
   // Sign out
 
   Future<void> signOut() async {
-    await _fetchApiResponse('/client', method: HttpMethod.delete);
-    tokenCache.clear();
+    try {
+      final headers = _headers(HttpMethod.delete);
+      final resp = await _fetch(method: HttpMethod.delete, path: '/client', headers: headers);
+      if (resp.statusCode == 200) {
+        tokenCache.clear();
+      } else {
+        logger.e('HTTP error on sign out: ${resp.statusCode}');
+        logger.e(resp);
+      }
+    } catch (error, stacktrace) {
+      logger.e('$error', stackTrace: stacktrace);
+    }
   }
 
   // Sign Up API
@@ -80,8 +90,10 @@ class Api {
       '/client/sign_ins/$id/prepare_${stage}_factor',
       params: {
         'strategy': strategy,
-        if (emailAddressId?.isNotEmpty == true) 'email_address_id': emailAddressId,
-        if (phoneNumberId?.isNotEmpty == true) 'phone_number_id': phoneNumberId,
+        if (emailAddressId?.isNotEmpty == true) //
+          'email_address_id': emailAddressId,
+        if (phoneNumberId?.isNotEmpty == true) //
+          'phone_number_id': phoneNumberId,
       },
     );
   }
@@ -97,8 +109,10 @@ class Api {
       '/client/sign_ins/$id/attempt_${stage}_factor',
       params: {
         'strategy': strategy,
-        if (code is String) 'code': code,
-        if (password is String) 'password': password,
+        if (code is String) //
+          'code': code,
+        if (password is String) //
+          'password': password,
       },
     );
   }
@@ -107,7 +121,7 @@ class Api {
 
   Future<String> sessionToken() async {
     if (tokenCache.sessionToken.isEmpty && tokenCache.canRefreshSessionToken) {
-      final resp = await _fetch(url: '/client/sessions/${tokenCache.sessionId}/tokens');
+      final resp = await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
       if (resp.statusCode == HttpStatus.ok) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         tokenCache.sessionToken = body[_kJwtKey] as String;
@@ -125,8 +139,8 @@ class Api {
     Map<String, dynamic> params = const {},
   }) async {
     try {
-      headers = _headersFrom(method, headers);
-      final resp = await _fetch(method: method, url: url, params: params, headers: headers);
+      headers = _headers(method, headers);
+      final resp = await _fetch(method: method, path: url, params: params, headers: headers);
 
       final body = json.decode(resp.body) as Map<String, dynamic>;
       if (body['client'] case Map<String, dynamic> clientJson) {
@@ -148,7 +162,7 @@ class Api {
         }
       } else {
         logger.e('No client json received');
-        logger.e(body);
+        // logger.e(body);
         return ApiResponse(status: HttpStatus.noContent, errorDetail: 'No data received');
       }
     } catch (error, stacktrace) {
@@ -158,7 +172,7 @@ class Api {
   }
 
   Future<http.Response> _fetch({
-    required String url,
+    required String path,
     HttpMethod method = HttpMethod.post,
     Map<String, String>? headers,
     Map<String, dynamic>? params,
@@ -167,20 +181,24 @@ class Api {
       _kIsNative: true,
       _kClerkJsVersion: _vClerkJsVersion,
       if (method.isGet && params is Map<String, dynamic>) //
-        ...params.toStringMap(),
+        ...params,
     };
     final body = method.isNotGet ? params : null;
-    final uri = Uri(scheme: _scheme, host: domain, path: 'v1$url', queryParameters: queryParams);
+    final uri = _uri(path, queryParams);
     return await _client.sendHttpRequest(method, uri, body: body, headers: headers);
   }
 
-  Map<String, String> _headersFrom(HttpMethod method, Map<String, String>? headers) => {
+  Uri _uri(String path, Map<String, dynamic> params) =>
+      Uri(scheme: _scheme, host: domain, path: 'v1$path', queryParameters: params.toStringMap());
+
+  Map<String, String> _headers(HttpMethod method, [Map<String, String>? headers]) => {
         HttpHeaders.acceptHeader: 'application/json',
         HttpHeaders.contentTypeHeader:
             method.isGet ? 'application/json' : 'application/x-www-form-urlencoded',
         if (tokenCache.clientToken.isNotEmpty) //
           HttpHeaders.authorizationHeader: tokenCache.clientToken,
-        if (headers is Map<String, String>) ...headers,
+        if (headers is Map<String, String>) //
+          ...headers,
       };
 
   static String deriveDomainFrom(String key) {

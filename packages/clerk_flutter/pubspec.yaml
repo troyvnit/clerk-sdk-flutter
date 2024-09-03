@@ -1,6 +1,7 @@
 name: clerk_flutter
 description: Package that will allow you to authenticate and use Clerk from Flutter code.
 version: 0.0.1
+publish_to: 'none'
 
 environment:
   sdk: '>=3.2.5 <4.0.0'
@@ -10,6 +11,8 @@ dependencies:
   clerk_auth: any
   flutter:
     sdk: flutter
+  flutter_inset_box_shadow: ^1.0.8
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   clerk_analysis: any
@@ -17,7 +20,5 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
-  # To add assets to your package, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/

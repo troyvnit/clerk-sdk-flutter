@@ -1,1 +1,7 @@
 include: package:clerk_analysis/lints.yaml
+
+linter:
+  rules:
+    - public_member_api_docs
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
@@ -34,8 +35,10 @@ mixin Logging {
   /// was made. This can be advantageous if a log listener wants to handler
   /// records of different zones differently (e.g. group log records by HTTP
   /// request if each HTTP request handler runs in it's own zone).
-  void log(Level logLevel, Object? message,
-      [Object? error, StackTrace? stackTrace, Zone? zone]) {
+  void log(Level logLevel, Object? message, [Object? error, StackTrace? stackTrace, Zone? zone]) {
+    if (message is Map) {
+      message = const JsonEncoder.withIndent('  ').convert(message);
+    }
     logger.log(logLevel, message, error, stackTrace, zone);
   }
 
@@ -150,6 +153,7 @@ Future<void> setUpLogging({
         output += '\n${record.stackTrace}'.split('\n').join('\n\t');
       }
       printer.print(_withColor(output, record.level));
+      stdout.flush();
     }
   });
 }

@@ -1,4 +1,4 @@
 library;
 
+export '../models/models.dart';
 export 'api.dart';
-export 'models/models.dart';

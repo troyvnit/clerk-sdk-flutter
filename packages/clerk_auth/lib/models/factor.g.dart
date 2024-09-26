@@ -1,0 +1,48 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'factor.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Factor _$FactorFromJson(Map<String, dynamic> json) => Factor(
+      strategy: $enumDecode(_$StrategyEnumMap, json['strategy']),
+      safeIdentifier: json['safe_identifier'] as String?,
+      emailAddressId: json['email_address_id'] as String?,
+      phoneNumberId: json['phone_number_id'] as String?,
+      web3WalletId: json['web3_wallet_id'] as String?,
+      passkeyId: json['passkey_id'] as String?,
+      isPrimary: json['primary'] as bool? ?? false,
+      isDefault: json['default'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
+      'strategy': _$StrategyEnumMap[instance.strategy]!,
+      'safe_identifier': instance.safeIdentifier,
+      'email_address_id': instance.emailAddressId,
+      'phone_number_id': instance.phoneNumberId,
+      'web3_wallet_id': instance.web3WalletId,
+      'passkey_id': instance.passkeyId,
+      'primary': instance.isPrimary,
+      'default': instance.isDefault,
+    };
+
+const _$StrategyEnumMap = {
+  Strategy.admin: 'admin',
+  Strategy.emailCode: 'email_code',
+  Strategy.emailLink: 'email_link',
+  Strategy.oauthApple: 'oauth_apple',
+  Strategy.oauthGoogle: 'oauth_google',
+  Strategy.oauthGithub: 'oauth_github',
+  Strategy.oauthTokenApple: 'oauth_token_apple',
+  Strategy.passkey: 'passkey',
+  Strategy.password: 'password',
+  Strategy.phoneCode: 'phone_code',
+  Strategy.resetPasswordEmailCode: 'reset_password_email_code',
+  Strategy.resetPasswordPhoneCode: 'reset_password_phone_code',
+  Strategy.saml: 'saml',
+  Strategy.ticket: 'ticket',
+  Strategy.web3MetamaskSignature: 'web3_metamask_signature',
+  Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',
+};

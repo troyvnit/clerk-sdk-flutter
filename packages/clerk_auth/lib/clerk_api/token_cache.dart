@@ -4,7 +4,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 
-import 'models/models.dart';
+import '../models/models.dart';
 
 class TokenCache {
   static const _tokenExpiryBuffer = Duration(seconds: 10);

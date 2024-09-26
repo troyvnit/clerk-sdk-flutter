@@ -1,4 +1,5 @@
 import 'package:clerk_auth/clerk_api/clerk_api.dart';
+import 'package:common/common.dart';
 import 'package:dart_dotenv/dart_dotenv.dart';
 import 'package:test/test.dart';
 
@@ -9,12 +10,14 @@ void main() {
 
   final env = TestEnv();
 
-  setUpAll(() {
+  setUpAll(() async {
     final dotEnv = DotEnv(filePath: '.env.test');
     final values = dotEnv.getDotEnv();
     env.addAll(values);
 
     api = Api(publicKey: env.publicKey, publishableKey: env.publishableKey);
+
+    await setUpLogging(printer: TestLogPrinter());
   });
 
   group('Can sign in:', () {
@@ -25,7 +28,7 @@ void main() {
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       final signIn = response.client!.signIn!;
-      response = await api.attemptVerification(
+      response = await api.attemptSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.password,
@@ -48,7 +51,7 @@ void main() {
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
-      response = await api.prepareVerification(
+      response = await api.prepareSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailCode,
@@ -56,7 +59,7 @@ void main() {
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
-      response = await api.attemptVerification(
+      response = await api.attemptSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailCode,
@@ -82,7 +85,7 @@ void main() {
       final redirectUrl = 'https://redirect.to.somewhere';
 
       signIn = response.client!.signIn!;
-      response = await api.prepareVerification(
+      response = await api.prepareSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.emailLink,
@@ -101,7 +104,7 @@ void main() {
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
-      response = await api.prepareVerification(
+      response = await api.prepareSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.phoneCode,
@@ -109,7 +112,7 @@ void main() {
       expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
       signIn = response.client!.signIn!;
-      response = await api.attemptVerification(
+      response = await api.attemptSignInVerification(
         signIn,
         stage: FactorStage.first,
         strategy: Strategy.phoneCode,

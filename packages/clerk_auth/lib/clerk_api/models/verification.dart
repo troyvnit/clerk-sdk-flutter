@@ -20,7 +20,8 @@ class Verification {
     this.nonce,
   });
 
-  factory Verification.fromJson(Map<String, dynamic> json) => _$VerificationFromJson(json);
+  factory Verification.fromJson(Map<String, dynamic> json) =>
+      _$VerificationFromJson(json);
 
   Map<String, dynamic> toJson() => _$VerificationToJson(this);
 }

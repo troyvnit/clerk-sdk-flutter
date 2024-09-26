@@ -54,7 +54,8 @@ class Api with Logging {
   Future<bool> _delete(String path) async {
     try {
       final headers = _headers(HttpMethod.delete);
-      final resp = await _fetch(method: HttpMethod.delete, path: path, headers: headers);
+      final resp =
+          await _fetch(method: HttpMethod.delete, path: path, headers: headers);
       if (resp.statusCode == 200) {
         tokenCache.clear();
         return true;
@@ -173,7 +174,8 @@ class Api with Logging {
 
   Future<String> sessionToken() async {
     if (tokenCache.sessionToken.isEmpty && tokenCache.canRefreshSessionToken) {
-      final resp = await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
+      final resp =
+          await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
       if (resp.statusCode == HttpStatus.ok) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         tokenCache.sessionToken = body[_kJwtKey] as String;
@@ -192,14 +194,16 @@ class Api with Logging {
   }) async {
     try {
       headers = _headers(method, headers);
-      final resp = await _fetch(method: method, path: url, params: params, headers: headers);
+      final resp = await _fetch(
+          method: method, path: url, params: params, headers: headers);
 
       final body = json.decode(resp.body) as Map<String, dynamic>;
       if (body['client'] case Map<String, dynamic> clientJson) {
         switch (resp.statusCode) {
           case 200:
             final client = Client.fromJson(clientJson);
-            final response = ApiResponse(client: client, status: resp.statusCode);
+            final response =
+                ApiResponse(client: client, status: resp.statusCode);
             tokenCache.updateFrom(resp, client.activeSession);
             return response;
 
@@ -215,11 +219,14 @@ class Api with Logging {
       } else {
         logSevere('No client json received');
         // logSevere(body);
-        return ApiResponse(status: HttpStatus.noContent, errorDetail: 'No data received');
+        return ApiResponse(
+            status: HttpStatus.noContent, errorDetail: 'No data received');
       }
     } catch (error, stacktrace) {
       logSevere('Error during fetch', error, stacktrace);
-      return ApiResponse(status: HttpStatus.internalServerError, errorDetail: error.toString());
+      return ApiResponse(
+          status: HttpStatus.internalServerError,
+          errorDetail: error.toString());
     }
   }
 
@@ -238,16 +245,23 @@ class Api with Logging {
     };
     final body = method.isNotGet ? params : null;
     final uri = _uri(path, queryParams);
-    return await _client.sendHttpRequest(method, uri, body: body, headers: headers);
+    return await _client.sendHttpRequest(method, uri,
+        body: body, headers: headers);
   }
 
-  Uri _uri(String path, Map<String, dynamic> params) =>
-      Uri(scheme: _scheme, host: domain, path: 'v1$path', queryParameters: params.toStringMap());
+  Uri _uri(String path, Map<String, dynamic> params) => Uri(
+      scheme: _scheme,
+      host: domain,
+      path: 'v1$path',
+      queryParameters: params.toStringMap());
 
-  Map<String, String> _headers(HttpMethod method, [Map<String, String>? headers]) => {
+  Map<String, String> _headers(HttpMethod method,
+          [Map<String, String>? headers]) =>
+      {
         HttpHeaders.acceptHeader: 'application/json',
-        HttpHeaders.contentTypeHeader:
-            method.isGet ? 'application/json' : 'application/x-www-form-urlencoded',
+        HttpHeaders.contentTypeHeader: method.isGet
+            ? 'application/json'
+            : 'application/x-www-form-urlencoded',
         if (tokenCache.clientToken.isNotEmpty) //
           HttpHeaders.authorizationHeader: tokenCache.clientToken,
         if (headers is Map<String, String>) //
@@ -261,7 +275,8 @@ class Api with Logging {
     }
 
     final paddingIndex = key.indexOf('=', underscoreIndex);
-    String encodedPart = key.substring(underscoreIndex, paddingIndex > 0 ? paddingIndex : null);
+    String encodedPart =
+        key.substring(underscoreIndex, paddingIndex > 0 ? paddingIndex : null);
     final overBy = encodedPart.length % 4;
     if (overBy > 0) {
       encodedPart = encodedPart.padRight(encodedPart.length + 4 - overBy, '=');
@@ -291,5 +306,6 @@ extension SendExtension on http.Client {
 }
 
 extension StringMapExtension on Map {
-  Map<String, String> toStringMap() => map((k, v) => MapEntry(k.toString(), v.toString()));
+  Map<String, String> toStringMap() =>
+      map((k, v) => MapEntry(k.toString(), v.toString()));
 }

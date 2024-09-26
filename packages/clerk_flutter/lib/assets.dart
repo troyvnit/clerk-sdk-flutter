@@ -12,7 +12,8 @@ class ClerkAssets {
   static const String securedByClerkLogo = '$_kAssetsPath/secured-by-clerk.svg';
 
   /// Default organization logo.
-  static const String defaultOrganizationLogo = '$_kAssetsPath/default-organization-logo.svg';
+  static const String defaultOrganizationLogo =
+      '$_kAssetsPath/default-organization-logo.svg';
 
   /// Google logo.
   static const String googleLogo = '$_kAssetsPath/google-logo.svg';

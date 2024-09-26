@@ -34,7 +34,8 @@ class Organization {
     required this.createdAt,
   });
 
-  factory Organization.fromJson(Map<String, dynamic> json) => _$OrganizationFromJson(json);
+  factory Organization.fromJson(Map<String, dynamic> json) =>
+      _$OrganizationFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrganizationToJson(this);
 }

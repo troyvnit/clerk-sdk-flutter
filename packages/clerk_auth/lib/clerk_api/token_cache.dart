@@ -14,7 +14,8 @@ class TokenCache {
   final RSAPublicKey publicKey;
   final logger = Logger();
 
-  bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
+  bool get canRefreshSessionToken =>
+      clientToken.isNotEmpty && sessionId.isNotEmpty;
 
   String sessionId = "";
 
@@ -62,7 +63,8 @@ class TokenCache {
   String _clientToken = "";
   String _sessionToken = "";
   DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
-  bool get _sessionTokenHasExpired => DateTime.now().isAfter(_sessionTokenExpiry);
+  bool get _sessionTokenHasExpired =>
+      DateTime.now().isAfter(_sessionTokenExpiry);
 
   void updateFrom(http.Response resp, Session? session) {
     final newClientToken = resp.headers[HttpHeaders.authorizationHeader];

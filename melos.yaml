@@ -2,7 +2,7 @@ name: clerk_sdk
 
 packages:
   - packages/**
-  - packages/clerk_flutter/widgetbook_workspace
+  - packages/clerk_flutter/widgetbook
 
 ide:
   intellij:

@@ -12,8 +12,7 @@ class ClerkAssets {
   static const String securedByClerkLogo = '$_kAssetsPath/secured-by-clerk.svg';
 
   /// Default organization logo.
-  static const String defaultOrganizationLogo =
-      '$_kAssetsPath/default-organization-logo.svg';
+  static const String defaultOrganizationLogo = '$_kAssetsPath/default-organization-logo.svg';
 
   /// Google logo.
   static const String googleLogo = '$_kAssetsPath/google-logo.svg';
@@ -26,4 +25,16 @@ class ClerkAssets {
 
   /// Chevron up down.
   static const String chevronUpDown = '$_kAssetsPath/chevron-up-down.svg';
+
+  /// Gear icon.
+  static const String gearIcon = '$_kAssetsPath/gear-icon.svg';
+
+  /// Sign out icon.
+  static const String signOutIcon = '$_kAssetsPath/sign-out-icon.svg';
+
+  /// Sign out icon light.
+  static const String signOutIconLight = '$_kAssetsPath/sign-out-icon-light.svg';
+
+  /// Add icon.
+  static const String addIcon = '$_kAssetsPath/add-icon.svg';
 }

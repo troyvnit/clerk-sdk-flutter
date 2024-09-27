@@ -48,10 +48,16 @@ class ClerkMaterialButton extends StatelessWidget {
         fontSize: 12.0,
         fontWeight: FontWeight.w500,
         height: 1.0,
+        overflow: TextOverflow.ellipsis,
       ),
       child: IconTheme(
         data: IconThemeData(color: textColor, size: 16.0),
-        child: Center(child: label),
+        child: Center(
+          child: Padding(
+            padding: horizontalPadding12,
+            child: label,
+          ),
+        ),
       ),
     );
     return SizedBox(

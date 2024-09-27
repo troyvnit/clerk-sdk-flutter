@@ -1,8 +1,12 @@
+import 'package:clerk_flutter/assets.dart';
+import 'package:clerk_flutter/src/widgets/clerk_icon.dart';
 import 'package:clerk_flutter/style/colors.dart';
 import 'package:clerk_flutter/src/common.dart';
 import 'package:clerk_flutter/src/widgets/authentication/clerk_vertical_card.dart';
 import 'package:clerk_flutter/src/widgets/clerk_material_button.dart';
+import 'package:clerk_flutter/style/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// The [ClerkUserButton] is used to render the familiar user button UI popularized by
 /// Google.
@@ -18,7 +22,13 @@ import 'package:flutter/material.dart';
 @immutable
 class ClerkUserButton extends StatefulWidget {
   /// Constructs a new [ClerkUserButton].
-  const ClerkUserButton({super.key});
+  const ClerkUserButton({
+    super.key,
+    this.avatar,
+  });
+
+  /// The user's avatar.
+  final Widget? avatar;
 
   @override
   State<ClerkUserButton> createState() => _ClerkUserButtonState();
@@ -47,20 +57,14 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                 padding: horizontalPadding32,
                 child: Row(
                   children: [
-                    Icon(Icons.logout),
+                    ClerkIcon(ClerkAssets.signOutIconLight),
                     horizontalMargin12,
-                    Text('Sign out of all accounts'),
+                    Text(
+                      'Sign out of all accounts',
+                      maxLines: 1,
+                      style: ClerkTextStyle.userButtonTitle,
+                    ),
                   ],
-                ),
-              ),
-              verticalMargin12,
-              const Divider(),
-              verticalMargin12,
-              Center(
-                child: SizedBox(
-                  height: 40.0,
-                  width: 150.0,
-                  child: const Placeholder(),
                 ),
               ),
               verticalMargin12,
@@ -68,8 +72,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
           ),
         ),
       ],
-      builder:
-          (BuildContext context, MenuController controller, Widget? child) {
+      builder: (BuildContext context, MenuController controller, Widget? child) {
         return GestureDetector(
           onTap: () {
             if (controller.isOpen) {
@@ -81,7 +84,14 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
           child: child,
         );
       },
-      child: const CircleAvatar(),
+      child: CircleAvatar(
+        backgroundColor: ClerkColors.brightGrey,
+        radius: 28.0,
+        child: ClipRRect(
+          borderRadius: borderRadius28,
+          child: widget.avatar,
+        ),
+      ),
     );
   }
 }
@@ -128,9 +138,12 @@ class _UserSelector extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final user in _users) ...[
-            _UserTile(
-              user: user,
-              selected: selectedUserIndex == _users.indexOf(user),
+            Padding(
+              padding: horizontalPadding20 + verticalPadding16,
+              child: _UserTile(
+                user: user,
+                selected: selectedUserIndex == _users.indexOf(user),
+              ),
             ),
             Divider(
               height: 1.0,
@@ -138,9 +151,23 @@ class _UserSelector extends StatelessWidget {
               color: ClerkColors.lightGrey,
             ),
           ],
-          const ListTile(
-            leading: Icon(Icons.add_circle_outline, size: 40.0),
-            title: Text('Add account'),
+          Padding(
+            padding: horizontalPadding20 + verticalPadding16,
+            child: const Row(
+              children: [
+                SizedBox(
+                  width: 36.0,
+                  child: Center(
+                    child: ClerkIcon(
+                      ClerkAssets.addIcon,
+                      size: 24.0,
+                    ),
+                  ),
+                ),
+                horizontalMargin8,
+                Text('Add account', maxLines: 1, style: ClerkTextStyle.userButtonTitle),
+              ],
+            ),
           ),
         ],
       ),
@@ -160,49 +187,76 @@ class _UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const CircleAvatar(),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(user.name),
-          Text(user.email),
-        ],
-      ),
-      subtitle: selected //
-          ? const Row(
-              children: [
-                Expanded(
-                  child: const ClerkMaterialButton(
-                    style: ClerkMaterialButtonStyle.light,
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.settings),
-                        horizontalMargin4,
-                        Text('Manage account'),
-                      ],
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          backgroundColor: ClerkColors.brightGrey,
+          radius: 18.0,
+          child: ClipRRect(
+            borderRadius: borderRadius18,
+            child: SvgPicture.network(
+              'https://api.dicebear.com/9.x/dylan/svg?seed=${user.email.hashCode}',
+            ),
+          ),
+        ),
+        horizontalMargin12,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                user.name,
+                style: ClerkTextStyle.userButtonSubtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                user.email,
+                style: ClerkTextStyle.userButtonSubtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (selected) //
+                ...[
+                verticalMargin16,
+                const Row(
+                  children: [
+                    Expanded(
+                      child: ClerkMaterialButton(
+                        style: ClerkMaterialButtonStyle.light,
+                        label: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClerkIcon(ClerkAssets.gearIcon),
+                            horizontalMargin8,
+                            Text('Manage account'),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                horizontalMargin8,
-                Expanded(
-                  child: const ClerkMaterialButton(
-                    style: ClerkMaterialButtonStyle.light,
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.logout),
-                        horizontalMargin4,
-                        Text('Sign out'),
-                      ],
+                    horizontalMargin8,
+                    Expanded(
+                      child: ClerkMaterialButton(
+                        style: ClerkMaterialButtonStyle.light,
+                        label: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClerkIcon(ClerkAssets.signOutIcon),
+                            horizontalMargin8,
+                            Text('Sign out'),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
-            )
-          : null,
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

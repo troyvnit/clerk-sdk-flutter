@@ -45,4 +45,10 @@ class ClerkColors {
 
   /// Seashell (bottom portion divider color).
   static const seashell = Color(0xFFf0f0f1);
+
+  /// Mid Grey (user button title color).
+  static const midGrey = Color(0xFF5e5f6e);
+
+  /// Mountain Mist (user button subtitle color).
+  static const mountainMist = Color(0xFF9394a1);
 }

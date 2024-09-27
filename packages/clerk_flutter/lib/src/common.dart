@@ -65,16 +65,11 @@ const verticalMargin96 = SizedBox(height: 96.0);
 
 const sliverVerticalMargin4 = SliverToBoxAdapter(child: SizedBox(height: 4.0));
 const sliverVerticalMargin8 = SliverToBoxAdapter(child: SizedBox(height: 8.0));
-const sliverVerticalMargin12 =
-    SliverToBoxAdapter(child: SizedBox(height: 12.0));
-const sliverVerticalMargin16 =
-    SliverToBoxAdapter(child: SizedBox(height: 16.0));
-const sliverVerticalMargin24 =
-    SliverToBoxAdapter(child: SizedBox(height: 24.0));
-const sliverVerticalMargin32 =
-    SliverToBoxAdapter(child: SizedBox(height: 32.0));
-const sliverVerticalMargin48 =
-    SliverToBoxAdapter(child: SizedBox(height: 48.0));
+const sliverVerticalMargin12 = SliverToBoxAdapter(child: SizedBox(height: 12.0));
+const sliverVerticalMargin16 = SliverToBoxAdapter(child: SizedBox(height: 16.0));
+const sliverVerticalMargin24 = SliverToBoxAdapter(child: SizedBox(height: 24.0));
+const sliverVerticalMargin32 = SliverToBoxAdapter(child: SizedBox(height: 32.0));
+const sliverVerticalMargin48 = SliverToBoxAdapter(child: SizedBox(height: 48.0));
 
 // Paddings
 
@@ -84,6 +79,7 @@ const horizontalPadding4 = EdgeInsets.symmetric(horizontal: 4.0);
 const horizontalPadding8 = EdgeInsets.symmetric(horizontal: 8.0);
 const horizontalPadding12 = EdgeInsets.symmetric(horizontal: 12.0);
 const horizontalPadding16 = EdgeInsets.symmetric(horizontal: 16.0);
+const horizontalPadding20 = EdgeInsets.symmetric(horizontal: 20.0);
 const horizontalPadding24 = EdgeInsets.symmetric(horizontal: 24.0);
 const horizontalPadding32 = EdgeInsets.symmetric(horizontal: 32.0);
 const horizontalPadding48 = EdgeInsets.symmetric(horizontal: 48.0);
@@ -160,10 +156,13 @@ const endPadding24 = EdgeInsetsDirectional.only(end: 24.0);
 const endPadding32 = EdgeInsetsDirectional.only(end: 32.0);
 const endPadding48 = EdgeInsetsDirectional.only(end: 48.0);
 
-final borderRadius4 = BorderRadius.circular(4);
-final borderRadius8 = BorderRadius.circular(8);
-final borderRadius12 = BorderRadius.circular(12);
-final borderRadius16 = BorderRadius.circular(16);
-final borderRadius24 = BorderRadius.circular(24);
-final borderRadius32 = BorderRadius.circular(32);
-final borderRadius48 = BorderRadius.circular(48);
+final borderRadius4 = BorderRadius.circular(4.0);
+final borderRadius8 = BorderRadius.circular(8.0);
+final borderRadius12 = BorderRadius.circular(12.0);
+final borderRadius16 = BorderRadius.circular(16.0);
+final borderRadius18 = BorderRadius.circular(18.0);
+final borderRadius24 = BorderRadius.circular(24.0);
+final borderRadius28 = BorderRadius.circular(28.0);
+final borderRadius32 = BorderRadius.circular(32.0);
+final borderRadius36 = BorderRadius.circular(36.0);
+final borderRadius48 = BorderRadius.circular(48.0);

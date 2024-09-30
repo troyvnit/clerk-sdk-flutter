@@ -49,7 +49,7 @@ class ClerkPhoneNumberFormField extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             borderRadius: borderRadius8,
             child: DecoratedBox(
-              decoration: inputDecoration,
+              decoration: insetBoxShadowDecoration,
               child: TextFormField(
                 decoration: InputDecoration(
                   border: outlineInputBorder,

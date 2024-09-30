@@ -12,10 +12,11 @@ import 'package:clerk_flutter/style/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// The [ClerkSignUpWidget] renders a UI for signing up users. The functionality of the
-/// [ClerkSignUpWidget] is controlled by the instance settings you specify in your Clerk
-/// Dashboard, such as sign-in and social connections. You can further customize your
-/// [ClerSignUpWidget] by passing additional properties
+/// The [ClerkSignUpWidget] renders a UI for signing up users.
+///
+/// The functionality of the [ClerkSignUpWidget] is controlled by the instance settings
+/// you specify in your Clerk Dashboard, such as sign-in and social connections. You can
+/// further customize your [ClerSignUpWidget] by passing additional properties.
 ///
 /// https://clerk.com/docs/components/authentication/sign-up
 ///
@@ -75,10 +76,7 @@ class _TopPortion extends StatelessWidget {
           padding: horizontalPadding32,
           child: Row(
             children: [
-              for (final connection in [
-                SocialConnection.google,
-                SocialConnection.github
-              ]) ...[
+              for (final connection in [SocialConnection.google, SocialConnection.github]) ...[
                 Expanded(
                   child: SocialConnectionButton(
                     key: ValueKey<SocialConnection>(connection),

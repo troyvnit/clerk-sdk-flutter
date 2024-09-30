@@ -86,7 +86,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
       },
       child: CircleAvatar(
         backgroundColor: ClerkColors.brightGrey,
-        radius: 28.0,
+        radius: 28.0 / 2.0,
         child: ClipRRect(
           borderRadius: borderRadius28,
           child: widget.avatar,

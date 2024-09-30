@@ -3,7 +3,7 @@
 import 'dart:ui';
 
 import 'package:clerk_flutter/style/colors.dart';
-import 'package:flutter/material.dart' show OutlineInputBorder;
+import 'package:flutter/material.dart' show Divider, OutlineInputBorder;
 import 'package:flutter/widgets.dart'
     show
         BorderRadius,
@@ -24,7 +24,7 @@ const outlineInputBorder = OutlineInputBorder(
   borderSide: BorderSide.none,
 );
 
-const inputDecoration = const BoxDecoration(
+const insetBoxShadowDecoration = const BoxDecoration(
   boxShadow: [
     BoxShadow(
       color: ClerkColors.seashell,
@@ -41,6 +41,8 @@ const inputDecoration = const BoxDecoration(
   ],
 );
 
+const divider = Divider(color: ClerkColors.seashell, thickness: 2.0, height: 2.0);
+
 // Margins
 
 const horizontalMargin4 = SizedBox(width: 4.0);
@@ -56,6 +58,7 @@ const verticalMargin4 = SizedBox(height: 4.0);
 const verticalMargin8 = SizedBox(height: 8.0);
 const verticalMargin12 = SizedBox(height: 12.0);
 const verticalMargin16 = SizedBox(height: 16.0);
+const verticalMargin20 = SizedBox(height: 20.0);
 const verticalMargin24 = SizedBox(height: 24.0);
 const verticalMargin28 = SizedBox(height: 28.0);
 const verticalMargin32 = SizedBox(height: 32.0);
@@ -78,6 +81,7 @@ const emptyPadding = EdgeInsets.zero;
 const horizontalPadding4 = EdgeInsets.symmetric(horizontal: 4.0);
 const horizontalPadding8 = EdgeInsets.symmetric(horizontal: 8.0);
 const horizontalPadding12 = EdgeInsets.symmetric(horizontal: 12.0);
+const horizontalPadding14 = EdgeInsets.symmetric(horizontal: 14.0);
 const horizontalPadding16 = EdgeInsets.symmetric(horizontal: 16.0);
 const horizontalPadding20 = EdgeInsets.symmetric(horizontal: 20.0);
 const horizontalPadding24 = EdgeInsets.symmetric(horizontal: 24.0);

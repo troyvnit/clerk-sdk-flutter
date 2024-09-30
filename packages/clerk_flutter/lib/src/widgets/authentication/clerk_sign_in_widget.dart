@@ -12,10 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 /// The [ClerkSignInWidget] renders a UI for signing in users.
-/// The functionality of the [ClerkSignInWidget] is controlled by the
-/// instance settings you specify in your Clerk Dashboard, such as
-/// sign-in and sign-ip options and social conntections. You can
-/// further customize you [ClersSignInWidget] by passing additional
+///
+/// The functionality of the [ClerkSignInWidget] is controlled by the instance settings you
+/// specify in your Clerk Dashboard, such as sign-in and sign-ip options and social
+/// conntections. You can further customize you [ClersSignInWidget] by passing additional
 /// properties.
 ///
 /// https://clerk.com/docs/components/authentication/sign-in

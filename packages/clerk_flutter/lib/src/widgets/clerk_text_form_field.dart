@@ -54,7 +54,7 @@ class ClerkTextFormField extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             borderRadius: borderRadius8,
             child: DecoratedBox(
-              decoration: inputDecoration,
+              decoration: insetBoxShadowDecoration,
               child: TextFormField(
                 decoration: const InputDecoration(
                   border: outlineInputBorder,

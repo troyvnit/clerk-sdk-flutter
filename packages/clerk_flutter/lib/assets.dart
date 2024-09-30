@@ -37,4 +37,10 @@ class ClerkAssets {
 
   /// Add icon.
   static const String addIcon = '$_kAssetsPath/add-icon.svg';
+
+  /// User profile icon.
+  static const String profileIcon = '$_kAssetsPath/profile-icon.svg';
+
+  /// Security icon light.
+  static const String securityIconLight = '$_kAssetsPath/security-icon-light.svg';
 }

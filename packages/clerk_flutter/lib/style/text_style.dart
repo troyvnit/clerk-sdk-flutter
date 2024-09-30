@@ -21,6 +21,12 @@ class ClerkTextStyle {
     color: ClerkColors.stormGrey,
   );
 
+  /// The Clerk-branded text style for subheadings in the user profile widget.
+  static const subtitleDark = TextStyle(
+    fontSize: 14.0,
+    color: ClerkColors.darkJungleGreen,
+  );
+
   /// The Clerk-branded text style for input field labels.
   static const inputLabel = TextStyle(
     fontSize: 14.0,

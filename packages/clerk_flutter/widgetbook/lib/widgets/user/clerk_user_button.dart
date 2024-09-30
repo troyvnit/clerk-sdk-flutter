@@ -1,6 +1,5 @@
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -31,7 +30,7 @@ Widget buildClerkUserButtonUseCase(BuildContext context) {
         _Quadrant.bottomLeft => const EdgeInsets.only(left: 16.0, bottom: 16.0),
       },
       child: ClerkUserButton(
-        avatar: SvgPicture.network('https://api.dicebear.com/9.x/dylan/svg?seed=$userName'),
+        avatar: RandomAvatar(seed: userName),
       ),
     ),
   );

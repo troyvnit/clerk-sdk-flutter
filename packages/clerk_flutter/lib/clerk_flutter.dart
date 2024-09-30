@@ -16,3 +16,7 @@ export 'src/enums/social_connection.dart';
 
 export 'src/widgets/user/clerk_user_button.dart';
 export 'src/widgets/user/clerk_user_profile_widget.dart';
+
+// WIDGETS ================================================================================
+
+export 'src/widgets/random_avatar.dart';

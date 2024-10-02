@@ -43,4 +43,13 @@ class ClerkAssets {
 
   /// Security icon light.
   static const String securityIconLight = '$_kAssetsPath/security-icon-light.svg';
+
+  /// Add icon simple dark.
+  static const String addIconSimpleLight = '$_kAssetsPath/add-icon-simple-dark.svg';
+
+  /// Dot icon.
+  static const String dotIcon = '$_kAssetsPath/dot-icon.svg';
+
+  /// Google logo in color.
+  static const String googleLogoColor = '$_kAssetsPath/google-logo-color.svg';
 }

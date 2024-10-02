@@ -49,6 +49,9 @@ class ClerkColors {
   /// Mid Grey (user button title color).
   static const midGrey = Color(0xFF5e5f6e);
 
-  /// Mountain Mist (user button subtitle color).
+  /// Mountain Mist (user button subtitle and status indicator color).
   static const mountainMist = Color(0xFF9394a1);
+
+  /// Deset Storm (status indicator color).
+  static const desertStorm = Color(0xFFf7f7f8);
 }

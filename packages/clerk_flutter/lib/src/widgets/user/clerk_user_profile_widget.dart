@@ -135,6 +135,31 @@ class _SecondChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const paddedDivider = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        verticalMargin20,
+        const Padding(
+          padding: horizontalPadding32,
+          child: divider,
+        ),
+        verticalMargin20,
+      ],
+    );
+    final primaryTag = DecoratedBox(
+      decoration: insetBoxShadowDecoration.copyWith(
+        color: ClerkColors.desertStorm,
+        borderRadius: borderRadius4,
+      ),
+      child: Padding(
+        padding: verticalPadding4 + horizontalPadding8,
+        child: const Text(
+          'Primary',
+          maxLines: 1,
+          style: TextStyle(color: ClerkColors.mountainMist),
+        ),
+      ),
+    );
     return DefaultTextStyle(
       style: ClerkTextStyle.subtitleDark.copyWith(height: 1.0),
       child: Column(
@@ -152,12 +177,7 @@ class _SecondChild extends StatelessWidget {
               ),
             ),
           ),
-          verticalMargin20,
-          const Padding(
-            padding: horizontalPadding32,
-            child: divider,
-          ),
-          verticalMargin20,
+          paddedDivider,
           const Padding(
             padding: horizontalPadding32,
             child: Row(
@@ -190,12 +210,7 @@ class _SecondChild extends StatelessWidget {
               ],
             ),
           ),
-          verticalMargin24,
-          const Padding(
-            padding: horizontalPadding32,
-            child: divider,
-          ),
-          verticalMargin24,
+          paddedDivider,
           Padding(
             padding: horizontalPadding32,
             child: Row(
@@ -214,17 +229,102 @@ class _SecondChild extends StatelessWidget {
                         children: [
                           const Text('example@clerk.dev', maxLines: 1),
                           horizontalMargin8,
-                          DecoratedBox(
-                            decoration: insetBoxShadowDecoration.copyWith(
-                              color: ClerkColors.whiteSmoke,
-                              borderRadius: borderRadius8,
-                            ),
-                            child: const Text('Primary', maxLines: 1),
+                          primaryTag,
+                        ],
+                      ),
+                      verticalMargin20,
+                      const Text('example@personal.com', maxLines: 1),
+                      verticalMargin20,
+                      const Text('example@work.com', maxLines: 1),
+                      verticalMargin20,
+                      const Row(
+                        children: [
+                          ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
+                          horizontalMargin12,
+                          Text('Add email address', maxLines: 1),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          paddedDivider,
+          Padding(
+            padding: horizontalPadding32,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  width: _firstColumnWidth,
+                  child: Text('Phone numbers', maxLines: 1),
+                ),
+                SizedBox(
+                  width: _secondColumnWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('+1 (555) 123-4567', maxLines: 1),
+                          horizontalMargin8,
+                          primaryTag,
+                        ],
+                      ),
+                      verticalMargin20,
+                      const Row(
+                        children: [
+                          ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
+                          horizontalMargin12,
+                          Text('Add phone number', maxLines: 1),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          paddedDivider,
+          const Padding(
+            padding: horizontalPadding32,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: _firstColumnWidth,
+                  child: Text('Connected accounts', maxLines: 1),
+                ),
+                SizedBox(
+                  width: _secondColumnWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClerkIcon(ClerkAssets.googleLogoColor, size: 14.0),
+                          horizontalMargin4,
+                          Text('Google', maxLines: 1),
+                          horizontalMargin8,
+                          ClerkIcon(ClerkAssets.dotIcon, size: 4.0),
+                          horizontalMargin8,
+                          Text(
+                            'example@email.com',
+                            maxLines: 1,
+                            style: TextStyle(color: ClerkColors.mountainMist),
                           ),
                         ],
                       ),
-                      const Text('example@personal.com', maxLines: 1),
-                      const Text('example@work.com', maxLines: 1),
+                      verticalMargin20,
+                      const Row(
+                        children: [
+                          ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
+                          horizontalMargin12,
+                          Text('Connect account', maxLines: 1),
+                        ],
+                      ),
                     ],
                   ),
                 ),

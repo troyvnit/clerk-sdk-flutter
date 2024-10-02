@@ -52,4 +52,7 @@ class ClerkAssets {
 
   /// Google logo in color.
   static const String googleLogoColor = '$_kAssetsPath/google-logo-color.svg';
+
+  /// Upload logo placeholder.
+  static const String uploadLogoPlaceholder = '$_kAssetsPath/upload-logo-placeholder.svg';
 }

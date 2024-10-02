@@ -12,7 +12,7 @@ class ClerkVerticalCard extends StatelessWidget {
   const ClerkVerticalCard({
     super.key,
     required this.topPortion,
-    required this.bottomPortion,
+    this.bottomPortion = emptyWidget,
   });
 
   /// Widget to be displayed in the elevated top card in the stack.

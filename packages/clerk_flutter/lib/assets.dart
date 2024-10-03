@@ -12,7 +12,8 @@ class ClerkAssets {
   static const String securedByClerkLogo = '$_kAssetsPath/secured-by-clerk.svg';
 
   /// Default organization logo.
-  static const String defaultOrganizationLogo = '$_kAssetsPath/default-organization-logo.svg';
+  static const String defaultOrganizationLogo =
+      '$_kAssetsPath/default-organization-logo.svg';
 
   /// Google logo.
   static const String googleLogo = '$_kAssetsPath/google-logo.svg';
@@ -33,7 +34,8 @@ class ClerkAssets {
   static const String signOutIcon = '$_kAssetsPath/sign-out-icon.svg';
 
   /// Sign out icon light.
-  static const String signOutIconLight = '$_kAssetsPath/sign-out-icon-light.svg';
+  static const String signOutIconLight =
+      '$_kAssetsPath/sign-out-icon-light.svg';
 
   /// Add icon.
   static const String addIcon = '$_kAssetsPath/add-icon.svg';
@@ -42,10 +44,12 @@ class ClerkAssets {
   static const String profileIcon = '$_kAssetsPath/profile-icon.svg';
 
   /// Security icon light.
-  static const String securityIconLight = '$_kAssetsPath/security-icon-light.svg';
+  static const String securityIconLight =
+      '$_kAssetsPath/security-icon-light.svg';
 
   /// Add icon simple dark.
-  static const String addIconSimpleLight = '$_kAssetsPath/add-icon-simple-dark.svg';
+  static const String addIconSimpleLight =
+      '$_kAssetsPath/add-icon-simple-dark.svg';
 
   /// Dot icon.
   static const String dotIcon = '$_kAssetsPath/dot-icon.svg';
@@ -54,5 +58,16 @@ class ClerkAssets {
   static const String googleLogoColor = '$_kAssetsPath/google-logo-color.svg';
 
   /// Upload logo placeholder.
-  static const String uploadLogoPlaceholder = '$_kAssetsPath/upload-logo-placeholder.svg';
+  static const String uploadLogoPlaceholder =
+      '$_kAssetsPath/upload-logo-placeholder.svg';
+
+  /// General icon selected.
+  static const String generalIconSelected =
+      '$_kAssetsPath/general-icon-selected.svg';
+
+  /// Members icon.
+  static const String membersIcon = '$_kAssetsPath/members-icon.svg';
+
+  /// Clerk sample app icon.
+  static const String clerkSampleAppIcon = '$_kAssetsPath/clerk-sample-app.svg';
 }

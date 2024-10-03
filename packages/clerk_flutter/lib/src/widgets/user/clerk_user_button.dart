@@ -72,7 +72,8 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
           ),
         ),
       ],
-      builder: (BuildContext context, MenuController controller, Widget? child) {
+      builder:
+          (BuildContext context, MenuController controller, Widget? child) {
         return GestureDetector(
           onTap: () {
             if (controller.isOpen) {
@@ -165,7 +166,8 @@ class _UserSelector extends StatelessWidget {
                   ),
                 ),
                 horizontalMargin8,
-                Text('Add account', maxLines: 1, style: ClerkTextStyle.userButtonTitle),
+                Text('Add account',
+                    maxLines: 1, style: ClerkTextStyle.userButtonTitle),
               ],
             ),
           ),

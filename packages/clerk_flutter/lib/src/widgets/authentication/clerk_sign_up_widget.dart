@@ -76,7 +76,10 @@ class _TopPortion extends StatelessWidget {
           padding: horizontalPadding32,
           child: Row(
             children: [
-              for (final connection in [SocialConnection.google, SocialConnection.github]) ...[
+              for (final connection in [
+                SocialConnection.google,
+                SocialConnection.github
+              ]) ...[
                 Expanded(
                   child: SocialConnectionButton(
                     key: ValueKey<SocialConnection>(connection),

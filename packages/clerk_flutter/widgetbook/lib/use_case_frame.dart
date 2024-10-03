@@ -4,26 +4,30 @@ class UseCaseFrame extends StatelessWidget {
   const UseCaseFrame({
     super.key,
     required this.child,
-    this.height,
     this.width,
+    this.height,
   });
 
   final Widget child;
-  final double? height;
   final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Center(
-        child: SingleChildScrollView(
-          child: SizedBox(
-            height: height,
-            width: width,
-            child: child,
-          ),
-        ),
+        child: LayoutBuilder(builder: (context, contraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints.tightFor(
+                width: width ?? contraints.maxWidth,
+                height: height ?? contraints.maxHeight,
+              ),
+              child: child,
+            ),
+          );
+        }),
       ),
     );
   }

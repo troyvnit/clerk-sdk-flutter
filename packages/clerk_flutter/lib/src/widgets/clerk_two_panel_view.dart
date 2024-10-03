@@ -30,7 +30,7 @@ class ClerkTwoPanelView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Flexible(
+          Expanded(
             flex: 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -52,7 +52,7 @@ class ClerkTwoPanelView extends StatelessWidget {
               ],
             ),
           ),
-          Flexible(
+          Expanded(
             flex: 3,
             child: Material(
               borderRadius: borderRadius12,

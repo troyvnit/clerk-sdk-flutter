@@ -54,4 +54,7 @@ class ClerkColors {
 
   /// Deset Storm (status indicator color).
   static const desertStorm = Color(0xFFf7f7f8);
+
+  /// Carmine pink (cta and error color).
+  static const carminePink = Color(0xFFef4444);
 }

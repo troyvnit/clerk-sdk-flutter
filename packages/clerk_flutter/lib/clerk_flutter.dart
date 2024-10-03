@@ -19,6 +19,7 @@ export 'src/widgets/user/clerk_user_profile_widget.dart';
 
 // ORGANIZATION ===========================================================================
 
+export 'src/widgets/organization/clerk_organization_profile_widget.dart';
 export 'src/widgets/organization/clerk_create_organization_widget.dart';
 
 // WIDGETS ================================================================================

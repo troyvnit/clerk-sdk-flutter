@@ -3,18 +3,18 @@ import 'package:clerk_flutter/src/common.dart';
 import 'package:clerk_flutter/src/widgets/clerk_icon.dart';
 import 'package:clerk_flutter/src/widgets/clerk_profile_nav_tile.dart';
 import 'package:clerk_flutter/src/widgets/clerk_two_panel_view.dart';
-import 'package:clerk_flutter/src/widgets/random_avatar.dart';
 import 'package:clerk_flutter/style/colors.dart';
 import 'package:clerk_flutter/style/text_style.dart';
 import 'package:flutter/material.dart';
 
-/// The [ClerkUserProfileWidget] component is used to render a beautiful, full-featured
-/// account management UI that allows users to manage their profile and security settings.
+/// The <OrganizationProfile /> component is used to render a beautiful, full-featured
+/// organization management UI that allows users to manage their organization profile and
+/// security settings.
 ///
 @immutable
-class ClerkUserProfileWidget extends StatelessWidget {
-  /// Constructs a const [ClerkUserProfileWidget].
-  const ClerkUserProfileWidget({super.key});
+class ClerkOrganizationProfileWidget extends StatelessWidget {
+  /// Constructs a const [ClerkOrganizationProfileWidget].
+  const ClerkOrganizationProfileWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class _FirstChild extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Account',
+                'Organization',
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: ClerkTextStyle.title,
@@ -54,7 +54,7 @@ class _FirstChild extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Manage your account info.',
+                'Manage your organization',
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: ClerkTextStyle.subtitle,
@@ -65,16 +65,16 @@ class _FirstChild extends StatelessWidget {
           Padding(
             padding: horizontalPadding24,
             child: ProfileNavTile(
-              icon: ClerkIcon(ClerkAssets.profileIcon),
-              title: 'Profile',
+              icon: ClerkIcon(ClerkAssets.generalIconSelected),
+              title: 'General',
               selected: true,
             ),
           ),
           Padding(
             padding: horizontalPadding24,
             child: ProfileNavTile(
-              icon: ClerkIcon(ClerkAssets.securityIconLight),
-              title: 'Security',
+              icon: ClerkIcon(ClerkAssets.membersIcon),
+              title: 'Members',
               selected: false,
             ),
           ),
@@ -101,39 +101,25 @@ class _SecondChild extends StatelessWidget {
         verticalMargin20,
       ],
     );
-    final primaryTag = DecoratedBox(
-      decoration: insetBoxShadowDecoration.copyWith(
-        color: ClerkColors.desertStorm,
-        borderRadius: borderRadius4,
-      ),
-      child: Padding(
-        padding: verticalPadding4 + horizontalPadding8,
-        child: const Text(
-          'Primary',
-          maxLines: 1,
-          style: TextStyle(color: ClerkColors.mountainMist),
-        ),
-      ),
-    );
     return DefaultTextStyle(
       style: ClerkTextStyle.subtitleDark.copyWith(height: 1.0),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           verticalMargin32,
-          const Padding(
+          Padding(
             padding: horizontalPadding32,
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Profile details',
+                'Organization profile',
                 maxLines: 1,
                 style: ClerkTextStyle.title,
               ),
             ),
           ),
           paddedDivider,
-          const Padding(
+          Padding(
             padding: horizontalPadding32,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -147,12 +133,12 @@ class _SecondChild extends StatelessWidget {
                   width: secondColumnWidth,
                   child: Row(
                     children: [
-                      RandomAvatar(
-                        seed: 'Jaylon Dias',
+                      ClerkIcon(
+                        ClerkAssets.clerkSampleAppIcon,
                         size: 48.0,
                       ),
                       horizontalMargin16,
-                      Text('Jaylon Dias', maxLines: 1),
+                      Text('Clerk Sample App', maxLines: 1),
                     ],
                   ),
                 ),
@@ -171,9 +157,9 @@ class _SecondChild extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: firstColumnWidth,
-                  child: Text('Email addresses', maxLines: 1),
+                  child: Text('Verified domains', maxLines: 1),
                 ),
                 SizedBox(
                   width: secondColumnWidth,
@@ -182,22 +168,16 @@ class _SecondChild extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Text('example@clerk.dev', maxLines: 1),
-                          horizontalMargin8,
-                          primaryTag,
-                        ],
-                      ),
-                      verticalMargin20,
-                      const Text('example@personal.com', maxLines: 1),
-                      verticalMargin20,
-                      const Text('example@work.com', maxLines: 1),
-                      verticalMargin20,
-                      const Row(
-                        children: [
                           ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
                           horizontalMargin12,
-                          Text('Add email address', maxLines: 1),
+                          Text('Add domain', maxLines: 1),
                         ],
+                      ),
+                      verticalMargin10,
+                      Text(
+                        'Allow users to join the organization automatically or request to join '
+                        'based on a verified email domain.',
+                        style: TextStyle(color: ClerkColors.mountainMist),
                       ),
                     ],
                   ),
@@ -211,77 +191,14 @@ class _SecondChild extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(
-                  width: firstColumnWidth,
-                  child: Text('Phone numbers', maxLines: 1),
-                ),
-                SizedBox(
-                  width: secondColumnWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          const Text('+1 (555) 123-4567', maxLines: 1),
-                          horizontalMargin8,
-                          primaryTag,
-                        ],
-                      ),
-                      verticalMargin20,
-                      const Row(
-                        children: [
-                          ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
-                          horizontalMargin12,
-                          Text('Add phone number', maxLines: 1),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          paddedDivider,
-          const Padding(
-            padding: horizontalPadding32,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
                 SizedBox(
                   width: firstColumnWidth,
-                  child: Text('Connected accounts', maxLines: 1),
+                  child: Text('Leave organization', maxLines: 1),
                 ),
-                SizedBox(
-                  width: secondColumnWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ClerkIcon(ClerkAssets.googleLogoColor, size: 14.0),
-                          horizontalMargin4,
-                          Text('Google', maxLines: 1),
-                          horizontalMargin8,
-                          ClerkIcon(ClerkAssets.dotIcon, size: 4.0),
-                          horizontalMargin8,
-                          Text(
-                            'example@email.com',
-                            maxLines: 1,
-                            style: TextStyle(color: ClerkColors.mountainMist),
-                          ),
-                        ],
-                      ),
-                      verticalMargin20,
-                      const Row(
-                        children: [
-                          ClerkIcon(ClerkAssets.addIconSimpleLight, size: 10.0),
-                          horizontalMargin12,
-                          Text('Connect account', maxLines: 1),
-                        ],
-                      ),
-                    ],
-                  ),
+                Text(
+                  'Leave',
+                  maxLines: 1,
+                  style: TextStyle(color: ClerkColors.carminePink),
                 ),
               ],
             ),

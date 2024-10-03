@@ -30,7 +30,8 @@ class RandomAvatar extends StatelessWidget {
         radius: size / 2.0,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(size),
-          child: SvgPicture.network('https://api.dicebear.com/9.x/dylan/svg?seed=$seed'),
+          child: SvgPicture.network(
+              'https://api.dicebear.com/9.x/dylan/svg?seed=$seed'),
         ),
       ),
     );

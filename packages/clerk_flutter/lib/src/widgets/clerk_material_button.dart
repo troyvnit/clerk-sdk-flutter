@@ -23,6 +23,7 @@ class ClerkMaterialButton extends StatelessWidget {
     required this.label,
     this.style = ClerkMaterialButtonStyle.dark,
     this.elevation = 2.0,
+    this.square = false,
   });
 
   /// Called when the button is tapped or otherwise activated.
@@ -36,6 +37,9 @@ class ClerkMaterialButton extends StatelessWidget {
 
   /// Elevation creating shadow effect.
   final double elevation;
+
+  /// Should the button be square?
+  final bool square;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +66,7 @@ class ClerkMaterialButton extends StatelessWidget {
     );
     return SizedBox(
       height: 32.0,
+      width: square ? 32.0 : null,
       child: FilledButton(
         onPressed: onPressed,
         style: ButtonStyle(

@@ -19,10 +19,12 @@ import 'package:widgetbook_workspace/widgets/organization/clerk_create_organizat
     as _i5;
 import 'package:widgetbook_workspace/widgets/organization/clerk_organization_profile_widget.dart'
     as _i6;
-import 'package:widgetbook_workspace/widgets/user/clerk_user_button.dart'
+import 'package:widgetbook_workspace/widgets/organization/clerk_organization_switcher_widget.dart'
     as _i7;
-import 'package:widgetbook_workspace/widgets/user/clerk_user_profile_widget.dart'
+import 'package:widgetbook_workspace/widgets/user/clerk_user_button.dart'
     as _i8;
+import 'package:widgetbook_workspace/widgets/user/clerk_user_profile_widget.dart'
+    as _i9;
 
 final directories = <_i1.WidgetbookNode>[
   _i1.WidgetbookLeafComponent(
@@ -71,6 +73,13 @@ final directories = <_i1.WidgetbookNode>[
               builder: _i6.buildClerkOrganizationProfileWidgetUseCase,
             ),
           ),
+          _i1.WidgetbookLeafComponent(
+            name: 'ClerkOrganizationSwitcherWidget',
+            useCase: _i1.WidgetbookUseCase(
+              name: 'Organization',
+              builder: _i7.buildClerkOrganizationSwitcherWidgetUseCase,
+            ),
+          ),
         ],
       ),
       _i1.WidgetbookFolder(
@@ -80,14 +89,14 @@ final directories = <_i1.WidgetbookNode>[
             name: 'ClerkUserButton',
             useCase: _i1.WidgetbookUseCase(
               name: 'User',
-              builder: _i7.buildClerkUserButtonUseCase,
+              builder: _i8.buildClerkUserButtonUseCase,
             ),
           ),
           _i1.WidgetbookLeafComponent(
             name: 'ClerkUserProfileWidget',
             useCase: _i1.WidgetbookUseCase(
               name: 'User',
-              builder: _i8.buildClerkUserProfileWidgetUseCase,
+              builder: _i9.buildClerkUserProfileWidgetUseCase,
             ),
           ),
         ],

@@ -57,4 +57,10 @@ class ClerkColors {
 
   /// Carmine pink (cta and error color).
   static const carminePink = Color(0xFFef4444);
+
+  /// Soft Peach (organization switcher color).
+  static const softPeach = Color(0xFFeeeef0);
+
+  /// Alabaster (organization switcher hover color).
+  static const alabaster = Color(0xFFfafafb);
 }

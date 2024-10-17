@@ -17,7 +17,7 @@ Client _$ClientFromJson(Map<String, dynamic> json) => Client(
       sessions: (json['sessions'] as List<dynamic>?)
               ?.map((e) => Session.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          const [],
       lastActiveSessionId: json['last_active_session_id'] as String?,
       updatedAt: intToDateTime(json['updated_at']),
       createdAt: intToDateTime(json['created_at']),
@@ -28,7 +28,7 @@ Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
       'sign_in': instance.signIn?.toJson(),
       'sign_up': instance.signUp?.toJson(),
       'last_active_session_id': instance.lastActiveSessionId,
+      'sessions': instance.sessions.map((e) => e.toJson()).toList(),
       'updated_at': instance.updatedAt?.toIso8601String(),
       'created_at': instance.createdAt?.toIso8601String(),
-      'sessions': instance.sessions.map((e) => e.toJson()).toList(),
     };

@@ -6,11 +6,13 @@ part 'sign_in_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SignInSettings {
+  static const empty = SignInSettings();
+
   @JsonKey(readValue: _readSecondFactorRequired)
   final bool secondFactorRequired;
 
   const SignInSettings({
-    required this.secondFactorRequired,
+    this.secondFactorRequired = false,
   });
 
   factory SignInSettings.fromJson(Map<String, dynamic> json) => _$SignInSettingsFromJson(json);

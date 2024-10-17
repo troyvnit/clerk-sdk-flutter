@@ -6,6 +6,8 @@ part 'social_entity.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SocialEntity {
+  static const empty = SocialEntity();
+
   final String name;
   final String logoUrl;
   final Strategy strategy;
@@ -29,15 +31,15 @@ class SocialEntity {
   final bool deprecated;
 
   const SocialEntity({
-    required this.isEnabled,
-    required this.isRequired,
-    required this.authenticatable,
-    required this.blockEmailSubaddresses,
-    required this.strategy,
-    required this.notSelectable,
-    required this.deprecated,
-    required this.name,
-    required this.logoUrl,
+    this.isEnabled = false,
+    this.isRequired = false,
+    this.authenticatable = false,
+    this.blockEmailSubaddresses = false,
+    this.strategy = Strategy.admin,
+    this.notSelectable = false,
+    this.deprecated = false,
+    this.name = '',
+    this.logoUrl = '',
   });
 
   factory SocialEntity.fromJson(Map<String, dynamic> json) => _$SocialEntityFromJson(json);

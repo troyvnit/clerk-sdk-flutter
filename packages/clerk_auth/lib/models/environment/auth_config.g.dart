@@ -7,34 +7,42 @@ part of 'auth_config.dart';
 // **************************************************************************
 
 AuthConfig _$AuthConfigFromJson(Map<String, dynamic> json) => AuthConfig(
-      id: json['id'] as String,
-      singleSessionMode: json['single_session_mode'] as bool,
+      id: json['id'] as String? ?? '',
+      singleSessionMode: json['single_session_mode'] as bool? ?? false,
       enhancedEmailDeliverability:
-          json['enhanced_email_deliverability'] as bool,
-      testMode: json['test_mode'] as bool,
-      demo: json['demo'] as bool,
-      cookielessDev: json['cookieless_dev'] as bool,
-      urlBasedSessionSyncing: json['url_based_session_syncing'] as bool,
+          json['enhanced_email_deliverability'] as bool? ?? false,
+      testMode: json['test_mode'] as bool? ?? false,
+      demo: json['demo'] as bool? ?? false,
+      cookielessDev: json['cookieless_dev'] as bool? ?? false,
+      urlBasedSessionSyncing:
+          json['url_based_session_syncing'] as bool? ?? false,
       identificationStrategies:
-          (json['identification_strategies'] as List<dynamic>)
-              .map((e) => $enumDecode(_$IdentificationStrategyEnumMap, e))
-              .toList(),
-      firstFactors: (json['first_factors'] as List<dynamic>)
-          .map((e) => $enumDecode(_$StrategyEnumMap, e))
-          .toList(),
-      secondFactors: (json['second_factors'] as List<dynamic>)
-          .map((e) => $enumDecode(_$StrategyEnumMap, e))
-          .toList(),
+          (json['identification_strategies'] as List<dynamic>?)
+                  ?.map((e) => $enumDecode(_$IdentificationStrategyEnumMap, e))
+                  .toList() ??
+              const [],
+      firstFactors: (json['first_factors'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+              .toList() ??
+          const [],
+      secondFactors: (json['second_factors'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+              .toList() ??
+          const [],
       emailAddressVerificationStrategies:
-          (json['email_address_verification_strategies'] as List<dynamic>)
-              .map((e) => $enumDecode(_$StrategyEnumMap, e))
-              .toList(),
-      usesFirstName: isOn(json['first_name']),
-      usesLastName: isOn(json['last_name']),
-      usesEmailAddress: isOn(json['email_address']),
-      usesPhoneNumber: isOn(json['phone_number']),
-      usesUsername: isOn(json['username']),
-      usesPassword: isOn(json['password']),
+          (json['email_address_verification_strategies'] as List<dynamic>?)
+                  ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+                  .toList() ??
+              const [],
+      usesFirstName:
+          json['first_name'] == null ? false : isOn(json['first_name']),
+      usesLastName: json['last_name'] == null ? false : isOn(json['last_name']),
+      usesEmailAddress:
+          json['email_address'] == null ? false : isOn(json['email_address']),
+      usesPhoneNumber:
+          json['phone_number'] == null ? false : isOn(json['phone_number']),
+      usesUsername: json['username'] == null ? false : isOn(json['username']),
+      usesPassword: json['password'] == null ? false : isOn(json['password']),
     );
 
 Map<String, dynamic> _$AuthConfigToJson(AuthConfig instance) =>

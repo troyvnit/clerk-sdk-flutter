@@ -6,6 +6,8 @@ part 'user_attributes.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UserAttributes {
+  static const empty = UserAttributes();
+
   final UserAttribute emailAddress;
   final UserAttribute phoneNumber;
   final UserAttribute username;
@@ -18,16 +20,16 @@ class UserAttributes {
   final UserAttribute passkey;
 
   const UserAttributes({
-    required this.emailAddress,
-    required this.phoneNumber,
-    required this.username,
-    required this.web3Wallet,
-    required this.firstName,
-    required this.lastName,
-    required this.password,
-    required this.authenticatorApp,
-    required this.backupCode,
-    required this.passkey,
+    this.emailAddress = UserAttribute.empty,
+    this.phoneNumber = UserAttribute.empty,
+    this.username = UserAttribute.empty,
+    this.web3Wallet = UserAttribute.empty,
+    this.firstName = UserAttribute.empty,
+    this.lastName = UserAttribute.empty,
+    this.password = UserAttribute.empty,
+    this.authenticatorApp = UserAttribute.empty,
+    this.backupCode = UserAttribute.empty,
+    this.passkey = UserAttribute.empty,
   });
 
   factory UserAttributes.fromJson(Map<String, dynamic> json) => _$UserAttributesFromJson(json);

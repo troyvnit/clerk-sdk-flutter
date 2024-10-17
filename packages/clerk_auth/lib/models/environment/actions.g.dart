@@ -7,10 +7,10 @@ part of 'actions.dart';
 // **************************************************************************
 
 Actions _$ActionsFromJson(Map<String, dynamic> json) => Actions(
-      deleteSelf: json['delete_self'] as bool,
-      createOrganization: json['create_organization'] as bool,
+      deleteSelf: json['delete_self'] as bool? ?? false,
+      createOrganization: json['create_organization'] as bool? ?? false,
       createOrganizationsLimit:
-          (json['create_organizations_limit'] as num?)?.toInt(),
+          (json['create_organizations_limit'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$ActionsToJson(Actions instance) => <String, dynamic>{

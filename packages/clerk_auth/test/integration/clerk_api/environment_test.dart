@@ -24,7 +24,7 @@ void main() {
     test('can fetch', () async {
       await runWithLogging(() async {
         final data = await api.environment();
-        print(data.toJson());
+        expect(data.isEmpty, false);
       });
     });
   });

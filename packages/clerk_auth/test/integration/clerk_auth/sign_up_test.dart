@@ -20,7 +20,7 @@ void main() {
     password = Uuid().v4();
     username = 'user-$password';
     emailAddress = '$username+clerk_test@some.domain';
-    phoneNumber = '+15555550109';
+    phoneNumber = '+15555550179';
   });
 
   setUpAll(() async {
@@ -36,29 +36,6 @@ void main() {
   tearDown(() => auth.deleteUser());
 
   group('SignUp', () {
-    test('can sign up with emailLink in separate steps', () async {
-      await runWithLogging(() async {
-        expect(await auth.user, null);
-
-        Client client = await auth.attemptSignUp(emailAddress: emailAddress);
-        expect(client.signUp?.status, Status.missingRequirements);
-
-        client = await auth.attemptSignUp(
-          strategy: Strategy.emailLink,
-          username: username,
-        );
-        expect(client.signUp?.status, Status.missingRequirements);
-        expect(client.signUp?.unverifiedFields.contains(Field.emailAddress), true);
-
-        client = await auth.attemptSignUp(
-          strategy: Strategy.emailLink,
-          code: env.code,
-        );
-        expect(client.signUp, null);
-        expect(client.user is User, true);
-      });
-    });
-
     test('can sign up with emailCode in separate steps', () async {
       await runWithLogging(() async {
         expect(await auth.user, null);

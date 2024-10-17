@@ -8,7 +8,7 @@ part of 'organization_actions.dart';
 
 OrganizationActions _$OrganizationActionsFromJson(Map<String, dynamic> json) =>
     OrganizationActions(
-      adminDelete: json['admin_delete'] as bool,
+      adminDelete: json['admin_delete'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$OrganizationActionsToJson(

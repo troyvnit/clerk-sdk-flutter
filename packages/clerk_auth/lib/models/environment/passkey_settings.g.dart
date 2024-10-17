@@ -8,8 +8,8 @@ part of 'passkey_settings.dart';
 
 PasskeySettings _$PasskeySettingsFromJson(Map<String, dynamic> json) =>
     PasskeySettings(
-      allowAutofill: json['allow_autofill'] as bool,
-      showSignInButton: json['show_sign_in_button'] as bool,
+      allowAutofill: json['allow_autofill'] as bool? ?? false,
+      showSignInButton: json['show_sign_in_button'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PasskeySettingsToJson(PasskeySettings instance) =>

@@ -6,6 +6,8 @@ part 'user_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UserSettings {
+  static const empty = UserSettings();
+
   final UserAttributes attributes;
   final SignInSettings signIn;
   final SignUpSettings signUp;
@@ -23,17 +25,17 @@ class UserSettings {
   final SocialSettings socialSettings;
 
   const UserSettings({
-    required this.attributes,
-    required this.signIn,
-    required this.signUp,
-    required this.restrictions,
-    required this.usernameSettings,
-    required this.actions,
-    required this.attackProtection,
-    required this.passkeySettings,
-    required this.socialSettings,
-    required this.passwordSettings,
-    required this.saml,
+    this.attributes = UserAttributes.empty,
+    this.signIn = SignInSettings.empty,
+    this.signUp = SignUpSettings.empty,
+    this.restrictions = Restrictions.empty,
+    this.usernameSettings = UsernameSettings.empty,
+    this.actions = Actions.empty,
+    this.attackProtection = AttackProtection.empty,
+    this.passkeySettings = PasskeySettings.empty,
+    this.passwordSettings = PasswordSettings.empty,
+    this.socialSettings = SocialSettings.empty,
+    this.saml = false,
   });
 
   factory UserSettings.fromJson(Map<String, dynamic> json) => _$UserSettingsFromJson(json);

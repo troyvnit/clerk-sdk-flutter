@@ -6,6 +6,8 @@ part 'password_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class PasswordSettings {
+  static const empty = PasswordSettings();
+
   final String allowedSpecialCharacters;
   final int minZxcvbnStrength;
   final int minLength;
@@ -33,17 +35,17 @@ class PasswordSettings {
   final bool enforceHibpOnSignIn;
 
   const PasswordSettings({
-    required this.allowedSpecialCharacters,
-    required this.minZxcvbnStrength,
-    required this.minLength,
-    required this.maxLength,
-    required this.disableHibp,
-    required this.requireSpecialChar,
-    required this.requireNumbers,
-    required this.requireUppercase,
-    required this.requireLowercase,
-    required this.showZxcvbn,
-    required this.enforceHibpOnSignIn,
+    this.allowedSpecialCharacters = '',
+    this.minZxcvbnStrength = 0,
+    this.minLength = 0,
+    this.maxLength = 0,
+    this.disableHibp = false,
+    this.requireSpecialChar = false,
+    this.requireNumbers = false,
+    this.requireUppercase = false,
+    this.requireLowercase = false,
+    this.showZxcvbn = false,
+    this.enforceHibpOnSignIn = false,
   });
 
   factory PasswordSettings.fromJson(Map<String, dynamic> json) => _$PasswordSettingsFromJson(json);

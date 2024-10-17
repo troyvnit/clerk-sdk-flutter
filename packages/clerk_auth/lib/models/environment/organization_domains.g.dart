@@ -8,11 +8,12 @@ part of 'organization_domains.dart';
 
 OrganizationDomains _$OrganizationDomainsFromJson(Map<String, dynamic> json) =>
     OrganizationDomains(
-      defaultRole: json['default_role'] as String,
-      enrollmentModes: (json['enrollment_modes'] as List<dynamic>)
-          .map((e) => $enumDecode(_$EnrollmentModeEnumMap, e))
-          .toList(),
-      isEnabled: json['enabled'] as bool,
+      defaultRole: json['default_role'] as String? ?? '',
+      enrollmentModes: (json['enrollment_modes'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$EnrollmentModeEnumMap, e))
+              .toList() ??
+          const [],
+      isEnabled: json['enabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$OrganizationDomainsToJson(

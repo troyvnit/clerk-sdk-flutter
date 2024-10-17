@@ -8,11 +8,13 @@ part of 'attack_protection.dart';
 
 AttackProtection _$AttackProtectionFromJson(Map<String, dynamic> json) =>
     AttackProtection(
-      userLockout:
-          UserLockout.fromJson(json['user_lockout'] as Map<String, dynamic>),
-      piiEnabled: _readPiiEnabled(json, 'pii_enabled') as bool,
+      userLockout: json['user_lockout'] == null
+          ? UserLockout.empty
+          : UserLockout.fromJson(json['user_lockout'] as Map<String, dynamic>),
+      piiEnabled: _readPiiEnabled(json, 'pii_enabled') as bool? ?? false,
       emailLinkRequireSameClient: _readEmailLinkRequireSameClient(
-          json, 'email_link_require_same_client') as bool,
+              json, 'email_link_require_same_client') as bool? ??
+          false,
     );
 
 Map<String, dynamic> _$AttackProtectionToJson(AttackProtection instance) =>
@@ -23,10 +25,12 @@ Map<String, dynamic> _$AttackProtectionToJson(AttackProtection instance) =>
     };
 
 UserLockout _$UserLockoutFromJson(Map<String, dynamic> json) => UserLockout(
-      isEnabled: json['enabled'] as bool,
-      maxAttempts: (json['max_attempts'] as num).toInt(),
-      duration:
-          Duration(microseconds: (json['duration_in_minutes'] as num).toInt()),
+      isEnabled: json['enabled'] as bool? ?? false,
+      maxAttempts: (json['max_attempts'] as num?)?.toInt() ?? 0,
+      duration: json['duration_in_minutes'] == null
+          ? Duration.zero
+          : Duration(
+              microseconds: (json['duration_in_minutes'] as num).toInt()),
     );
 
 Map<String, dynamic> _$UserLockoutToJson(UserLockout instance) =>

@@ -6,6 +6,8 @@ part 'social_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SocialSettings {
+  static const empty = SocialSettings();
+
   @JsonKey(name: 'oauth_apple')
   final SocialEntity apple;
 
@@ -16,9 +18,9 @@ class SocialSettings {
   final SocialEntity github;
 
   const SocialSettings({
-    required this.apple,
-    required this.google,
-    required this.github,
+    this.apple = SocialEntity.empty,
+    this.google = SocialEntity.empty,
+    this.github = SocialEntity.empty,
   });
 
   factory SocialSettings.fromJson(Map<String, dynamic> json) => _$SocialSettingsFromJson(json);

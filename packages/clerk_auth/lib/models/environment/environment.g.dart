@@ -7,14 +7,22 @@ part of 'environment.dart';
 // **************************************************************************
 
 Environment _$EnvironmentFromJson(Map<String, dynamic> json) => Environment(
-      auth: AuthConfig.fromJson(json['auth_config'] as Map<String, dynamic>),
-      display: DisplayConfig.fromJson(
-          json['display_config'] as Map<String, dynamic>),
-      user:
-          UserSettings.fromJson(json['user_settings'] as Map<String, dynamic>),
-      organization: OrganizationSettings.fromJson(
-          json['organization_settings'] as Map<String, dynamic>),
-      maintenanceMode: json['maintenance_mode'] as bool,
+      auth: json['auth_config'] == null
+          ? AuthConfig.empty
+          : AuthConfig.fromJson(json['auth_config'] as Map<String, dynamic>),
+      display: json['display_config'] == null
+          ? DisplayConfig.empty
+          : DisplayConfig.fromJson(
+              json['display_config'] as Map<String, dynamic>),
+      user: json['user_settings'] == null
+          ? UserSettings.empty
+          : UserSettings.fromJson(
+              json['user_settings'] as Map<String, dynamic>),
+      organization: json['organization_settings'] == null
+          ? OrganizationSettings.empty
+          : OrganizationSettings.fromJson(
+              json['organization_settings'] as Map<String, dynamic>),
+      maintenanceMode: json['maintenance_mode'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$EnvironmentToJson(Environment instance) =>

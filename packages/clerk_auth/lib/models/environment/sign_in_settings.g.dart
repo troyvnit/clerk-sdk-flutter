@@ -9,7 +9,8 @@ part of 'sign_in_settings.dart';
 SignInSettings _$SignInSettingsFromJson(Map<String, dynamic> json) =>
     SignInSettings(
       secondFactorRequired:
-          _readSecondFactorRequired(json, 'second_factor_required') as bool,
+          _readSecondFactorRequired(json, 'second_factor_required') as bool? ??
+              false,
     );
 
 Map<String, dynamic> _$SignInSettingsToJson(SignInSettings instance) =>

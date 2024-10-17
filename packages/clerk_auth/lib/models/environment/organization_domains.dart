@@ -5,6 +5,8 @@ part 'organization_domains.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class OrganizationDomains {
+  static const empty = OrganizationDomains();
+
   final String defaultRole;
   final List<EnrollmentMode> enrollmentModes;
 
@@ -12,9 +14,9 @@ class OrganizationDomains {
   final bool isEnabled;
 
   const OrganizationDomains({
-    required this.defaultRole,
-    required this.enrollmentModes,
-    required this.isEnabled,
+    this.defaultRole = '',
+    this.enrollmentModes = const [],
+    this.isEnabled = false,
   });
 
   factory OrganizationDomains.fromJson(Map<String, dynamic> json) =>

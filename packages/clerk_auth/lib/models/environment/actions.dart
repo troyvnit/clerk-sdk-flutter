@@ -1,19 +1,19 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../models.dart';
-
 part 'actions.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Actions {
+  static const empty = Actions();
+
   final bool deleteSelf;
   final bool createOrganization;
   final int? createOrganizationsLimit;
 
   const Actions({
-    required this.deleteSelf,
-    required this.createOrganization,
-    required this.createOrganizationsLimit,
+    this.deleteSelf = false,
+    this.createOrganization = false,
+    this.createOrganizationsLimit = 0,
   });
 
   factory Actions.fromJson(Map<String, dynamic> json) => _$ActionsFromJson(json);

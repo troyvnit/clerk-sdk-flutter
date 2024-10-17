@@ -8,25 +8,39 @@ part of 'user_attributes.dart';
 
 UserAttributes _$UserAttributesFromJson(Map<String, dynamic> json) =>
     UserAttributes(
-      emailAddress:
-          UserAttribute.fromJson(json['email_address'] as Map<String, dynamic>),
-      phoneNumber:
-          UserAttribute.fromJson(json['phone_number'] as Map<String, dynamic>),
-      username:
-          UserAttribute.fromJson(json['username'] as Map<String, dynamic>),
-      web3Wallet:
-          UserAttribute.fromJson(json['web3_wallet'] as Map<String, dynamic>),
-      firstName:
-          UserAttribute.fromJson(json['first_name'] as Map<String, dynamic>),
-      lastName:
-          UserAttribute.fromJson(json['last_name'] as Map<String, dynamic>),
-      password:
-          UserAttribute.fromJson(json['password'] as Map<String, dynamic>),
-      authenticatorApp: UserAttribute.fromJson(
-          json['authenticator_app'] as Map<String, dynamic>),
-      backupCode:
-          UserAttribute.fromJson(json['backup_code'] as Map<String, dynamic>),
-      passkey: UserAttribute.fromJson(json['passkey'] as Map<String, dynamic>),
+      emailAddress: json['email_address'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(
+              json['email_address'] as Map<String, dynamic>),
+      phoneNumber: json['phone_number'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(
+              json['phone_number'] as Map<String, dynamic>),
+      username: json['username'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['username'] as Map<String, dynamic>),
+      web3Wallet: json['web3_wallet'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['web3_wallet'] as Map<String, dynamic>),
+      firstName: json['first_name'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['first_name'] as Map<String, dynamic>),
+      lastName: json['last_name'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['last_name'] as Map<String, dynamic>),
+      password: json['password'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['password'] as Map<String, dynamic>),
+      authenticatorApp: json['authenticator_app'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(
+              json['authenticator_app'] as Map<String, dynamic>),
+      backupCode: json['backup_code'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['backup_code'] as Map<String, dynamic>),
+      passkey: json['passkey'] == null
+          ? UserAttribute.empty
+          : UserAttribute.fromJson(json['passkey'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserAttributesToJson(UserAttributes instance) =>

@@ -8,17 +8,30 @@ part of 'password_settings.dart';
 
 PasswordSettings _$PasswordSettingsFromJson(Map<String, dynamic> json) =>
     PasswordSettings(
-      allowedSpecialCharacters: json['allowed_special_characters'] as String,
-      minZxcvbnStrength: (json['min_zxcvbn_strength'] as num).toInt(),
-      minLength: (json['min_length'] as num).toInt(),
-      maxLength: (json['max_length'] as num).toInt(),
-      disableHibp: isTrue(json['disable_hibp']),
-      requireSpecialChar: isTrue(json['require_special_char']),
-      requireNumbers: isTrue(json['require_numbers']),
-      requireUppercase: isTrue(json['require_uppercase']),
-      requireLowercase: isTrue(json['require_lowercase']),
-      showZxcvbn: isTrue(json['show_zxcvbn']),
-      enforceHibpOnSignIn: isTrue(json['enforce_hibp_on_sign_in']),
+      allowedSpecialCharacters:
+          json['allowed_special_characters'] as String? ?? '',
+      minZxcvbnStrength: (json['min_zxcvbn_strength'] as num?)?.toInt() ?? 0,
+      minLength: (json['min_length'] as num?)?.toInt() ?? 0,
+      maxLength: (json['max_length'] as num?)?.toInt() ?? 0,
+      disableHibp:
+          json['disable_hibp'] == null ? false : isTrue(json['disable_hibp']),
+      requireSpecialChar: json['require_special_char'] == null
+          ? false
+          : isTrue(json['require_special_char']),
+      requireNumbers: json['require_numbers'] == null
+          ? false
+          : isTrue(json['require_numbers']),
+      requireUppercase: json['require_uppercase'] == null
+          ? false
+          : isTrue(json['require_uppercase']),
+      requireLowercase: json['require_lowercase'] == null
+          ? false
+          : isTrue(json['require_lowercase']),
+      showZxcvbn:
+          json['show_zxcvbn'] == null ? false : isTrue(json['show_zxcvbn']),
+      enforceHibpOnSignIn: json['enforce_hibp_on_sign_in'] == null
+          ? false
+          : isTrue(json['enforce_hibp_on_sign_in']),
     );
 
 Map<String, dynamic> _$PasswordSettingsToJson(PasswordSettings instance) =>

@@ -5,6 +5,8 @@ part 'organization_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class OrganizationSettings {
+  static const empty = OrganizationSettings();
+
   final int maxAllowedMemberships;
   final String creatorRole;
   final OrganizationDomains domains;
@@ -14,11 +16,11 @@ class OrganizationSettings {
   final bool isEnabled;
 
   const OrganizationSettings({
-    required this.maxAllowedMemberships,
-    required this.creatorRole,
-    required this.actions,
-    required this.domains,
-    required this.isEnabled,
+    this.maxAllowedMemberships = 0,
+    this.creatorRole = '',
+    this.actions = OrganizationActions.empty,
+    this.domains = OrganizationDomains.empty,
+    this.isEnabled = false,
   });
 
   factory OrganizationSettings.fromJson(Map<String, dynamic> json) =>

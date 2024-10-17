@@ -321,8 +321,7 @@ class Api with Logging {
 
   Future<String> sessionToken() async {
     if (tokenCache.sessionToken.isEmpty && tokenCache.canRefreshSessionToken) {
-      final resp =
-          await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
+      final resp = await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
       if (resp.statusCode == HttpStatus.ok) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         tokenCache.sessionToken = body[_kJwtKey] as String;
@@ -354,7 +353,6 @@ class Api with Logging {
       );
 
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      print(body);
       final errors = body[_kErrorsKey] != null
           ? List<Map<String, dynamic>>.from(body[_kErrorsKey]).map(ApiError.fromJson).toList()
           : null;
@@ -419,11 +417,8 @@ class Api with Logging {
     return resp;
   }
 
-  Uri _uri(String path, Map<String, dynamic> params) => Uri(
-      scheme: _scheme,
-      host: domain,
-      path: 'v1$path',
-      queryParameters: params.toStringMap());
+  Uri _uri(String path, Map<String, dynamic> params) =>
+      Uri(scheme: _scheme, host: domain, path: 'v1$path', queryParameters: params.toStringMap());
 
   Map<String, String> _headers(HttpMethod method, [Map<String, String>? headers]) {
     return {
@@ -473,6 +468,5 @@ extension SendExtension on http.Client {
 }
 
 extension StringMapExtension on Map {
-  Map<String, String> toStringMap() =>
-      map((k, v) => MapEntry(k.toString(), v.toString()));
+  Map<String, String> toStringMap() => map((k, v) => MapEntry(k.toString(), v.toString()));
 }

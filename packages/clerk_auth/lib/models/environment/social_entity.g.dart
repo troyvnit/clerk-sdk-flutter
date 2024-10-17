@@ -7,15 +7,23 @@ part of 'social_entity.dart';
 // **************************************************************************
 
 SocialEntity _$SocialEntityFromJson(Map<String, dynamic> json) => SocialEntity(
-      isEnabled: isTrue(json['enabled']),
-      isRequired: isTrue(json['required']),
-      authenticatable: isTrue(json['authenticatable']),
-      blockEmailSubaddresses: isTrue(json['block_email_subaddresses']),
-      strategy: $enumDecode(_$StrategyEnumMap, json['strategy']),
-      notSelectable: isTrue(json['non_selectable']),
-      deprecated: isTrue(json['deprecated']),
-      name: json['name'] as String,
-      logoUrl: json['logo_url'] as String,
+      isEnabled: json['enabled'] == null ? false : isTrue(json['enabled']),
+      isRequired: json['required'] == null ? false : isTrue(json['required']),
+      authenticatable: json['authenticatable'] == null
+          ? false
+          : isTrue(json['authenticatable']),
+      blockEmailSubaddresses: json['block_email_subaddresses'] == null
+          ? false
+          : isTrue(json['block_email_subaddresses']),
+      strategy: $enumDecodeNullable(_$StrategyEnumMap, json['strategy']) ??
+          Strategy.admin,
+      notSelectable: json['non_selectable'] == null
+          ? false
+          : isTrue(json['non_selectable']),
+      deprecated:
+          json['deprecated'] == null ? false : isTrue(json['deprecated']),
+      name: json['name'] as String? ?? '',
+      logoUrl: json['logo_url'] as String? ?? '',
     );
 
 Map<String, dynamic> _$SocialEntityToJson(SocialEntity instance) =>

@@ -6,12 +6,13 @@ part 'client.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Client {
-  static final empty = Client.fromJson({});
+  static const empty = Client();
 
   final String? id;
   final SignIn? signIn;
   final SignUp? signUp;
   final String? lastActiveSessionId;
+  final List<Session> sessions;
 
   @JsonKey(fromJson: intToDateTime)
   final DateTime? updatedAt;
@@ -19,17 +20,14 @@ class Client {
   @JsonKey(fromJson: intToDateTime)
   final DateTime? createdAt;
 
-  @JsonKey(defaultValue: const [])
-  final List<Session> sessions;
-
   const Client({
-    required this.id,
-    required this.signIn,
-    required this.signUp,
-    required this.sessions,
-    required this.lastActiveSessionId,
-    required this.updatedAt,
-    required this.createdAt,
+    this.id,
+    this.signIn,
+    this.signUp,
+    this.sessions = const [],
+    this.lastActiveSessionId,
+    this.updatedAt,
+    this.createdAt,
   });
 
   bool get isEmpty => this == empty;

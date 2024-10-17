@@ -4,12 +4,14 @@ part 'username_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UsernameSettings {
+  static const empty = UsernameSettings();
+
   final int minLength;
   final int maxLength;
 
   const UsernameSettings({
-    required this.minLength,
-    required this.maxLength,
+    this.minLength = 0,
+    this.maxLength = 0,
   });
 
   factory UsernameSettings.fromJson(Map<String, dynamic> json) => _$UsernameSettingsFromJson(json);

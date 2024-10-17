@@ -9,13 +9,18 @@ part of 'organization_settings.dart';
 OrganizationSettings _$OrganizationSettingsFromJson(
         Map<String, dynamic> json) =>
     OrganizationSettings(
-      maxAllowedMemberships: (json['max_allowed_memberships'] as num).toInt(),
-      creatorRole: json['creator_role'] as String,
-      actions:
-          OrganizationActions.fromJson(json['actions'] as Map<String, dynamic>),
-      domains:
-          OrganizationDomains.fromJson(json['domains'] as Map<String, dynamic>),
-      isEnabled: json['enabled'] as bool,
+      maxAllowedMemberships:
+          (json['max_allowed_memberships'] as num?)?.toInt() ?? 0,
+      creatorRole: json['creator_role'] as String? ?? '',
+      actions: json['actions'] == null
+          ? OrganizationActions.empty
+          : OrganizationActions.fromJson(
+              json['actions'] as Map<String, dynamic>),
+      domains: json['domains'] == null
+          ? OrganizationDomains.empty
+          : OrganizationDomains.fromJson(
+              json['domains'] as Map<String, dynamic>),
+      isEnabled: json['enabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$OrganizationSettingsToJson(

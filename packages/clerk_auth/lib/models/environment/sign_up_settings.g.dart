@@ -8,12 +8,12 @@ part of 'sign_up_settings.dart';
 
 SignUpSettings _$SignUpSettingsFromJson(Map<String, dynamic> json) =>
     SignUpSettings(
-      captchaEnabled: json['captcha_enabled'] as bool,
-      captchaWidgetType: json['captcha_widget_type'] as String,
-      customActionRequired: json['custom_action_required'] as bool,
-      progressive: json['progressive'] as bool,
-      mode: json['mode'] as String,
-      legalConsentEnabled: json['legal_consent_enabled'] as bool,
+      captchaEnabled: json['captcha_enabled'] as bool? ?? false,
+      captchaWidgetType: json['captcha_widget_type'] as String? ?? '',
+      customActionRequired: json['custom_action_required'] as bool? ?? false,
+      progressive: json['progressive'] as bool? ?? false,
+      mode: json['mode'] as String? ?? '',
+      legalConsentEnabled: json['legal_consent_enabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SignUpSettingsToJson(SignUpSettings instance) =>

@@ -4,6 +4,8 @@ part 'attack_protection.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class AttackProtection {
+  static const empty = AttackProtection();
+
   final UserLockout userLockout;
 
   @JsonKey(readValue: _readPiiEnabled)
@@ -13,9 +15,9 @@ class AttackProtection {
   final bool emailLinkRequireSameClient;
 
   const AttackProtection({
-    required this.userLockout,
-    required this.piiEnabled,
-    required this.emailLinkRequireSameClient,
+    this.userLockout = UserLockout.empty,
+    this.piiEnabled = false,
+    this.emailLinkRequireSameClient = false,
   });
 
   factory AttackProtection.fromJson(Map<String, dynamic> json) => _$AttackProtectionFromJson(json);
@@ -25,6 +27,8 @@ class AttackProtection {
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UserLockout {
+  static const empty = UserLockout();
+
   final int maxAttempts;
 
   @JsonKey(name: 'enabled')
@@ -34,9 +38,9 @@ class UserLockout {
   final Duration duration;
 
   const UserLockout({
-    required this.isEnabled,
-    required this.maxAttempts,
-    required this.duration,
+    this.isEnabled = false,
+    this.maxAttempts = 0,
+    this.duration = Duration.zero,
   });
 
   factory UserLockout.fromJson(Map<String, dynamic> json) => _$UserLockoutFromJson(json);

@@ -8,20 +8,31 @@ part of 'user_attribute.dart';
 
 UserAttribute _$UserAttributeFromJson(Map<String, dynamic> json) =>
     UserAttribute(
-      isEnabled: isTrue(json['is_enabled']),
-      isRequired: isTrue(json['is_required']),
-      usedForFirstFactor: isTrue(json['used_for_first_factor']),
-      firstFactors: (json['first_factors'] as List<dynamic>)
-          .map((e) => $enumDecode(_$StrategyEnumMap, e))
-          .toList(),
-      userForSecondFactor: isTrue(json['user_for_second_factor']),
-      secondFactors: (json['second_factors'] as List<dynamic>)
-          .map((e) => $enumDecode(_$StrategyEnumMap, e))
-          .toList(),
-      verifyAtSignUp: isTrue(json['verify_at_sign_up']),
-      verifications: (json['verifications'] as List<dynamic>)
-          .map((e) => $enumDecode(_$StrategyEnumMap, e))
-          .toList(),
+      isEnabled:
+          json['is_enabled'] == null ? false : isTrue(json['is_enabled']),
+      isRequired:
+          json['is_required'] == null ? false : isTrue(json['is_required']),
+      usedForFirstFactor: json['used_for_first_factor'] == null
+          ? false
+          : isTrue(json['used_for_first_factor']),
+      firstFactors: (json['first_factors'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+              .toList() ??
+          const [],
+      userForSecondFactor: json['user_for_second_factor'] == null
+          ? false
+          : isTrue(json['user_for_second_factor']),
+      secondFactors: (json['second_factors'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+              .toList() ??
+          const [],
+      verifyAtSignUp: json['verify_at_sign_up'] == null
+          ? false
+          : isTrue(json['verify_at_sign_up']),
+      verifications: (json['verifications'] as List<dynamic>?)
+              ?.map((e) => $enumDecode(_$StrategyEnumMap, e))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$UserAttributeToJson(UserAttribute instance) =>

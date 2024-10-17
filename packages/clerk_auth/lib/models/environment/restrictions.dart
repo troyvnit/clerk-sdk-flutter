@@ -4,6 +4,8 @@ part 'restrictions.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Restrictions {
+  static const empty = Restrictions();
+
   @JsonKey(name: 'allowlist', readValue: _readStatus)
   final bool allowlistEnabled;
 
@@ -20,11 +22,11 @@ class Restrictions {
   final bool ignoreDotsForEmailAddresses;
 
   const Restrictions({
-    required this.allowlistEnabled,
-    required this.blocklistEnabled,
-    required this.blockEmailSubaddresses,
-    required this.blockDisposableEmailDomains,
-    required this.ignoreDotsForEmailAddresses,
+    this.allowlistEnabled = false,
+    this.blocklistEnabled = false,
+    this.blockEmailSubaddresses = false,
+    this.blockDisposableEmailDomains = false,
+    this.ignoreDotsForEmailAddresses = false,
   });
 
   factory Restrictions.fromJson(Map<String, dynamic> json) => _$RestrictionsFromJson(json);

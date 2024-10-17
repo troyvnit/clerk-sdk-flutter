@@ -6,7 +6,7 @@ part 'environment.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class Environment {
-  static final empty = Environment.fromJson({});
+  static final empty = Environment();
 
   @JsonKey(name: 'auth_config')
   final AuthConfig auth;
@@ -23,11 +23,11 @@ class Environment {
   final bool maintenanceMode;
 
   const Environment({
-    required this.auth,
-    required this.display,
-    required this.user,
-    required this.organization,
-    required this.maintenanceMode,
+    this.auth = AuthConfig.empty,
+    this.display = DisplayConfig.empty,
+    this.user = UserSettings.empty,
+    this.organization = OrganizationSettings.empty,
+    this.maintenanceMode = false,
   });
 
   bool get isEmpty => this == empty;

@@ -6,6 +6,8 @@ part 'auth_config.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class AuthConfig {
+  static const empty = AuthConfig();
+
   final String id;
   final bool singleSessionMode;
   final bool enhancedEmailDeliverability;
@@ -37,23 +39,23 @@ class AuthConfig {
   final bool usesPassword;
 
   const AuthConfig({
-    required this.id,
-    required this.singleSessionMode,
-    required this.enhancedEmailDeliverability,
-    required this.testMode,
-    required this.demo,
-    required this.cookielessDev,
-    required this.urlBasedSessionSyncing,
-    required this.identificationStrategies,
-    required this.firstFactors,
-    required this.secondFactors,
-    required this.emailAddressVerificationStrategies,
-    required this.usesFirstName,
-    required this.usesLastName,
-    required this.usesEmailAddress,
-    required this.usesPhoneNumber,
-    required this.usesUsername,
-    required this.usesPassword,
+    this.id = '',
+    this.singleSessionMode = false,
+    this.enhancedEmailDeliverability = false,
+    this.testMode = false,
+    this.demo = false,
+    this.cookielessDev = false,
+    this.urlBasedSessionSyncing = false,
+    this.identificationStrategies = const [],
+    this.firstFactors = const [],
+    this.secondFactors = const [],
+    this.emailAddressVerificationStrategies = const [],
+    this.usesFirstName = false,
+    this.usesLastName = false,
+    this.usesEmailAddress = false,
+    this.usesPhoneNumber = false,
+    this.usesUsername = false,
+    this.usesPassword = false,
   });
 
   factory AuthConfig.fromJson(Map<String, dynamic> json) => _$AuthConfigFromJson(json);

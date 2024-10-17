@@ -75,17 +75,18 @@ void main() {
       });
     });
 
-    test('can sign in with email link', () async {
-      await runWithLogging(() async {
-        expect(await auth.user, null);
-        final client = await auth.attemptSignIn(
-          identifier: 'nicford@devangels.london',
-          strategy: Strategy.emailLink,
-          redirectUrl: 'https://www.clerk.com',
-        );
-        expect(client.signIn?.status, Status.complete);
-        expect(client.user is User, true);
-      });
-    });
+    // UNCOMMENT TO TEST AGAINST A LIVE ACCOUNT
+    // test('can sign in with email link', () async {
+    //   await runWithLogging(() async {
+    //     expect(await auth.user, null);
+    //     final client = await auth.attemptSignIn(
+    //       identifier: 'REGISTERED EMAIL ADDRESS',
+    //       strategy: Strategy.emailLink,
+    //       redirectUrl: 'https://www.clerk.com',
+    //     );
+    //     expect(client.signIn?.status, Status.complete);
+    //     expect(client.user is User, true);
+    //   });
+    // });
   });
 }

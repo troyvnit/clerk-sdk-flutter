@@ -6,6 +6,8 @@ part 'user_attribute.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class UserAttribute {
+  static const empty = UserAttribute();
+
   final List<Strategy> firstFactors;
   final List<Strategy> secondFactors;
   final List<Strategy> verifications;
@@ -26,14 +28,14 @@ class UserAttribute {
   final bool isRequired;
 
   const UserAttribute({
-    required this.isEnabled,
-    required this.isRequired,
-    required this.usedForFirstFactor,
-    required this.firstFactors,
-    required this.userForSecondFactor,
-    required this.secondFactors,
-    required this.verifyAtSignUp,
-    required this.verifications,
+    this.isEnabled = false,
+    this.isRequired = false,
+    this.usedForFirstFactor = false,
+    this.firstFactors = const [],
+    this.userForSecondFactor = false,
+    this.secondFactors = const [],
+    this.verifyAtSignUp = false,
+    this.verifications = const [],
   });
 
   factory UserAttribute.fromJson(Map<String, dynamic> json) => _$UserAttributeFromJson(json);

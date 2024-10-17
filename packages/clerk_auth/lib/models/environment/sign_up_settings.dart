@@ -4,6 +4,8 @@ part 'sign_up_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class SignUpSettings {
+  static const empty = SignUpSettings();
+
   final bool captchaEnabled;
   final String captchaWidgetType;
   final bool customActionRequired;
@@ -12,12 +14,12 @@ class SignUpSettings {
   final bool legalConsentEnabled;
 
   const SignUpSettings({
-    required this.captchaEnabled,
-    required this.captchaWidgetType,
-    required this.customActionRequired,
-    required this.progressive,
-    required this.mode,
-    required this.legalConsentEnabled,
+    this.captchaEnabled = false,
+    this.captchaWidgetType = '',
+    this.customActionRequired = false,
+    this.progressive = false,
+    this.mode = '',
+    this.legalConsentEnabled = false,
   });
 
   factory SignUpSettings.fromJson(Map<String, dynamic> json) => _$SignUpSettingsFromJson(json);

@@ -8,8 +8,8 @@ part of 'username_settings.dart';
 
 UsernameSettings _$UsernameSettingsFromJson(Map<String, dynamic> json) =>
     UsernameSettings(
-      minLength: (json['min_length'] as num).toInt(),
-      maxLength: (json['max_length'] as num).toInt(),
+      minLength: (json['min_length'] as num?)?.toInt() ?? 0,
+      maxLength: (json['max_length'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$UsernameSettingsToJson(UsernameSettings instance) =>

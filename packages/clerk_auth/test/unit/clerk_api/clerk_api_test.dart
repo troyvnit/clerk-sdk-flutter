@@ -30,7 +30,8 @@ void main() {
       expect(result, domain);
     });
 
-    test('will return correct domain from decoded key when key not quadbyte boundaried in length',
+    test(
+        'will return correct domain from decoded key when key not quadbyte boundaried in length',
         () {
       String result = Api.deriveDomainFrom(publicKey + 'A');
       expect(result, domain);

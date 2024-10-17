@@ -31,12 +31,12 @@ Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
 const _$StrategyEnumMap = {
   Strategy.emailCode: 'email_code',
   Strategy.emailLink: 'email_link',
+  Strategy.passkey: 'passkey',
   Strategy.password: 'password',
   Strategy.phoneCode: 'phone_code',
+  Strategy.resetPasswordEmailCode: 'reset_password_email_code',
+  Strategy.resetPasswordPhoneCode: 'reset_password_phone_code',
+  Strategy.saml: 'saml',
   Strategy.web3MetamaskSignature: 'web3_metamask_signature',
   Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',
-  Strategy.resetPasswordPhoneCode: 'reset_password_phone_code',
-  Strategy.resetPasswordEmailCode: 'reset_password_email_code',
-  Strategy.saml: 'saml',
-  Strategy.passkey: 'passkey',
 };

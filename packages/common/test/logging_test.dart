@@ -29,7 +29,8 @@ class MockPrinter extends Mock implements Printer {}
 class LoggingTester with Logging {
   LoggingTester._();
 
-  void test(Level logLevel, Object? message, [Object? error, StackTrace? stackTrace, Zone? zone]) {
+  void test(Level logLevel, Object? message,
+      [Object? error, StackTrace? stackTrace, Zone? zone]) {
     log(logLevel, message, error, stackTrace, zone);
   }
 }

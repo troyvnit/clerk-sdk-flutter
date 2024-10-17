@@ -1,4 +1,3 @@
-import 'package:clerk_auth/clerk_auth.dart';
 import 'package:test/test.dart';
 
 void main() {

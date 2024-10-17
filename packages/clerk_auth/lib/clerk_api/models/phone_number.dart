@@ -26,7 +26,8 @@ class PhoneNumber {
     required this.createdAt,
   });
 
-  factory PhoneNumber.fromJson(Map<String, dynamic> json) => _$PhoneNumberFromJson(json);
+  factory PhoneNumber.fromJson(Map<String, dynamic> json) =>
+      _$PhoneNumberFromJson(json);
 
   Map<String, dynamic> toJson() => _$PhoneNumberToJson(this);
 }

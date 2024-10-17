@@ -20,7 +20,8 @@ class Web3Wallet {
     required this.createdAt,
   });
 
-  factory Web3Wallet.fromJson(Map<String, dynamic> json) => _$Web3WalletFromJson(json);
+  factory Web3Wallet.fromJson(Map<String, dynamic> json) =>
+      _$Web3WalletFromJson(json);
 
   Map<String, dynamic> toJson() => _$Web3WalletToJson(this);
 }

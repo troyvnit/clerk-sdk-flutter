@@ -10,7 +10,8 @@ class SessionToken {
     required this.jwt,
   });
 
-  factory SessionToken.fromJson(Map<String, dynamic> json) => _$SessionTokenFromJson(json);
+  factory SessionToken.fromJson(Map<String, dynamic> json) =>
+      _$SessionTokenFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionTokenToJson(this);
 }

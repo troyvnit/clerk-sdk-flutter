@@ -22,7 +22,8 @@ class Passkey {
     required this.createdAt,
   });
 
-  factory Passkey.fromJson(Map<String, dynamic> json) => _$PasskeyFromJson(json);
+  factory Passkey.fromJson(Map<String, dynamic> json) =>
+      _$PasskeyFromJson(json);
 
   Map<String, dynamic> toJson() => _$PasskeyToJson(this);
 }

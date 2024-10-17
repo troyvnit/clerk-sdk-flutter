@@ -70,7 +70,8 @@ class UserDetail {
     required this.deleteSelfEnabled,
   });
 
-  factory UserDetail.fromJson(Map<String, dynamic> json) => _$UserDetailFromJson(json);
+  factory UserDetail.fromJson(Map<String, dynamic> json) =>
+      _$UserDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserDetailToJson(this);
 }

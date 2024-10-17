@@ -2,8 +2,17 @@ name: clerk_sdk
 
 packages:
   - packages/**
+  - packages/clerk_flutter/widgetbook
 
 ide:
   intellij:
     enabled: true
     moduleNamePrefix: ''
+
+scripts:
+  brunner:
+    run: melos exec --fail-fast -c 1 --depends-on="build_runner" -- dart run build_runner build --delete-conflicting-outputs
+  format:
+    run: melos exec --fail-fast -c 1 -- dart format --line-length=100 --output=none .
+  brunner_format:
+    run: melos brunner && melos format

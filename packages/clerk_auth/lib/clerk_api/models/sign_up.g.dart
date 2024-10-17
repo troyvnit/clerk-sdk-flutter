@@ -76,6 +76,8 @@ const _$StatusEnumMap = {
 const _$FieldEnumMap = {
   Field.emailAddress: 'email_address',
   Field.externalAccount: 'external_account',
+  Field.firstName: 'first_name',
+  Field.lastName: 'last_name',
   Field.password: 'password',
   Field.phoneNumber: 'phone_number',
   Field.oauthApple: 'oauth_apple',

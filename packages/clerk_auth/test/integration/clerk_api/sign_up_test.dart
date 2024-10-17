@@ -20,6 +20,13 @@ void main() {
   String username = '';
   String password = '';
 
+  setUp(() async {
+    password = Uuid().v4();
+    username = 'user-$password';
+    emailAddress = '$username+clerk_test@some.domain';
+    phoneNumber = '+15555550109';
+  });
+
   setUpAll(() async {
     final dotEnv = DotEnv(filePath: '.env.test');
     final values = dotEnv.getDotEnv();
@@ -27,73 +34,68 @@ void main() {
 
     api = Api(publicKey: env.publicKey, publishableKey: env.publishableKey);
 
-    password = Uuid().v4();
-    username = 'user-$password';
-    emailAddress = '$username+clerk_test@some.domain';
-    phoneNumber = '+15555550101';
-
     await setUpLogging(printer: TestLogPrinter());
   });
 
+  tearDown(() async => await api.deleteUser());
+
   group('Can sign up:', () {
     test('with email verification', () async {
-      late ApiResponse response;
+      await runWithLogging(() async {
+        late ApiResponse response;
 
-      response = await api.createSignUp(
-        emailAddress: emailAddress,
-        username: username,
-        password: password,
-      );
-      expect(response.client?.signUp?.status, Status.missingRequirements);
+        response = await api.createSignUp(
+          emailAddress: emailAddress,
+          username: username,
+          password: password,
+        );
+        expect(response.client?.signUp?.status, Status.missingRequirements);
 
-      response = await api.prepareSignUpVerification(
-        response.client!.signUp!,
-        strategy: Strategy.emailCode,
-      );
-      expect(response.client?.signUp?.status, Status.missingRequirements);
+        response = await api.prepareSignUp(
+          response.client!.signUp!,
+          strategy: Strategy.emailCode,
+        );
+        expect(response.client?.signUp?.status, Status.missingRequirements);
 
-      response = await api.attemptSignUpVerification(
-        response.client!.signUp!,
-        strategy: Strategy.emailCode,
-        code: env.code,
-      );
-      final client = response.client;
-      expect(client?.signUp, null);
-      expect(client?.activeSession?.status, Status.active);
-      expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
-
-      final hasDeletedUser = await api.deleteUser();
-      expect(hasDeletedUser, true);
+        response = await api.attemptSignUp(
+          response.client!.signUp!,
+          strategy: Strategy.emailCode,
+          code: env.code,
+        );
+        final client = response.client;
+        expect(client?.signUp, null);
+        expect(client?.activeSession?.status, Status.active);
+        expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
+      });
     });
 
     test('with phone verification', () async {
-      late ApiResponse response;
+      await runWithLogging(() async {
+        late ApiResponse response;
 
-      response = await api.createSignUp(
-        phoneNumber: phoneNumber,
-        username: username,
-        password: password,
-      );
-      expect(response.client?.signUp?.status, Status.missingRequirements);
+        response = await api.createSignUp(
+          phoneNumber: phoneNumber,
+          username: username,
+          password: password,
+        );
+        expect(response.client?.signUp?.status, Status.missingRequirements);
 
-      response = await api.prepareSignUpVerification(
-        response.client!.signUp!,
-        strategy: Strategy.phoneCode,
-      );
-      expect(response.client?.signUp?.status, Status.missingRequirements);
+        response = await api.prepareSignUp(
+          response.client!.signUp!,
+          strategy: Strategy.phoneCode,
+        );
+        expect(response.client?.signUp?.status, Status.missingRequirements);
 
-      response = await api.attemptSignUpVerification(
-        response.client!.signUp!,
-        strategy: Strategy.phoneCode,
-        code: env.code,
-      );
-      final client = response.client;
-      expect(client?.signUp, null);
-      expect(client?.activeSession?.status, Status.active);
-      expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
-
-      final hasDeletedUser = await api.deleteUser();
-      expect(hasDeletedUser, true);
+        response = await api.attemptSignUp(
+          response.client!.signUp!,
+          strategy: Strategy.phoneCode,
+          code: env.code,
+        );
+        final client = response.client;
+        expect(client?.signUp, null);
+        expect(client?.activeSession?.status, Status.active);
+        expect(client?.activeSession?.publicUserData.identifier.isNotEmpty, true);
+      });
     });
   });
 }

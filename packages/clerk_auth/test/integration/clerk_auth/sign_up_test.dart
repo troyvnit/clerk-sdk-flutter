@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../test_helpers.dart';
 
 void main() {
-  late final ClerkAuth auth;
+  late final Auth auth;
 
   final env = TestEnv();
 
@@ -28,7 +28,7 @@ void main() {
     final values = dotEnv.getDotEnv();
     env.addAll(values);
 
-    auth = ClerkAuth(publicKey: env.publicKey, publishableKey: env.publishableKey);
+    auth = Auth(publicKey: env.publicKey, publishableKey: env.publishableKey);
 
     await setUpLogging(printer: TestLogPrinter());
   });

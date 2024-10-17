@@ -8,16 +8,22 @@ import '../models/models.dart';
 
 class TokenCache {
   static const _tokenExpiryBuffer = Duration(seconds: 10);
-
-  TokenCache(String publicKey) : publicKey = RSAPublicKey(publicKey);
+  static final _caches = <String, TokenCache>{};
 
   final RSAPublicKey publicKey;
   final logger = Logger();
 
-  bool get canRefreshSessionToken =>
-      clientToken.isNotEmpty && sessionId.isNotEmpty;
+  TokenCache._(String publicKey) : publicKey = RSAPublicKey(publicKey);
+
+  factory TokenCache(String publicKey) => _caches[publicKey] ??= TokenCache._(publicKey);
+
+  bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
 
   String sessionId = "";
+  String _clientToken = "";
+  String _sessionToken = "";
+  DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
+  bool get _sessionTokenHasExpired => DateTime.now().isAfter(_sessionTokenExpiry);
 
   void clear() {
     sessionId = "";
@@ -59,12 +65,6 @@ class TokenCache {
       logger.e("ERROR SETTING SESSION TOKEN: $ex");
     }
   }
-
-  String _clientToken = "";
-  String _sessionToken = "";
-  DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
-  bool get _sessionTokenHasExpired =>
-      DateTime.now().isAfter(_sessionTokenExpiry);
 
   void updateFrom(http.Response resp, Session? session) {
     final newClientToken = resp.headers[HttpHeaders.authorizationHeader];

@@ -81,7 +81,7 @@ enum Stage {
     return switch (status) {
       Status.needsFirstFactor => first,
       Status.needsSecondFactor => second,
-      _ => throw ClerkError('No Stage for $status'),
+      _ => throw AuthError('No Stage for $status'),
     };
   }
 }

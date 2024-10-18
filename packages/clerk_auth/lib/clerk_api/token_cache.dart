@@ -1,35 +1,72 @@
 import 'dart:io';
 
+import 'package:clerk_auth/clerk_auth.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-
-import '../models/models.dart';
 
 class TokenCache {
   static const _tokenExpiryBuffer = Duration(seconds: 10);
   static final _caches = <String, TokenCache>{};
 
-  final RSAPublicKey publicKey;
+  final String publicKey;
+  final Persistor? persistor;
   final logger = Logger();
+  late final RSAPublicKey rsaKey = RSAPublicKey(publicKey);
 
-  TokenCache._(String publicKey) : publicKey = RSAPublicKey(publicKey);
+  TokenCache._(this.publicKey, this.persistor);
 
-  factory TokenCache(String publicKey) => _caches[publicKey] ??= TokenCache._(publicKey);
+  factory TokenCache(String publicKey, Persistor? persistor) =>
+      _caches[publicKey] ??= TokenCache._(publicKey, persistor);
 
   bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
 
-  String sessionId = "";
+  String _sessionId = "";
   String _clientToken = "";
   String _sessionToken = "";
   DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
   bool get _sessionTokenHasExpired => DateTime.now().isAfter(_sessionTokenExpiry);
 
+  String get _sessionIdKey => '_clerkSessionId_${publicKey.hashCode}';
+  String get _sessionTokenKey => '_clerkSessionToken_${publicKey.hashCode}';
+  String get _sessionTokenExpiryKey => '_clerkSessionTokenExpiry_${publicKey.hashCode}';
+  String get _clientTokenKey => '_clerkClientToken_${publicKey.hashCode}';
+
+  List<String> get _persistorKeys => [
+        _sessionIdKey,
+        _sessionTokenKey,
+        _sessionTokenExpiryKey,
+        _clientTokenKey,
+      ];
+
+  Future<void> init() async {
+    if (persistor case Persistor persistor) {
+      final [sessionId, sessionToken, ms, clientToken] = await Future.wait(
+        _persistorKeys.map(persistor.read),
+      );
+
+      _sessionId = sessionId ?? '';
+      _sessionToken = sessionToken ?? '';
+      _clientToken = clientToken ?? '';
+      _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(int.tryParse(ms ?? '') ?? 0);
+    }
+  }
+
   void clear() {
-    sessionId = "";
+    _sessionId = "";
     _clientToken = "";
     _sessionToken = "";
     _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
+    for (final key in _persistorKeys) {
+      persistor?.delete(key);
+    }
+  }
+
+  String get sessionId => _sessionId;
+
+  set sessionId(String id) {
+    _sessionId = id;
+    persistor?.write(_sessionIdKey, id);
   }
 
   String get clientToken => _clientToken;
@@ -38,8 +75,9 @@ class TokenCache {
     if (token == _clientToken) return;
 
     try {
-      JWT.verify(token, publicKey);
+      JWT.verify(token, rsaKey);
       _clientToken = token;
+      persistor?.write(_clientTokenKey, token);
     } catch (ex) {
       logger.e("ERROR SETTING CLIENT TOKEN: $ex");
     }
@@ -54,12 +92,17 @@ class TokenCache {
     if (token == _sessionToken) return;
 
     try {
-      final jwt = JWT.verify(token, publicKey);
+      final jwt = JWT.verify(token, rsaKey);
       final exp = jwt.payload["exp"];
       if (exp is int) {
         final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
         _sessionTokenExpiry = expiry.subtract(_tokenExpiryBuffer);
         _sessionToken = token;
+        persistor?.write(_sessionTokenKey, token);
+        persistor?.write(
+          _sessionTokenExpiryKey,
+          _sessionTokenExpiry.millisecondsSinceEpoch.toString(),
+        );
       }
     } catch (ex) {
       logger.e("ERROR SETTING SESSION TOKEN: $ex");

@@ -8,8 +8,12 @@ class Auth {
   late final Future<Client> _clientFuture = _api.createClient();
   late final Future<Environment> _envFuture = _api.environment();
 
-  Auth({required String publishableKey, required String publicKey})
-      : _api = Api(publicKey: publicKey, publishableKey: publishableKey);
+  Auth({required String publishableKey, required String publicKey, Persistor? persistor})
+      : _api = Api(publicKey: publicKey, publishableKey: publishableKey, persistor: persistor);
+
+  /// A method to be overriden by extending subclasses to cope with updating their systems when
+  /// things change
+  void update() {}
 
   // `init` does not have to be called and awaited. However, `envSync`, `clientSync` and other
   // synchronous methods cannot be guaranteed to work without a call to `init` completing first.
@@ -19,22 +23,18 @@ class Auth {
   }
 
   Future<void> refresh() async {
-    setEnvironment(await _api.environment());
+    _env = await _api.environment();
   }
 
   bool get isLoaded => _env is Environment && _client is Client;
 
   Environment? _env;
   Environment get envSync => _env!;
-  Future<Environment> get env async => _env ?? setEnvironment(await _envFuture);
-
-  Environment setEnvironment(Environment env) => _env = env;
+  Future<Environment> get env async => _env ??= await _envFuture;
 
   Client? _client;
   Client get clientSync => _client!;
-  Future<Client> get client async => _client ?? setClient(await _clientFuture);
-
-  Client setClient(Client client) => _client = client;
+  Future<Client> get client async => _client ??= await _clientFuture;
 
   Future<SignIn?> get signIn async => (await client).signIn;
   Future<SignUp?> get signUp async => (await client).signUp;
@@ -48,7 +48,7 @@ class Auth {
 
   Future<ApiResponse> _housekeeping(ApiResponse resp) async {
     if (resp.client case Client client when resp.isOkay) {
-      setClient(client);
+      _client = client;
     } else {
       throw AuthError('${resp.status}: ${resp.errorMessage}');
     }
@@ -57,10 +57,12 @@ class Auth {
 
   Future<void> signOut() async {
     _client = await _api.signOut();
+    update();
   }
 
   Future<void> deleteUser() async {
     _client = await _api.deleteUser();
+    update();
   }
 
   Future<Client> attemptSignIn({
@@ -102,6 +104,7 @@ class Auth {
           return client.user is User ? client : null;
         });
 
+        update();
         return signInCompleter.future;
 
       case SignIn signIn
@@ -123,6 +126,7 @@ class Auth {
             .then(_housekeeping);
     }
 
+    update();
     return await this.client;
   }
 
@@ -191,6 +195,7 @@ class Auth {
             .then(_housekeeping);
     }
 
+    update();
     return await this.client;
   }
 
@@ -200,12 +205,14 @@ class Auth {
       if (expiry?.isAfter(DateTime.now()) != true) {
         // return if expiry has expired or is null
         completer.completeError(AuthError('Email Link not clicked in required timeframe'));
+        update();
         return;
       }
 
       final result = await fn.call();
       if (result is T) {
         completer.complete(result);
+        update();
         return;
       }
 

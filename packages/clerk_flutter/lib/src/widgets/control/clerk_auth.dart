@@ -10,6 +10,9 @@ class ClerkAuth extends StatefulWidget {
   /// Clerk publishable key from dashboard
   final String publishableKey;
 
+  /// Persistence service for caching tokens
+  final Clerk.Persistor? persistor;
+
   /// child widget tree
   final Widget child;
 
@@ -22,6 +25,7 @@ class ClerkAuth extends StatefulWidget {
     required this.publicKey,
     required this.publishableKey,
     required this.child,
+    this.persistor,
     this.loading,
   });
 
@@ -43,7 +47,11 @@ class _ClerkAuthState extends State<ClerkAuth> {
   void initState() {
     super.initState();
 
-    _auth = _ClerkNotifyingAuth(publishableKey: widget.publishableKey, publicKey: widget.publicKey);
+    _auth = _ClerkNotifyingAuth(
+      publishableKey: widget.publishableKey,
+      publicKey: widget.publicKey,
+      persistor: widget.persistor,
+    );
     _auth.addListener(() => setState(() {}));
     _authFuture = _auth.init();
   }
@@ -76,7 +84,6 @@ class _ClerkAuthData extends InheritedWidget {
   final Clerk.Environment env;
 
   _ClerkAuthData({
-    super.key,
     required super.child,
     required this.auth,
   })  : this.client = auth.clientSync,
@@ -87,18 +94,11 @@ class _ClerkAuthData extends InheritedWidget {
 }
 
 class _ClerkNotifyingAuth extends Clerk.Auth with ChangeNotifier {
-  _ClerkNotifyingAuth({required super.publicKey, required super.publishableKey});
+  _ClerkNotifyingAuth({required super.publicKey, required super.publishableKey, super.persistor});
 
   @override
-  Clerk.Client setClient(Clerk.Client client) {
-    final result = super.setClient(client);
-    notifyListeners();
-    return result;
-  }
-
-  @override
-  Clerk.Environment setEnvironment(Clerk.Environment env) {
-    final result = super.setEnvironment(env);
+  void update() {
+    final result = super.update();
     notifyListeners();
     return result;
   }

@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus, HttpHeaders;
 
+import 'package:clerk_auth/clerk_api/token_cache.dart';
+import 'package:clerk_auth/clerk_auth.dart';
 import 'package:common/common.dart';
 import 'package:http/http.dart' as http;
-
-import '../models/models.dart';
-import 'token_cache.dart';
 
 enum HttpMethod {
   delete,
@@ -28,9 +27,10 @@ class Api with Logging {
   factory Api({
     required String publishableKey,
     required String publicKey,
+    Persistor? persistor,
   }) =>
       _instance ??= Api._(
-        tokenCache: TokenCache(publicKey),
+        tokenCache: TokenCache(publicKey, publishableKey, persistor),
         domain: deriveDomainFrom(publishableKey),
       );
 

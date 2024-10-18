@@ -16,6 +16,7 @@ export 'session.dart';
 export 'session_token.dart';
 export 'sign_in.dart';
 export 'sign_up.dart';
+export 'strategy.dart';
 export 'user.dart';
 export 'user_identifying_data.dart';
 export 'user_public.dart';

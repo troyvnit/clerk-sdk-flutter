@@ -46,30 +46,6 @@ enum IdentificationStrategy {
 }
 
 @JsonEnum(fieldRename: FieldRename.snake)
-enum Strategy {
-  admin,
-  emailCode,
-  emailLink,
-  oauthApple,
-  oauthGoogle,
-  oauthGithub,
-  oauthTokenApple,
-  passkey,
-  password,
-  phoneCode,
-  resetPasswordEmailCode,
-  resetPasswordPhoneCode,
-  saml,
-  ticket,
-  web3MetamaskSignature,
-  web3CoinbaseSignature,
-  ;
-
-  @override
-  String toString() => name.toSnakeCase();
-}
-
-@JsonEnum(fieldRename: FieldRename.snake)
 enum Stage {
   first,
   second;

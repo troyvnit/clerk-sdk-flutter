@@ -7,7 +7,7 @@ part of 'factor.dart';
 // **************************************************************************
 
 Factor _$FactorFromJson(Map<String, dynamic> json) => Factor(
-      strategy: $enumDecode(_$StrategyEnumMap, json['strategy']),
+      strategy: Strategy.fromJson(json['strategy'] as String),
       safeIdentifier: json['safe_identifier'] as String?,
       emailAddressId: json['email_address_id'] as String?,
       phoneNumberId: json['phone_number_id'] as String?,
@@ -18,7 +18,7 @@ Factor _$FactorFromJson(Map<String, dynamic> json) => Factor(
     );
 
 Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
-      'strategy': _$StrategyEnumMap[instance.strategy]!,
+      'strategy': instance.strategy.toJson(),
       'safe_identifier': instance.safeIdentifier,
       'email_address_id': instance.emailAddressId,
       'phone_number_id': instance.phoneNumberId,
@@ -27,22 +27,3 @@ Map<String, dynamic> _$FactorToJson(Factor instance) => <String, dynamic>{
       'primary': instance.isPrimary,
       'default': instance.isDefault,
     };
-
-const _$StrategyEnumMap = {
-  Strategy.admin: 'admin',
-  Strategy.emailCode: 'email_code',
-  Strategy.emailLink: 'email_link',
-  Strategy.oauthApple: 'oauth_apple',
-  Strategy.oauthGoogle: 'oauth_google',
-  Strategy.oauthGithub: 'oauth_github',
-  Strategy.oauthTokenApple: 'oauth_token_apple',
-  Strategy.passkey: 'passkey',
-  Strategy.password: 'password',
-  Strategy.phoneCode: 'phone_code',
-  Strategy.resetPasswordEmailCode: 'reset_password_email_code',
-  Strategy.resetPasswordPhoneCode: 'reset_password_phone_code',
-  Strategy.saml: 'saml',
-  Strategy.ticket: 'ticket',
-  Strategy.web3MetamaskSignature: 'web3_metamask_signature',
-  Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',
-};

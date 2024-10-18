@@ -30,7 +30,7 @@ class Api with Logging {
     Persistor? persistor,
   }) =>
       _instance ??= Api._(
-        tokenCache: TokenCache(publicKey, publishableKey, persistor),
+        tokenCache: TokenCache(publicKey, persistor),
         domain: deriveDomainFrom(publishableKey),
       );
 

@@ -15,8 +15,9 @@ SocialEntity _$SocialEntityFromJson(Map<String, dynamic> json) => SocialEntity(
       blockEmailSubaddresses: json['block_email_subaddresses'] == null
           ? false
           : isTrue(json['block_email_subaddresses']),
-      strategy: $enumDecodeNullable(_$StrategyEnumMap, json['strategy']) ??
-          Strategy.admin,
+      strategy: json['strategy'] == null
+          ? Strategy.admin
+          : Strategy.fromJson(json['strategy'] as String),
       notSelectable: json['non_selectable'] == null
           ? false
           : isTrue(json['non_selectable']),
@@ -30,7 +31,7 @@ Map<String, dynamic> _$SocialEntityToJson(SocialEntity instance) =>
     <String, dynamic>{
       'name': instance.name,
       'logo_url': instance.logoUrl,
-      'strategy': _$StrategyEnumMap[instance.strategy]!,
+      'strategy': instance.strategy.toJson(),
       'enabled': instance.isEnabled,
       'required': instance.isRequired,
       'authenticatable': instance.authenticatable,
@@ -38,22 +39,3 @@ Map<String, dynamic> _$SocialEntityToJson(SocialEntity instance) =>
       'non_selectable': instance.notSelectable,
       'deprecated': instance.deprecated,
     };
-
-const _$StrategyEnumMap = {
-  Strategy.admin: 'admin',
-  Strategy.emailCode: 'email_code',
-  Strategy.emailLink: 'email_link',
-  Strategy.oauthApple: 'oauth_apple',
-  Strategy.oauthGoogle: 'oauth_google',
-  Strategy.oauthGithub: 'oauth_github',
-  Strategy.oauthTokenApple: 'oauth_token_apple',
-  Strategy.passkey: 'passkey',
-  Strategy.password: 'password',
-  Strategy.phoneCode: 'phone_code',
-  Strategy.resetPasswordEmailCode: 'reset_password_email_code',
-  Strategy.resetPasswordPhoneCode: 'reset_password_phone_code',
-  Strategy.saml: 'saml',
-  Strategy.ticket: 'ticket',
-  Strategy.web3MetamaskSignature: 'web3_metamask_signature',
-  Strategy.web3CoinbaseSignature: 'web3_coinbase_signature',
-};

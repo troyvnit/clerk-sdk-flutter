@@ -15,7 +15,7 @@ class AuthConfig {
   final bool demo;
   final bool cookielessDev;
   final bool urlBasedSessionSyncing;
-  final List<IdentificationStrategy> identificationStrategies;
+  final List<Strategy> identificationStrategies;
   final List<Strategy> firstFactors;
   final List<Strategy> secondFactors;
   final List<Strategy> emailAddressVerificationStrategies;

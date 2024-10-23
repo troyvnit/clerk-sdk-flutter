@@ -8,8 +8,13 @@ part 'user_attribute.g.dart';
 class UserAttribute {
   static const empty = UserAttribute();
 
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> firstFactors;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> secondFactors;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> verifications;
 
   @JsonKey(fromJson: isTrue)

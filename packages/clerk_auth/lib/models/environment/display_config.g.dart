@@ -39,7 +39,6 @@ DisplayConfig _$DisplayConfigFromJson(Map<String, dynamic> json) =>
       instanceEnvironmentType:
           json['instance_environment_type'] as String? ?? '',
       logoImageUrl: json['logo_image_url'] as String? ?? '',
-      logoImage: json['logo_image'] as String? ?? '',
       logoLinkUrl: json['logo_link_url'] as String? ?? '',
       logoUrl: json['logo_url'] as String? ?? '',
       organizationProfileUrl: json['organization_profile_url'] as String? ?? '',
@@ -81,7 +80,6 @@ Map<String, dynamic> _$DisplayConfigToJson(DisplayConfig instance) =>
       'home_url': instance.homeUrl,
       'instance_environment_type': instance.instanceEnvironmentType,
       'logo_image_url': instance.logoImageUrl,
-      'logo_image': instance.logoImage,
       'logo_link_url': instance.logoLinkUrl,
       'logo_url': instance.logoUrl,
       'organization_profile_url': instance.organizationProfileUrl,

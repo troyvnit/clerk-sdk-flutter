@@ -34,7 +34,7 @@ class UserLockout {
   @JsonKey(name: 'enabled')
   final bool isEnabled;
 
-  @JsonKey(name: 'duration_in_minutes', toJson: _toDuration)
+  @JsonKey(name: 'duration_in_minutes', toJson: _fromDuration, fromJson: _toDuration)
   final Duration duration;
 
   const UserLockout({
@@ -50,6 +50,8 @@ class UserLockout {
 
 Duration _toDuration(dynamic value) =>
     value is num ? Duration(minutes: value.toInt()) : Duration.zero;
+
+int _fromDuration(Duration duration) => duration.inMinutes;
 
 bool _readPiiEnabled(map, _) => map['pii']?['enabled'] == true;
 

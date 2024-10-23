@@ -16,7 +16,7 @@ class ClerkAuthBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = ClerkAuth.of(context);
-    final user = auth.clientSync.user;
+    final user = auth.client.user;
 
     if (signedInBuilder case AuthWidgetBuilder signedInBuilder when user is Clerk.User) {
       return signedInBuilder.call(context, auth);

@@ -1,4 +1,4 @@
-import 'package:clerk_flutter/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
 import 'package:flutter/widgets.dart';
 
 /// A Clerk-branded text style.
@@ -19,6 +19,16 @@ class ClerkTextStyle {
   static const subtitle = TextStyle(
     fontSize: 14.0,
     color: ClerkColors.stormGrey,
+  );
+
+  static const buttonTitle = TextStyle(
+    fontSize: 12.0,
+    color: ClerkColors.stormGrey,
+  );
+
+  static const buttonSubtitle = TextStyle(
+    fontSize: 10.0,
+    color: ClerkColors.midGrey,
   );
 
   /// The Clerk-branded text style for subheadings in the user profile widget.
@@ -43,5 +53,11 @@ class ClerkTextStyle {
   static const userButtonSubtitle = TextStyle(
     fontSize: 12.0,
     color: ClerkColors.mountainMist,
+  );
+
+  /// The Clerk-branded text style for errors.
+  static const error = TextStyle(
+    fontSize: 14.0,
+    color: ClerkColors.incarnadine,
   );
 }

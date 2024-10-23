@@ -17,6 +17,7 @@ enum Status {
   abandoned,
   active,
   missingRequirements,
+  needsIdentifier,
   needsFirstFactor,
   needsSecondFactor,
   unverified,
@@ -57,7 +58,7 @@ enum Stage {
     return switch (status) {
       Status.needsFirstFactor => first,
       Status.needsSecondFactor => second,
-      _ => throw AuthError('No Stage for $status'),
+      _ => throw AuthError(message: 'No Stage for $status'),
     };
   }
 }

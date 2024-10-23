@@ -15,9 +15,17 @@ class AuthConfig {
   final bool demo;
   final bool cookielessDev;
   final bool urlBasedSessionSyncing;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> identificationStrategies;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> firstFactors;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> secondFactors;
+
+  @JsonKey(fromJson: toStrategyList)
   final List<Strategy> emailAddressVerificationStrategies;
 
   @JsonKey(name: 'first_name', fromJson: isOn)

@@ -1,20 +1,20 @@
+import 'package:clerk_flutter/assets.dart';
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
-/// A reusable and Clerk styled [TextFormField].
+/// A reusable and Clerk styled [TextFormField] for collecting phone numbers.
 ///
-class ClerkTextFormField extends StatelessWidget {
-  /// Constructs a new [ClerkTextFormField].
-  const ClerkTextFormField({
+class ClerkPhoneNumberFormField extends StatelessWidget {
+  /// Constructs a new [ClerkPhoneNumberFormField].
+  const ClerkPhoneNumberFormField({
     super.key,
-    this.label,
+    this.showLabel = true,
     this.optional = false,
   });
 
-  /// Optional label.
-  final String? label;
+  /// Show label?
+  final bool showLabel;
 
   /// Is this field optional?
   final bool optional;
@@ -27,23 +27,18 @@ class ClerkTextFormField extends StatelessWidget {
       children: [
         Row(
           children: [
-            if (label case String label) //
-              Text(
-                label,
+            if (showLabel) //
+              const Text(
+                'Phone number',
                 textAlign: TextAlign.start,
                 maxLines: 1,
-                style: ClerkTextStyle.inputLabel,
               ),
             spacer,
             if (optional) //
-              Text(
+              const Text(
                 'Optional',
                 textAlign: TextAlign.end,
                 maxLines: 1,
-                style: ClerkTextStyle.inputLabel.copyWith(
-                  color: ClerkColors.stormGrey,
-                  fontSize: 12.0,
-                ),
               ),
           ],
         ),
@@ -56,11 +51,24 @@ class ClerkTextFormField extends StatelessWidget {
             child: DecoratedBox(
               decoration: insetBoxShadowDecoration,
               child: TextFormField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: outlineInputBorder,
                   enabledBorder: outlineInputBorder,
                   focusedBorder: outlineInputBorder,
                   contentPadding: horizontalPadding8,
+                  prefixIcon: Padding(
+                    padding: leftPadding12 + rightPadding8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('US'),
+                        horizontalMargin12,
+                        SvgPicture.asset(ClerkAssets.chevronUpDown, package: 'clerk_flutter'),
+                        horizontalMargin12,
+                        const Text('+1'),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

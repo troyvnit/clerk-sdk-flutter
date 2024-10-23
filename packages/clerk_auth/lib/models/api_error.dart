@@ -20,5 +20,5 @@ class ApiError {
 
   Map<String, dynamic> toJson() => _$ApiErrorToJson(this);
 
-  String toString() => [code, longMessage ?? message].whereType<String>().join(': ');
+  String toString() => longMessage ?? message;
 }

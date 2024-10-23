@@ -1,9 +1,22 @@
-import 'package:clerk_auth/clerk_auth.dart';
-
 class Strategy {
   static const _oauthToken = 'oauth_token';
   static const _oauthCustom = 'oauth_custom';
   static const _oauth = 'oauth';
+
+  static const unknown = Strategy(name: 'unknown');
+
+  // oauth strategies
+  static const oauthApple = Strategy(name: _oauth, provider: 'apple');
+  static const oauthGithub = Strategy(name: _oauth, provider: 'github');
+  static const oauthGoogle = Strategy(name: _oauth, provider: 'google');
+  static const oauthTokenApple = Strategy(name: _oauthToken, provider: 'apple');
+  static final oauthStrategies = {
+    oauthApple.toString(): oauthApple,
+    oauthGithub.toString(): oauthGithub,
+    oauthGoogle.toString(): oauthGoogle,
+    // 'google_one_tap': oauthGoogle, // guessing this is a synonym?
+    oauthTokenApple.toString(): oauthTokenApple,
+  };
 
   // verification strategies
   static const admin = Strategy(name: 'admin');
@@ -43,37 +56,54 @@ class Strategy {
     username.name: username,
   };
 
-  static final _strategies = {...verificationStrategies, ...identificationStrategies};
+  static final _strategies = {
+    ...oauthStrategies,
+    ...verificationStrategies,
+    ...identificationStrategies,
+  };
 
   final String name;
   final String? provider;
 
   const Strategy({required this.name, this.provider});
 
-  factory Strategy.fromJson(String name) {
-    switch (_strategies[name]) {
-      case Strategy strategy:
-        return strategy;
+  bool get isOauth => const [_oauthToken, _oauthCustom, _oauth].contains(name);
+  bool get isPassword => this == Strategy.password;
+  bool get isOtherStrategy => isOauth == false && isPassword == false;
+  bool get requiresCode => const [emailCode, phoneCode].contains(this);
 
-      case null when name.startsWith(_oauthToken):
-        return _strategies[name] =
-            Strategy(name: _oauthToken, provider: name.substring(_oauthToken.length + 1));
+  factory Strategy.fromJson(String name) => named(name) ?? Strategy.unknown;
 
-      case null when name.startsWith(_oauthCustom):
-        return _strategies[name] =
-            Strategy(name: _oauthCustom, provider: name.substring(_oauthCustom.length + 1));
+  static Strategy? named(dynamic name) {
+    if (name case String name) {
+      switch (_strategies[name]) {
+        case Strategy strategy:
+          return strategy;
 
-      case null when name.startsWith(_oauth):
-        return _strategies[name] =
-            Strategy(name: _oauth, provider: name.substring(_oauth.length + 1));
+        case null when name.startsWith(_oauthToken):
+          return _strategies[name] =
+              Strategy(name: _oauthToken, provider: name.substring(_oauthToken.length + 1));
 
-      default:
-        throw AuthError('No such strategy: $name');
+        case null when name.startsWith(_oauthCustom):
+          return _strategies[name] =
+              Strategy(name: _oauthCustom, provider: name.substring(_oauthCustom.length + 1));
+
+        case null when name.startsWith(_oauth):
+          return _strategies[name] =
+              Strategy(name: _oauth, provider: name.substring(_oauth.length + 1));
+
+        default:
+          return null;
+      }
     }
+
+    return null;
   }
 
-  String toJson() => [name, provider].whereType<String>().join(': ');
+  String toJson() => toString();
+
+  String get title => name.replaceAll('_', ' ');
 
   @override
-  String toString() => [name, provider].whereType<String>().join('_');
+  String toString() => [name, provider].nonNulls.join('_');
 }

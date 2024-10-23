@@ -11,7 +11,10 @@ class Verification {
   final int? attempts;
   final String? nonce;
 
-  @JsonKey(fromJson: _convertDateTime)
+  @JsonKey(name: 'external_verification_redirect_url')
+  final String? providerUrl;
+
+  @JsonKey(fromJson: intToDateTime)
   final DateTime? expireAt;
 
   const Verification({
@@ -19,14 +22,11 @@ class Verification {
     required this.strategy,
     required this.attempts,
     required this.expireAt,
+    this.providerUrl,
     this.nonce,
   });
 
-  factory Verification.fromJson(Map<String, dynamic> json) =>
-      _$VerificationFromJson(json);
+  factory Verification.fromJson(Map<String, dynamic> json) => _$VerificationFromJson(json);
 
   Map<String, dynamic> toJson() => _$VerificationToJson(this);
-
-  static DateTime? _convertDateTime(int? expireAt) =>
-      expireAt is int ? DateTime.fromMillisecondsSinceEpoch(expireAt) : null;
 }

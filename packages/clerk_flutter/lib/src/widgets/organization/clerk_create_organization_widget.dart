@@ -1,10 +1,10 @@
 import 'package:clerk_flutter/assets.dart';
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/authentication/clerk_vertical_card.dart';
-import 'package:clerk_flutter/src/widgets/clerk_material_button.dart';
-import 'package:clerk_flutter/src/widgets/clerk_text_form_field.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_text_form_field.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -35,8 +35,7 @@ class _TopPortion extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Create Organization',
-              style: ClerkTextStyle.title, maxLines: 1),
+          const Text('Create Organization', style: ClerkTextStyle.title, maxLines: 1),
           verticalMargin32,
           const Text('Logo', style: ClerkTextStyle.subtitle, maxLines: 1),
           verticalMargin10,
@@ -60,8 +59,7 @@ class _TopPortion extends StatelessWidget {
                           style: ClerkMaterialButtonStyle.light,
                           label: Text(
                             'Upload',
-                            style:
-                                TextStyle(color: ClerkColors.darkJungleGreen),
+                            style: TextStyle(color: ClerkColors.darkJungleGreen),
                           ),
                         ),
                       ),
@@ -78,9 +76,9 @@ class _TopPortion extends StatelessWidget {
             ],
           ),
           verticalMargin28,
-          const ClerkTextFormField(label: 'Name'),
+          ClerkTextFormField(label: 'Name', onChanged: (_) => null),
           verticalMargin28,
-          const ClerkTextFormField(label: 'Slug URL'),
+          ClerkTextFormField(label: 'Slug URL', onChanged: (_) => null),
           verticalMargin28,
           const Align(
             alignment: Alignment.centerRight,

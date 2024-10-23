@@ -38,9 +38,11 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
           ? PasswordSettings.empty
           : PasswordSettings.fromJson(
               json['password_settings'] as Map<String, dynamic>),
-      socialSettings: json['social'] == null
-          ? SocialSettings.empty
-          : SocialSettings.fromJson(json['social'] as Map<String, dynamic>),
+      socialSettings: (json['social'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(
+                k, SocialConnection.fromJson(e as Map<String, dynamic>)),
+          ) ??
+          const {},
       saml: _readSamlEnabled(json, 'saml') as bool? ?? false,
     );
 
@@ -56,5 +58,5 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'passkey_settings': instance.passkeySettings.toJson(),
       'password_settings': instance.passwordSettings.toJson(),
       'saml': instance.saml,
-      'social': instance.socialSettings.toJson(),
+      'social': instance.socialSettings.map((k, e) => MapEntry(k, e.toJson())),
     };

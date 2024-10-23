@@ -39,6 +39,7 @@ const _$StatusEnumMap = {
   Status.abandoned: 'abandoned',
   Status.active: 'active',
   Status.missingRequirements: 'missing_requirements',
+  Status.needsIdentifier: 'needs_identifier',
   Status.needsFirstFactor: 'needs_first_factor',
   Status.needsSecondFactor: 'needs_second_factor',
   Status.unverified: 'unverified',

@@ -197,6 +197,8 @@ String _withColor(String text, Level level) {
 /// Must implement a [print] method.
 ///
 abstract class Printer {
+  const Printer();
+
   /// Takes a string and logs it to the console.
   void print(String output);
 }

@@ -1,6 +1,6 @@
 import 'package:clerk_flutter/assets.dart';
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -45,7 +45,10 @@ class ClerkTwoPanelView extends StatelessWidget {
                     child: SizedBox(
                       height: 14.0,
                       width: 121.46,
-                      child: SvgPicture.asset(ClerkAssets.securedByClerkLogo),
+                      child: SvgPicture.asset(
+                        ClerkAssets.securedByClerkLogo,
+                        package: 'clerk_flutter',
+                      ),
                     ),
                   ),
                 ),

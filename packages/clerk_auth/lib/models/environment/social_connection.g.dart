@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'social_entity.dart';
+part of 'social_connection.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-SocialEntity _$SocialEntityFromJson(Map<String, dynamic> json) => SocialEntity(
+SocialConnection _$SocialConnectionFromJson(Map<String, dynamic> json) =>
+    SocialConnection(
       isEnabled: json['enabled'] == null ? false : isTrue(json['enabled']),
       isRequired: json['required'] == null ? false : isTrue(json['required']),
       authenticatable: json['authenticatable'] == null
@@ -27,7 +28,7 @@ SocialEntity _$SocialEntityFromJson(Map<String, dynamic> json) => SocialEntity(
       logoUrl: json['logo_url'] as String? ?? '',
     );
 
-Map<String, dynamic> _$SocialEntityToJson(SocialEntity instance) =>
+Map<String, dynamic> _$SocialConnectionToJson(SocialConnection instance) =>
     <String, dynamic>{
       'name': instance.name,
       'logo_url': instance.logoUrl,

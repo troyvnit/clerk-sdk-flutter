@@ -1,43 +1,19 @@
-import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/enums/social_connection.dart';
-import 'package:clerk_flutter/src/widgets/authentication/clerk_vertical_card.dart';
-import 'package:clerk_flutter/src/widgets/authentication/or_divider.dart';
-import 'package:clerk_flutter/src/widgets/authentication/social_connection_button.dart';
-import 'package:clerk_flutter/src/widgets/clerk_material_button.dart';
-import 'package:clerk_flutter/src/widgets/clerk_phone_number_form_field.dart';
-import 'package:clerk_flutter/src/widgets/clerk_text_form_field.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_auth/clerk_auth.dart' as Clerk;
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 /// The [ClerkSignUpWidget] renders a UI for signing up users.
 ///
 /// The functionality of the [ClerkSignUpWidget] is controlled by the instance settings
 /// you specify in your Clerk Dashboard, such as sign-in and social connections. You can
-/// further customize your [ClerSignUpWidget] by passing additional properties.
+/// further customize your [ClerkSignUpWidget] by passing additional properties.
 ///
 /// https://clerk.com/docs/components/authentication/sign-up
 ///
 ///
 @immutable
 class ClerkSignUpWidget extends StatelessWidget {
-  /// Constructs a new [ClerkSignUpWidget].
-  const ClerkSignUpWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const ClerkVerticalCard(
-      topPortion: _TopPortion(),
-      bottomPortion: _BottomPortion(),
-    );
-  }
-}
-
-@immutable
-class _TopPortion extends StatelessWidget {
-  const _TopPortion();
+  const ClerkSignUpWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -45,23 +21,6 @@ class _TopPortion extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        verticalMargin32,
-        Center(
-          child: SizedBox.square(
-            dimension: 32.0,
-            child: SvgPicture.asset(ClerkAssets.defaultOrganizationLogo),
-          ),
-        ),
-        verticalMargin16,
-        const Padding(
-          padding: horizontalPadding32,
-          child: Text(
-            'Create your account',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            style: ClerkTextStyle.title,
-          ),
-        ),
         const Padding(
           padding: horizontalPadding32,
           child: Text(
@@ -72,30 +31,35 @@ class _TopPortion extends StatelessWidget {
           ),
         ),
         verticalMargin24,
-        Padding(
-          padding: horizontalPadding32,
-          child: Row(
-            children: [
-              for (final connection in [
-                SocialConnection.google,
-                SocialConnection.github
-              ]) ...[
-                Expanded(
-                  child: SocialConnectionButton(
-                    key: ValueKey<SocialConnection>(connection),
-                    connection: connection,
+        ClerkAuthBuilder(builder: (context, auth) {
+          final env = auth.env;
+          final oauthStrategies = env.auth.identificationStrategies.where((i) => i.isOauth);
+          final socialConnections = env.user.socialSettings.values.where(
+            (s) => oauthStrategies.contains(s.strategy),
+          );
+          return Padding(
+            padding: horizontalPadding32,
+            child: Row(
+              children: [
+                for (final connection in socialConnections) //
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: SocialConnectionButton(
+                        key: ValueKey<Clerk.SocialConnection>(connection),
+                        connection: connection,
+                        onClicked: (_) => null,
+                      ),
+                    ),
                   ),
-                ),
-                if (connection != SocialConnection.values.last) //
-                  horizontalMargin8,
-              ]
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
         verticalMargin24,
         const OrDivider(),
         verticalMargin24,
-        const Padding(
+        Padding(
           padding: horizontalPadding32,
           child: Row(
             children: [
@@ -103,6 +67,7 @@ class _TopPortion extends StatelessWidget {
                 child: ClerkTextFormField(
                   label: 'First name',
                   optional: true,
+                  onChanged: (_) => null,
                 ),
               ),
               horizontalMargin8,
@@ -110,20 +75,27 @@ class _TopPortion extends StatelessWidget {
                 child: ClerkTextFormField(
                   label: 'Last name',
                   optional: true,
+                  onChanged: (_) => null,
                 ),
               ),
             ],
           ),
         ),
         verticalMargin24,
-        const Padding(
+        Padding(
           padding: horizontalPadding32,
-          child: ClerkTextFormField(label: 'Username'),
+          child: ClerkTextFormField(
+            label: 'Username',
+            onChanged: (_) => null,
+          ),
         ),
         verticalMargin24,
-        const Padding(
+        Padding(
           padding: horizontalPadding32,
-          child: ClerkTextFormField(label: 'Email address'),
+          child: ClerkTextFormField(
+            label: 'Email address',
+            onChanged: (_) => null,
+          ),
         ),
         verticalMargin24,
         const Padding(
@@ -131,9 +103,12 @@ class _TopPortion extends StatelessWidget {
           child: ClerkPhoneNumberFormField(),
         ),
         verticalMargin24,
-        const Padding(
+        Padding(
           padding: horizontalPadding32,
-          child: ClerkTextFormField(label: 'Password'),
+          child: ClerkTextFormField(
+            label: 'Password',
+            onChanged: (_) => null,
+          ),
         ),
         verticalMargin24,
         const Padding(
@@ -149,43 +124,6 @@ class _TopPortion extends StatelessWidget {
           ),
         ),
         verticalMargin32,
-      ],
-    );
-  }
-}
-
-@immutable
-class _BottomPortion extends StatelessWidget {
-  const _BottomPortion();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        verticalMargin12,
-        Padding(
-          padding: horizontalPadding32,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                const TextSpan(
-                  text: 'Already have an account? ',
-                  style: ClerkTextStyle.subtitle,
-                ),
-                TextSpan(
-                  text: 'Sign in',
-                  style: ClerkTextStyle.subtitle.copyWith(
-                    color: ClerkColors.darkJungleGreen,
-                  ),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        verticalMargin12,
       ],
     );
   }

@@ -2,11 +2,11 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../models.dart';
 
-part 'social_entity.g.dart';
+part 'social_connection.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
-class SocialEntity {
-  static const empty = SocialEntity();
+class SocialConnection {
+  static const empty = SocialConnection();
 
   final String name;
   final String logoUrl;
@@ -30,7 +30,7 @@ class SocialEntity {
   @JsonKey(name: 'deprecated', fromJson: isTrue)
   final bool deprecated;
 
-  const SocialEntity({
+  const SocialConnection({
     this.isEnabled = false,
     this.isRequired = false,
     this.authenticatable = false,
@@ -42,7 +42,7 @@ class SocialEntity {
     this.logoUrl = '',
   });
 
-  factory SocialEntity.fromJson(Map<String, dynamic> json) => _$SocialEntityFromJson(json);
+  factory SocialConnection.fromJson(Map<String, dynamic> json) => _$SocialConnectionFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SocialEntityToJson(this);
+  Map<String, dynamic> toJson() => _$SocialConnectionToJson(this);
 }

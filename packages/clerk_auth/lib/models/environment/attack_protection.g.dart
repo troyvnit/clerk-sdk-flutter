@@ -29,13 +29,12 @@ UserLockout _$UserLockoutFromJson(Map<String, dynamic> json) => UserLockout(
       maxAttempts: (json['max_attempts'] as num?)?.toInt() ?? 0,
       duration: json['duration_in_minutes'] == null
           ? Duration.zero
-          : Duration(
-              microseconds: (json['duration_in_minutes'] as num).toInt()),
+          : _toDuration(json['duration_in_minutes']),
     );
 
 Map<String, dynamic> _$UserLockoutToJson(UserLockout instance) =>
     <String, dynamic>{
       'max_attempts': instance.maxAttempts,
       'enabled': instance.isEnabled,
-      'duration_in_minutes': _toDuration(instance.duration),
+      'duration_in_minutes': _fromDuration(instance.duration),
     };

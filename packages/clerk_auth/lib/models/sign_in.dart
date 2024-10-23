@@ -9,7 +9,7 @@ class SignIn {
   final String id;
   final Status status;
   final List<String> supportedIdentifiers;
-  final String identifier;
+  final String? identifier;
   final UserPublic? userData;
   final Verification? firstFactorVerification;
   final Verification? secondFactorVerification;

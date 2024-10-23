@@ -12,7 +12,7 @@ SignIn _$SignInFromJson(Map<String, dynamic> json) => SignIn(
       supportedIdentifiers: (json['supported_identifiers'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      identifier: json['identifier'] as String,
+      identifier: json['identifier'] as String?,
       userData: json['user_data'] == null
           ? null
           : UserPublic.fromJson(json['user_data'] as Map<String, dynamic>),
@@ -58,6 +58,7 @@ const _$StatusEnumMap = {
   Status.abandoned: 'abandoned',
   Status.active: 'active',
   Status.missingRequirements: 'missing_requirements',
+  Status.needsIdentifier: 'needs_identifier',
   Status.needsFirstFactor: 'needs_first_factor',
   Status.needsSecondFactor: 'needs_second_factor',
   Status.unverified: 'unverified',

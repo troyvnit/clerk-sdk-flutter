@@ -1,6 +1,6 @@
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 
 /// Clerk-branded profile navigation tile.
@@ -9,10 +9,7 @@ import 'package:flutter/material.dart';
 class ProfileNavTile extends StatelessWidget {
   /// Constructs a const [ProfileNavTile].
   const ProfileNavTile(
-      {required this.icon,
-      required this.title,
-      required this.selected,
-      this.onTap});
+      {required this.icon, required this.title, required this.selected, this.onTap});
 
   /// The icon to display in the navigation tile.
   final Widget icon;
@@ -43,8 +40,7 @@ class ProfileNavTile extends StatelessWidget {
               Text(
                 title,
                 style: selected
-                    ? ClerkTextStyle.subtitle
-                        .copyWith(color: ClerkColors.darkJungleGreen)
+                    ? ClerkTextStyle.subtitle.copyWith(color: ClerkColors.darkJungleGreen)
                     : ClerkTextStyle.subtitle,
                 maxLines: 1,
               ),

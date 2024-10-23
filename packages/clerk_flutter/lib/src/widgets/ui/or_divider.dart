@@ -1,6 +1,6 @@
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 
 /// A reusable divider with the text 'or' in the middle. Meant to divide vertical content.

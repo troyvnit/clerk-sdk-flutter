@@ -1,11 +1,11 @@
 import 'package:clerk_flutter/assets.dart';
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/clerk_icon.dart';
-import 'package:clerk_flutter/src/widgets/clerk_profile_nav_tile.dart';
-import 'package:clerk_flutter/src/widgets/clerk_two_panel_view.dart';
-import 'package:clerk_flutter/src/widgets/random_avatar.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_profile_nav_tile.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_two_panel_view.dart';
+import 'package:clerk_flutter/src/widgets/ui/random_avatar.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 
 /// The [ClerkUserProfileWidget] component is used to render a beautiful, full-featured

@@ -1,163 +1,295 @@
-import 'package:clerk_flutter/assets.dart';
+import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
-import 'package:clerk_flutter/style/colors.dart';
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/authentication/clerk_vertical_card.dart';
-import 'package:clerk_flutter/src/widgets/authentication/or_divider.dart';
-import 'package:clerk_flutter/src/widgets/authentication/social_connection_button.dart';
-import 'package:clerk_flutter/src/widgets/clerk_material_button.dart';
-import 'package:clerk_flutter/src/widgets/clerk_text_form_field.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// The [ClerkSignInWidget] renders a UI for signing in users.
 ///
 /// The functionality of the [ClerkSignInWidget] is controlled by the instance settings you
 /// specify in your Clerk Dashboard, such as sign-in and sign-ip options and social
-/// conntections. You can further customize you [ClersSignInWidget] by passing additional
+/// connections. You can further customize you [ClerkSignInWidget] by passing additional
 /// properties.
-///
-/// https://clerk.com/docs/components/authentication/sign-in
-///
-///
-@immutable
-class ClerkSignInWidget extends StatelessWidget {
-  /// Constructs a new [ClerSignInWidget].
-  const ClerkSignInWidget({super.key});
+
+class ClerkSignInWidget extends StatefulWidget {
+  const ClerkSignInWidget();
 
   @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 530.0),
-      child: const ClerkVerticalCard(
-        topPortion: _TopPortion(),
-        bottomPortion: _BottomPortion(),
-      ),
-    );
-  }
+  State<ClerkSignInWidget> createState() => _ClerkSignInWidgetState();
 }
 
-@immutable
-class _TopPortion extends StatelessWidget {
-  const _TopPortion();
+class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
+  static const _errorDisplayDuration = Duration(seconds: 3);
+
+  Clerk.Strategy _strategy = Clerk.Strategy.password;
+  String _identifier = '';
+  String _password = '';
+  String _code = '';
+  Clerk.AuthError? _error;
+
+  bool get _hasIdentifier => _identifier.isNotEmpty;
+  bool get _hasPassword => _password.isNotEmpty;
+
+  void _setError(Clerk.AuthError error) {
+    setState(() => _error = error);
+    Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
+  }
+
+  Future<T?> _callAuth<T>(Future<T> Function() fn) async {
+    T? result;
+    try {
+      Overlay.of(context).insert(_holdingPattern);
+      result = await fn.call();
+    } on Clerk.AuthError catch (error) {
+      _code = '';
+      _strategy = Clerk.Strategy.password;
+      _setError(error);
+    } finally {
+      _holdingPattern.remove();
+    }
+    return result;
+  }
+
+  Future<void> _oauth(Clerk.Auth auth, Clerk.Strategy strategy) async {
+    final client = await _callAuth(() => auth.oauthSignIn(strategy: strategy));
+    final url = client?.signIn?.firstFactorVerification?.providerUrl;
+    if (url case String url) {
+      late final OverlayEntry overlay;
+      overlay = OverlayEntry(
+        builder: (context) {
+          final controller = WebViewController()
+            ..setUserAgent('Clerk Flutter SDK v${Clerk.Auth.jsVersion}')
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onNavigationRequest: (request) async {
+                  if (request.url.startsWith(Clerk.Auth.oauthRedirect)) {
+                    overlay.remove();
+                    print('REQUEST: ${request.url}');
+                    return NavigationDecision.prevent;
+                  }
+                  return NavigationDecision.navigate;
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(url));
+          return Scaffold(
+            appBar: AppBar(title: Text(auth.env.display.applicationName)),
+            body: WebViewWidget(controller: controller),
+          );
+        },
+      );
+      Overlay.of(context).insert(overlay);
+    }
+  }
+
+  Future<void> _continue(Clerk.Auth auth, {Clerk.Strategy? strategy, String? code}) async {
+    if (_hasIdentifier) {
+      final newStrategy = _hasPassword ? Clerk.Strategy.password : strategy ?? _strategy;
+      final newCode = code ?? _code;
+      if (_strategy != newStrategy || _code != newCode) {
+        setState(() {
+          _strategy = newStrategy;
+          _code = newCode;
+        });
+      }
+
+      await _callAuth(
+        () => auth.attemptSignIn(
+          strategy: newStrategy,
+          identifier: _identifier,
+          password: _password.orNullIfEmpty,
+          code: newCode.orNullIfEmpty,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final translator = ClerkAuth.translatorOf(context);
+    final auth = ClerkAuth.of(context);
+    final env = auth.env;
+    final oauthStrategies = env.auth.firstFactors.where((f) => f.isOauth);
+    final otherStrategies = env.auth.firstFactors.where((f) => f.isOtherStrategy);
+    final hasPasswordStrategy = env.auth.firstFactors.contains(Clerk.Strategy.password);
+    final identifiers =
+        env.auth.identificationStrategies.where((i) => i.isOauth == false).map((i) => i.title);
+    final socialConnections = env.user.socialSettings.values.where(
+      (s) => oauthStrategies.contains(s.strategy),
+    );
+    final factor =
+        auth.client.signIn?.supportedFirstFactors.firstWhereOrNull((f) => f.strategy == _strategy);
+    final safeIdentifier = factor?.safeIdentifier;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        verticalMargin32,
-        Center(
-          child: SizedBox.square(
-            dimension: 32.0,
-            child: SvgPicture.asset(ClerkAssets.defaultOrganizationLogo),
-          ),
-        ),
-        verticalMargin24,
-        const Padding(
+        Padding(
           padding: horizontalPadding32,
           child: Text(
-            'Sign in to Acme Co',
+            translator.translate('Welcome back! Please sign in to continue'),
             textAlign: TextAlign.center,
-            maxLines: 1,
-            style: ClerkTextStyle.title,
-          ),
-        ),
-        const Padding(
-          padding: horizontalPadding32,
-          child: Text(
-            'Welcome back! Please sign in to continue',
-            textAlign: TextAlign.center,
-            maxLines: 1,
+            maxLines: 2,
             style: ClerkTextStyle.subtitle,
           ),
         ),
         verticalMargin24,
         Padding(
-          padding: horizontalPadding32,
+          padding: horizontalPadding32 + bottomPadding24,
           child: Row(
             children: [
-              for (final connection in SocialConnection.values) ...[
+              for (final connection in socialConnections)
                 Expanded(
-                  child: SocialConnectionButton(
-                    key: ValueKey<SocialConnection>(connection),
-                    connection: connection,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: SocialConnectionButton(
+                      key: ValueKey<Clerk.SocialConnection>(connection),
+                      connection: connection,
+                      onClicked: (strategy) => _oauth(auth, strategy),
+                    ),
                   ),
                 ),
-                if (connection != SocialConnection.values.last) //
-                  horizontalMargin8,
-              ],
             ],
           ),
         ),
-        verticalMargin24,
         const Padding(
           padding: horizontalPadding32,
           child: OrDivider(),
         ),
         verticalMargin24,
-        const Padding(
-          padding: horizontalPadding32,
-          child: ClerkTextFormField(label: 'Email address'),
-        ),
-        verticalMargin24,
         Padding(
-          padding: horizontalPadding32,
-          child: ClerkMaterialButton(
-            onPressed: () {},
-            label: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: horizontalPadding32 + bottomPadding8,
+          child: ClerkTextFormField(
+            key: const Key('identifier'),
+            label: translator.alternates(identifiers.toList()),
+            onChanged: (text) {
+              if (text.isEmpty != _identifier.isEmpty) {
+                // only rebuild if we need the password box to animate
+                // i.e. when going from '' -> '<a character>' or vice versa
+                setState(() => _identifier = text);
+              } else {
+                _identifier = text;
+              }
+            },
+          ),
+        ),
+        Closeable(
+          key: const Key('emailLinkMessage'),
+          open: _strategy == Clerk.Strategy.emailLink,
+          child: Padding(
+            padding: horizontalPadding32,
+            child: Text(
+              translator.translate(
+                'Click on the link that‘s been sent to ### and then check back here',
+                substitution: _identifier,
+              ),
+              maxLines: 2,
+              style: ClerkTextStyle.inputLabel,
+            ),
+          ),
+        ),
+        Closeable(
+          key: const Key('code'),
+          open: _strategy.requiresCode,
+          child: Padding(
+            padding: horizontalPadding32 + verticalPadding8,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // FIXME(drexel-ue): fix hacked algnment.
-                Center(child: Text('Continue')),
-                horizontalMargin4,
-                Icon(Icons.arrow_right_sharp),
+                Padding(
+                  padding: bottomPadding4,
+                  child: Text(
+                    safeIdentifier is String
+                        ? translator.translate(
+                            'Enter code sent to ###',
+                            substitution: safeIdentifier,
+                          )
+                        : translator.translate('Enter code'),
+                    textAlign: TextAlign.start,
+                    maxLines: 1,
+                    style: ClerkTextStyle.inputLabel,
+                  ),
+                ),
+                MultiDigitCodeInput(
+                  onSubmit: (code) async {
+                    await _continue(auth, code: code);
+                    return false;
+                  },
+                ),
               ],
             ),
           ),
         ),
-        verticalMargin32,
+        Closeable(
+          open: _strategy == Clerk.Strategy.password && _hasIdentifier,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (hasPasswordStrategy)
+                Padding(
+                  padding: horizontalPadding32 + verticalPadding8,
+                  child: ClerkTextFormField(
+                    label: translator.translate('Password'),
+                    obscureText: true,
+                    onChanged: (password) => _password = password,
+                    onSubmit: (_) => _continue(auth),
+                  ),
+                ),
+              if (otherStrategies.isNotEmpty) ...[
+                if (hasPasswordStrategy)
+                  const Padding(
+                    padding: horizontalPadding32,
+                    child: OrDivider(),
+                  ),
+                for (final strategy in otherStrategies)
+                  if (StrategyButton.supports(strategy))
+                    Padding(
+                      padding: topPadding4 + horizontalPadding32,
+                      child: StrategyButton(
+                          key: ValueKey<Clerk.Strategy>(strategy),
+                          strategy: strategy,
+                          onClick: () => _continue(auth, strategy: strategy)),
+                    ),
+                Padding(
+                  padding: horizontalPadding32 + bottomPadding32 + topPadding16,
+                  child: ClerkMaterialButton(
+                    onPressed: () => _continue(auth),
+                    label: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(child: Text(translator.translate('Continue'))),
+                        horizontalMargin4,
+                        const Icon(Icons.arrow_right_sharp),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              verticalMargin8,
+            ],
+          ),
+        ),
+        ErrorMessage(error: _error),
+        verticalMargin16,
       ],
     );
   }
 }
 
-@immutable
-class _BottomPortion extends StatelessWidget {
-  const _BottomPortion();
+final _holdingPattern = OverlayEntry(
+  builder: (context) => const SizedBox(
+    width: double.infinity,
+    height: double.infinity,
+    child: ColoredBox(
+      color: Colors.black26,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  ),
+);
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        verticalMargin12,
-        Padding(
-          padding: horizontalPadding32,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                const TextSpan(
-                  text: 'Dont have an account? ',
-                  style: ClerkTextStyle.subtitle,
-                ),
-                TextSpan(
-                  text: 'Sign up',
-                  style: ClerkTextStyle.subtitle.copyWith(
-                    color: ClerkColors.darkJungleGreen,
-                  ),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        verticalMargin12,
-      ],
-    );
-  }
+extension _NullExtension on String {
+  String? get orNullIfEmpty => isEmpty ? null : this;
 }

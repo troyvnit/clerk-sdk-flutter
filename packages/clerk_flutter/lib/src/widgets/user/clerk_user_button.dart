@@ -1,10 +1,10 @@
 import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/widgets/clerk_icon.dart';
-import 'package:clerk_flutter/style/colors.dart';
 import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/authentication/clerk_vertical_card.dart';
-import 'package:clerk_flutter/src/widgets/clerk_material_button.dart';
-import 'package:clerk_flutter/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -72,8 +72,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
           ),
         ),
       ],
-      builder:
-          (BuildContext context, MenuController controller, Widget? child) {
+      builder: (BuildContext context, MenuController controller, Widget? child) {
         return GestureDetector(
           onTap: () {
             if (controller.isOpen) {
@@ -166,8 +165,7 @@ class _UserSelector extends StatelessWidget {
                   ),
                 ),
                 horizontalMargin8,
-                Text('Add account',
-                    maxLines: 1, style: ClerkTextStyle.userButtonTitle),
+                Text('Add account', maxLines: 1, style: ClerkTextStyle.userButtonTitle),
               ],
             ),
           ),

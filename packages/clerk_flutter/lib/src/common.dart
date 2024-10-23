@@ -2,7 +2,7 @@
 
 import 'dart:ui';
 
-import 'package:clerk_flutter/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
 import 'package:flutter/material.dart' show Divider, OutlineInputBorder;
 import 'package:flutter/widgets.dart'
     show

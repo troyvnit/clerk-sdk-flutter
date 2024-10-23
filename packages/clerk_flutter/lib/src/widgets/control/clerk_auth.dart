@@ -1,5 +1,5 @@
 import 'package:clerk_auth/clerk_auth.dart' as Clerk;
-import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
 /// Control widget initialising Clerk Auth system
@@ -13,6 +13,9 @@ class ClerkAuth extends StatefulWidget {
   /// Persistence service for caching tokens
   final Clerk.Persistor? persistor;
 
+  /// Injectable translations for strings
+  final ClerkTranslator translator;
+
   /// child widget tree
   final Widget child;
 
@@ -25,6 +28,7 @@ class ClerkAuth extends StatefulWidget {
     required this.publicKey,
     required this.publishableKey,
     required this.child,
+    this.translator = const ClerkTranslator(),
     this.persistor,
     this.loading,
   });
@@ -37,6 +41,18 @@ class ClerkAuth extends StatefulWidget {
     assert(result != null, 'No Clerk `Auth` found in context');
     return result!.auth;
   }
+
+  static Clerk.DisplayConfig displayConfigOf(BuildContext context) {
+    final result = context.findAncestorWidgetOfExactType<_ClerkAuthData>();
+    assert(result != null, 'No Clerk `Auth` found in context');
+    return result!.auth.env.display;
+  }
+
+  static ClerkTranslator translatorOf(context) {
+    final result = context.findAncestorWidgetOfExactType<_ClerkAuthData>();
+    assert(result != null, 'No Clerk `Auth` found in context');
+    return result!.translator;
+  }
 }
 
 class _ClerkAuthState extends State<ClerkAuth> {
@@ -46,7 +62,6 @@ class _ClerkAuthState extends State<ClerkAuth> {
   @override
   void initState() {
     super.initState();
-
     _auth = _ClerkNotifyingAuth(
       publishableKey: widget.publishableKey,
       publicKey: widget.publicKey,
@@ -68,7 +83,11 @@ class _ClerkAuthState extends State<ClerkAuth> {
       future: _authFuture,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return _ClerkAuthData(child: widget.child, auth: snapshot.data!);
+          return _ClerkAuthData(
+            child: widget.child,
+            auth: snapshot.data!,
+            translator: widget.translator,
+          );
         }
         return widget.loading ?? emptyWidget;
       },
@@ -82,12 +101,14 @@ class _ClerkAuthData extends InheritedWidget {
   final Clerk.Auth auth;
   final Clerk.Client client;
   final Clerk.Environment env;
+  final ClerkTranslator translator;
 
   _ClerkAuthData({
     required super.child,
     required this.auth,
-  })  : this.client = auth.clientSync,
-        this.env = auth.envSync;
+    required this.translator,
+  })  : this.client = auth.client,
+        this.env = auth.env;
 
   @override
   bool updateShouldNotify(_ClerkAuthData old) => old.client != client || old.env != env;
@@ -97,9 +118,5 @@ class _ClerkNotifyingAuth extends Clerk.Auth with ChangeNotifier {
   _ClerkNotifyingAuth({required super.publicKey, required super.publishableKey, super.persistor});
 
   @override
-  void update() {
-    final result = super.update();
-    notifyListeners();
-    return result;
-  }
+  void update() => notifyListeners();
 }

@@ -12,7 +12,7 @@ class ClerkSignedOut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final client = ClerkAuth.of(context).clientSync;
+    final client = ClerkAuth.of(context).client;
 
     if (client.user == null) {
       return child;

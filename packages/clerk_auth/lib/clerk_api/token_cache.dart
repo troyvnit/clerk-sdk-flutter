@@ -21,9 +21,9 @@ class TokenCache {
 
   bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
 
-  String _sessionId = "";
-  String _clientToken = "";
-  String _sessionToken = "";
+  String _sessionId = '';
+  String _clientToken = '';
+  String _sessionToken = '';
   DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
   bool get _sessionTokenHasExpired => DateTime.now().isAfter(_sessionTokenExpiry);
 
@@ -48,14 +48,14 @@ class TokenCache {
       _sessionId = sessionId ?? '';
       _sessionToken = sessionToken ?? '';
       _clientToken = clientToken ?? '';
-      _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(int.tryParse(ms ?? '') ?? 0);
+      _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(int.tryParse(ms.toString()) ?? 0);
     }
   }
 
   void clear() {
-    _sessionId = "";
-    _clientToken = "";
-    _sessionToken = "";
+    _sessionId = '';
+    _clientToken = '';
+    _sessionToken = '';
     _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
     for (final key in _persistorKeys) {
       persistor?.delete(key);
@@ -79,12 +79,12 @@ class TokenCache {
       _clientToken = token;
       persistor?.write(_clientTokenKey, token);
     } catch (ex) {
-      logger.e("ERROR SETTING CLIENT TOKEN: $ex");
+      logger.e('ERROR SETTING CLIENT TOKEN: $ex');
     }
   }
 
   String get sessionToken {
-    if (_sessionTokenHasExpired) _sessionToken = "";
+    if (_sessionTokenHasExpired) _sessionToken = '';
     return _sessionToken;
   }
 
@@ -93,7 +93,7 @@ class TokenCache {
 
     try {
       final jwt = JWT.verify(token, rsaKey);
-      final exp = jwt.payload["exp"];
+      final exp = jwt.payload['exp'];
       if (exp is int) {
         final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
         _sessionTokenExpiry = expiry.subtract(_tokenExpiryBuffer);
@@ -105,7 +105,7 @@ class TokenCache {
         );
       }
     } catch (ex) {
-      logger.e("ERROR SETTING SESSION TOKEN: $ex");
+      logger.e('ERROR SETTING SESSION TOKEN: $ex');
     }
   }
 

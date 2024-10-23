@@ -45,7 +45,6 @@ class Api with Logging {
   static const _kIsNative = '_is_native';
   static const _kClerkSessionId = '_clerk_session_id';
   static const _kClerkJsVersion = '_clerk_js_version';
-  static const _vClerkJsVersion = '4.70.0';
   static const _kErrorsKey = 'errors';
   static const _kClientKey = 'client';
   static const _kResponseKey = 'response';
@@ -56,7 +55,8 @@ class Api with Logging {
     final resp = await _fetch(path: '/environment', method: HttpMethod.get);
     if (resp.statusCode == HttpStatus.ok) {
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      return Environment.fromJson(body);
+      final xxx = Environment.fromJson(body);
+      return xxx;
     }
     return Environment.empty;
   }
@@ -65,7 +65,8 @@ class Api with Logging {
     final resp = await _fetch(path: '/client');
     if (resp.statusCode == HttpStatus.ok) {
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      return Client.fromJson(body[_kResponseKey]);
+      final xxx = Client.fromJson(body[_kResponseKey]);
+      return xxx;
     }
     return Client.empty;
   }
@@ -200,14 +201,18 @@ class Api with Logging {
   // Sign In API
 
   Future<ApiResponse> createSignIn({
-    required String identifier,
+    Strategy? strategy,
+    String? identifier,
     String? password,
+    String? redirectUrl,
   }) =>
       _fetchApiResponse(
         '/client/sign_ins',
         params: {
+          'strategy': strategy,
           'identifier': identifier,
           'password': password,
+          'redirect_url': redirectUrl,
         },
       );
 
@@ -388,7 +393,7 @@ class Api with Logging {
     params?.removeWhere((key, value) => value == null);
     final queryParams = {
       _kIsNative: true,
-      _kClerkJsVersion: _vClerkJsVersion,
+      _kClerkJsVersion: Auth.jsVersion,
       if (requiresSessionId) //
         _kClerkSessionId: tokenCache.sessionId,
       if (method.isGet) //

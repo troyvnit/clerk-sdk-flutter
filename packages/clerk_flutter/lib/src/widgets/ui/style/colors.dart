@@ -63,4 +63,7 @@ class ClerkColors {
 
   /// Alabaster (organization switcher hover color).
   static const alabaster = Color(0xFFfafafb);
+
+  /// Incarnadine (error colour)
+  static const incarnadine = Color(0xFFff3333);
 }

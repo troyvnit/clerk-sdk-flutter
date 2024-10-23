@@ -32,7 +32,6 @@ class DisplayConfig {
   final String? homeUrl;
   final String? instanceEnvironmentType;
   final String? logoImageUrl;
-  final String? logoImage;
   final String? logoLinkUrl;
   final String? logoUrl;
   final String? organizationProfileUrl;
@@ -71,7 +70,6 @@ class DisplayConfig {
     this.homeUrl = '',
     this.instanceEnvironmentType = '',
     this.logoImageUrl = '',
-    this.logoImage = '',
     this.logoLinkUrl = '',
     this.logoUrl = '',
     this.organizationProfileUrl = '',

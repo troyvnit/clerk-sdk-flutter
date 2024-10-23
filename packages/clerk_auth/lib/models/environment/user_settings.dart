@@ -22,7 +22,7 @@ class UserSettings {
   final bool saml;
 
   @JsonKey(name: 'social')
-  final SocialSettings socialSettings;
+  final Map<String, SocialConnection> socialSettings;
 
   const UserSettings({
     this.attributes = UserAttributes.empty,
@@ -34,7 +34,7 @@ class UserSettings {
     this.attackProtection = AttackProtection.empty,
     this.passkeySettings = PasskeySettings.empty,
     this.passwordSettings = PasswordSettings.empty,
-    this.socialSettings = SocialSettings.empty,
+    this.socialSettings = const {},
     this.saml = false,
   });
 

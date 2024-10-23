@@ -1,5 +1,5 @@
-import 'package:clerk_flutter/style/colors.dart';
 import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
 import 'package:flutter/material.dart';
 
 /// Style of [ClerkMaterialButton].

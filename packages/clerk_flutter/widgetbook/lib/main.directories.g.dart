@@ -10,30 +10,18 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:widgetbook/widgetbook.dart' as _i1;
-import 'package:widgetbook_workspace/cool_button.dart' as _i2;
-import 'package:widgetbook_workspace/widgets/authentication/clerk_sign_in_widget.dart'
-    as _i3;
-import 'package:widgetbook_workspace/widgets/authentication/clerk_sign_up_widget.dart'
-    as _i4;
+import 'package:widgetbook_workspace/widgets/authentication/clerk_sign_in_widget.dart' as _i3;
+import 'package:widgetbook_workspace/widgets/authentication/clerk_sign_up_widget.dart' as _i4;
 import 'package:widgetbook_workspace/widgets/organization/clerk_create_organization_widget.dart'
     as _i5;
 import 'package:widgetbook_workspace/widgets/organization/clerk_organization_profile_widget.dart'
     as _i6;
 import 'package:widgetbook_workspace/widgets/organization/clerk_organization_switcher_widget.dart'
     as _i7;
-import 'package:widgetbook_workspace/widgets/user/clerk_user_button.dart'
-    as _i8;
-import 'package:widgetbook_workspace/widgets/user/clerk_user_profile_widget.dart'
-    as _i9;
+import 'package:widgetbook_workspace/widgets/user/clerk_user_button.dart' as _i8;
+import 'package:widgetbook_workspace/widgets/user/clerk_user_profile_widget.dart' as _i9;
 
 final directories = <_i1.WidgetbookNode>[
-  _i1.WidgetbookLeafComponent(
-    name: 'CoolButton',
-    useCase: _i1.WidgetbookUseCase(
-      name: 'Default',
-      builder: _i2.buildCoolButtonUseCase,
-    ),
-  ),
   _i1.WidgetbookFolder(
     name: 'widgets',
     children: [

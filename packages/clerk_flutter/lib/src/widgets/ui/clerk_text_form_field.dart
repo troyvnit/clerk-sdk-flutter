@@ -1,6 +1,4 @@
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
 /// A reusable and Clerk styled [TextFormField].
@@ -46,14 +44,14 @@ class ClerkTextFormField extends StatelessWidget {
                 child: Text(
                   label,
                   textAlign: TextAlign.start,
-                  maxLines: 1,
+                  maxLines: 2,
                   style: ClerkTextStyle.inputLabel,
                 ),
               ),
             spacer,
             if (optional) //
               Text(
-                'Optional',
+                ClerkAuth.translatorOf(context).translate('Optional'),
                 textAlign: TextAlign.end,
                 maxLines: 1,
                 style: ClerkTextStyle.inputLabel.copyWith(

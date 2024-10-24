@@ -12,25 +12,22 @@ import 'package:flutter/material.dart';
 ///
 ///
 @immutable
-class ClerkSignUpWidget extends StatelessWidget {
-  const ClerkSignUpWidget();
+class ClerkSignUpWidget extends StatefulWidget {
+  final FutureCallback callAuth;
 
+  const ClerkSignUpWidget({required this.callAuth});
+
+  @override
+  State<ClerkSignUpWidget> createState() => _ClerkSignUpWidgetState();
+}
+
+class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
-          padding: horizontalPadding32,
-          child: Text(
-            'Welcome! Please fill in the details to get started.',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            style: ClerkTextStyle.subtitle,
-          ),
-        ),
-        verticalMargin24,
         ClerkAuthBuilder(builder: (context, auth) {
           final env = auth.env;
           final oauthStrategies = env.auth.identificationStrategies.where((i) => i.isOauth);
@@ -48,7 +45,7 @@ class ClerkSignUpWidget extends StatelessWidget {
                       child: SocialConnectionButton(
                         key: ValueKey<Clerk.SocialConnection>(connection),
                         connection: connection,
-                        onClicked: (_) => null,
+                        callAuth: widget.callAuth,
                       ),
                     ),
                   ),

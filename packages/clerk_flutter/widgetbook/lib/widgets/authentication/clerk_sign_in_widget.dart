@@ -13,12 +13,9 @@ Widget buildClerkSignInWidgetUseCase(BuildContext context) {
   );
   double? maxHeight, minWidth, maxWidth, height, width;
   if (sizeAdjust) {
-    maxHeight =
-        context.knobs.double.input(label: 'max. height', initialValue: 1000.0);
-    minWidth =
-        context.knobs.double.input(label: 'min. width', initialValue: 530.0);
-    maxWidth =
-        context.knobs.double.input(label: 'max. width', initialValue: 1000.0);
+    maxHeight = context.knobs.double.input(label: 'max. height', initialValue: 1000.0);
+    minWidth = context.knobs.double.input(label: 'min. width', initialValue: 530.0);
+    maxWidth = context.knobs.double.input(label: 'max. width', initialValue: 1000.0);
     height = context.knobs.double.slider(
       label: 'height',
       initialValue: 600.0,
@@ -35,6 +32,6 @@ Widget buildClerkSignInWidgetUseCase(BuildContext context) {
   return UseCaseFrame(
     height: height,
     width: width,
-    child: const ClerkSignInWidget(),
+    child: SizedBox.shrink(), //ClerkSignInWidget(),
   );
 }

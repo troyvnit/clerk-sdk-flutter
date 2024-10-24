@@ -2,7 +2,6 @@ import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 /// The [ClerkSignInWidget] renders a UI for signing in users.
 ///
@@ -12,15 +11,15 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// properties.
 
 class ClerkSignInWidget extends StatefulWidget {
-  const ClerkSignInWidget();
+  final FutureCallback callAuth;
+
+  const ClerkSignInWidget({required this.callAuth});
 
   @override
   State<ClerkSignInWidget> createState() => _ClerkSignInWidgetState();
 }
 
 class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
-  static const _errorDisplayDuration = Duration(seconds: 3);
-
   Clerk.Strategy _strategy = Clerk.Strategy.password;
   String _identifier = '';
   String _password = '';
@@ -29,59 +28,6 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
 
   bool get _hasIdentifier => _identifier.isNotEmpty;
   bool get _hasPassword => _password.isNotEmpty;
-
-  void _setError(Clerk.AuthError error) {
-    setState(() => _error = error);
-    Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
-  }
-
-  Future<T?> _callAuth<T>(Future<T> Function() fn) async {
-    T? result;
-    try {
-      Overlay.of(context).insert(_holdingPattern);
-      result = await fn.call();
-    } on Clerk.AuthError catch (error) {
-      _code = '';
-      _strategy = Clerk.Strategy.password;
-      _setError(error);
-    } finally {
-      _holdingPattern.remove();
-    }
-    return result;
-  }
-
-  Future<void> _oauth(Clerk.Auth auth, Clerk.Strategy strategy) async {
-    final client = await _callAuth(() => auth.oauthSignIn(strategy: strategy));
-    final url = client?.signIn?.firstFactorVerification?.providerUrl;
-    if (url case String url) {
-      late final OverlayEntry overlay;
-      overlay = OverlayEntry(
-        builder: (context) {
-          final controller = WebViewController()
-            ..setUserAgent('Clerk Flutter SDK v${Clerk.Auth.jsVersion}')
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setNavigationDelegate(
-              NavigationDelegate(
-                onNavigationRequest: (request) async {
-                  if (request.url.startsWith(Clerk.Auth.oauthRedirect)) {
-                    overlay.remove();
-                    print('REQUEST: ${request.url}');
-                    return NavigationDecision.prevent;
-                  }
-                  return NavigationDecision.navigate;
-                },
-              ),
-            )
-            ..loadRequest(Uri.parse(url));
-          return Scaffold(
-            appBar: AppBar(title: Text(auth.env.display.applicationName)),
-            body: WebViewWidget(controller: controller),
-          );
-        },
-      );
-      Overlay.of(context).insert(overlay);
-    }
-  }
 
   Future<void> _continue(Clerk.Auth auth, {Clerk.Strategy? strategy, String? code}) async {
     if (_hasIdentifier) {
@@ -94,13 +40,17 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
         });
       }
 
-      await _callAuth(
+      await widget.callAuth(
         () => auth.attemptSignIn(
           strategy: newStrategy,
           identifier: _identifier,
           password: _password.orNullIfEmpty,
           code: newCode.orNullIfEmpty,
         ),
+        () {
+          _code = '';
+          _strategy = Clerk.Strategy.password;
+        },
       );
     }
   }
@@ -127,16 +77,6 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: horizontalPadding32,
-          child: Text(
-            translator.translate('Welcome back! Please sign in to continue'),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: ClerkTextStyle.subtitle,
-          ),
-        ),
-        verticalMargin24,
-        Padding(
           padding: horizontalPadding32 + bottomPadding24,
           child: Row(
             children: [
@@ -145,9 +85,9 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: SocialConnectionButton(
-                      key: ValueKey<Clerk.SocialConnection>(connection),
+                      key: ValueKey(connection),
                       connection: connection,
-                      onClicked: (strategy) => _oauth(auth, strategy),
+                      callAuth: widget.callAuth,
                     ),
                   ),
                 ),
@@ -277,19 +217,4 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
       ],
     );
   }
-}
-
-final _holdingPattern = OverlayEntry(
-  builder: (context) => const SizedBox(
-    width: double.infinity,
-    height: double.infinity,
-    child: ColoredBox(
-      color: Colors.black26,
-      child: Center(child: CircularProgressIndicator()),
-    ),
-  ),
-);
-
-extension _NullExtension on String {
-  String? get orNullIfEmpty => isEmpty ? null : this;
 }

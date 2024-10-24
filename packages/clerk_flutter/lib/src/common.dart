@@ -15,6 +15,12 @@ import 'package:flutter/widgets.dart'
         Spacer;
 import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
+typedef FutureCallback<T> = Future<T?> Function<T>(Future<T> Function(), [VoidCallback]);
+
+extension NullExtension on String {
+  String? get orNullIfEmpty => isEmpty ? null : this;
+}
+
 const emptyWidget = SizedBox();
 const emptyWidgetWide = SizedBox(width: double.infinity);
 

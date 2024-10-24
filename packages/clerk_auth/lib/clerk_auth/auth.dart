@@ -6,11 +6,9 @@ import 'package:clerk_auth/clerk_auth.dart';
 class Auth {
   static const jsVersion = '4.70.0';
   static const oauthRedirect = 'https://www.clerk.com/oauth-redirect';
-  static const _defaultRedirectUrl = 'https://www.clerk.com';
+  static const emailLinkRedirect = 'https://www.clerk.com';
 
   final Api _api;
-  late final Future<Client> _clientFuture = _api.createClient();
-  late final Future<Environment> _envFuture = _api.environment();
 
   Auth({required String publishableKey, required String publicKey, Persistor? persistor})
       : _api = Api(publicKey: publicKey, publishableKey: publishableKey, persistor: persistor);
@@ -21,16 +19,19 @@ class Auth {
 
   // `init` must be called before `env` or `client` are accessed
   Future<Auth> init() async {
-    // final [client, env] = await Future.wait([_clientFuture, _envFuture]);
-    // this.client = client as Client;
-    // this.env = env as Environment;
-    this.client = await _clientFuture;
-    this.env = await _envFuture;
+    await _getClientAndEnv();
     return this;
   }
 
   Future<void> refresh() async {
-    this.env = await _api.environment();
+    await _getClientAndEnv();
+    update();
+  }
+
+  Future<void> _getClientAndEnv() async {
+    final [client, env] = await Future.wait([_api.createClient(), _api.environment()]);
+    this.client = client as Client;
+    this.env = env as Environment;
   }
 
   late Environment env;
@@ -70,7 +71,6 @@ class Auth {
       await _api
           .prepareSignIn(signIn, stage: Stage.first, strategy: strategy, redirectUrl: oauthRedirect)
           .then(_housekeeping);
-      print('URL: ${client.signIn?.firstFactorVerification?.providerUrl}');
     }
     return client;
   }
@@ -80,7 +80,7 @@ class Auth {
     Strategy? strategy,
     String? password,
     String? code,
-    String? redirectUrl,
+    String? token,
   }) async {
     // If we already have a user, can return
     if (client.user is User) return client;
@@ -93,13 +93,16 @@ class Auth {
 
     if (client.user is! User) {
       switch (client.signIn) {
+        case SignIn signIn when strategy?.isOauth == true && token?.isNotEmpty == true:
+          await _api.sendOauthToken(signIn, strategy: strategy!, token: token!).then(_housekeeping);
+
         case SignIn signIn when strategy == Strategy.emailLink:
           await _api
               .prepareSignIn(
                 signIn,
                 stage: Stage.first,
                 strategy: Strategy.emailLink,
-                redirectUrl: redirectUrl ?? _defaultRedirectUrl,
+                redirectUrl: emailLinkRedirect,
               )
               .then(_housekeeping);
 

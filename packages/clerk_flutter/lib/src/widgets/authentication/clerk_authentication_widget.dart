@@ -1,3 +1,4 @@
+import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/assets.dart';
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/gestures.dart';
@@ -29,7 +30,10 @@ class ClerkAuthenticationWidget extends StatefulWidget {
 }
 
 class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
+  static const _errorDisplayDuration = Duration(seconds: 3);
+
   _AuthState _state = _AuthState.signingIn;
+  Clerk.AuthError? _error;
 
   void _toggle() {
     setState(() {
@@ -40,16 +44,36 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
     });
   }
 
+  void _setError(Clerk.AuthError error) {
+    setState(() => _error = error);
+    Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
+  }
+
+  Future<T?> _callAuth<T>(Future<T> Function() fn, [VoidCallback? onError]) async {
+    T? result;
+    try {
+      Overlay.of(context).insert(_holdingPattern);
+      result = await fn.call();
+    } on Clerk.AuthError catch (error) {
+      onError?.call();
+      _setError(error);
+    } finally {
+      _holdingPattern.remove();
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 530.0),
       child: ClerkVerticalCard(
-        topPortion: const _TopPortion(),
+        topPortion: _TopPortion(state: _state),
         middlePortion: Column(
           children: [
-            Closeable(open: _state.isSigningIn, child: const ClerkSignInWidget()),
-            Closeable(open: _state.isSigningUp, child: const ClerkSignUpWidget()),
+            ErrorMessage(error: _error),
+            Closeable(open: _state.isSigningIn, child: ClerkSignInWidget(callAuth: _callAuth)),
+            Closeable(open: _state.isSigningUp, child: ClerkSignUpWidget(callAuth: _callAuth)),
           ],
         ),
         bottomPortion: _BottomPortion(state: _state, onChange: _toggle),
@@ -60,11 +84,12 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
 
 @immutable
 class _TopPortion extends StatelessWidget {
-  const _TopPortion({super.key});
+  final _AuthState state;
 
   @override
   Widget build(BuildContext context) {
     final display = ClerkAuth.displayConfigOf(context);
+    final translator = ClerkAuth.translatorOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -87,15 +112,33 @@ class _TopPortion extends StatelessWidget {
         Padding(
           padding: horizontalPadding32,
           child: Text(
-            display.applicationName,
+            translator.translate(
+              state.isSigningIn ? 'Sign in to ###' : 'Sign up to ###',
+              substitution: display.applicationName,
+            ),
             textAlign: TextAlign.center,
             maxLines: 1,
             style: ClerkTextStyle.title,
           ),
         ),
+        Padding(
+          padding: horizontalPadding32 + bottomPadding24,
+          child: Text(
+            translator.translate(
+              state.isSigningIn
+                  ? 'Welcome back! Please sign in to continue'
+                  : 'Welcome! Please fill in the details to get started',
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: ClerkTextStyle.subtitle,
+          ),
+        ),
       ],
     );
   }
+
+  const _TopPortion({super.key, required this.state});
 }
 
 @immutable
@@ -142,3 +185,14 @@ class _BottomPortion extends StatelessWidget {
     );
   }
 }
+
+final _holdingPattern = OverlayEntry(
+  builder: (context) => const SizedBox(
+    width: double.infinity,
+    height: double.infinity,
+    child: ColoredBox(
+      color: Colors.black26,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  ),
+);

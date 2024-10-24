@@ -1,8 +1,7 @@
-import 'package:clerk_auth/clerk_api/clerk_api.dart' as Clerk;
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
+import 'package:clerk_auth/clerk_auth.dart' as Clerk;
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// The [SocialConnectionButton] is to be used with the authentication flow when working with
 /// a an oAuth provider. When there is sufficient space, an [Icon] and [Text] description of
@@ -11,25 +10,65 @@ import 'package:flutter/material.dart';
 
 @immutable
 class SocialConnectionButton extends StatelessWidget {
+  static const _kRotatingTokenNonce = 'rotating_token_nonce';
+
   /// Constructs a new [SocialConnectionButton].
   const SocialConnectionButton({
     super.key,
     required this.connection,
-    required this.onClicked,
+    required this.callAuth,
   });
 
   /// The oAuth provider this button represents.
   final Clerk.SocialConnection connection;
 
   /// Callback for when button clicked
-  final ValueChanged<Clerk.Strategy> onClicked;
+  final FutureCallback callAuth;
+
+  Future<void> _oauth(BuildContext context, Clerk.Strategy strategy) async {
+    final auth = ClerkAuth.of(context);
+    final client = await callAuth(() => auth.oauthSignIn(strategy: strategy));
+    final url = client?.signIn?.firstFactorVerification?.providerUrl;
+    if (url case String url) {
+      late final OverlayEntry overlay;
+      overlay = OverlayEntry(
+        builder: (context) {
+          final controller = WebViewController()
+            ..setUserAgent('Clerk Flutter SDK v${Clerk.Auth.jsVersion}')
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onNavigationRequest: (request) async {
+                  if (request.url.startsWith(Clerk.Auth.oauthRedirect)) {
+                    final uri = Uri.parse(request.url);
+                    final rotatingToken = uri.queryParameters[_kRotatingTokenNonce];
+                    callAuth(
+                      () => auth.attemptSignIn(strategy: strategy, token: rotatingToken),
+                    );
+                    overlay.remove();
+                    return NavigationDecision.prevent;
+                  }
+                  return NavigationDecision.navigate;
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(url));
+          return Scaffold(
+            appBar: AppBar(title: Text(auth.env.display.applicationName)),
+            body: WebViewWidget(controller: controller),
+          );
+        },
+      );
+      Overlay.of(context).insert(overlay);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 30.0,
       child: MaterialButton(
-        onPressed: () => onClicked(connection.strategy),
+        onPressed: () => _oauth(context, connection.strategy),
         elevation: 2.0,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius4,

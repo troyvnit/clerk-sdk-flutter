@@ -12,6 +12,7 @@ class ClerkTranslator {
     for (final sub in substitutions) {
       phrase = phrase.replaceFirst(_substitutionKey, sub);
     }
+
     return phrase;
   }
 

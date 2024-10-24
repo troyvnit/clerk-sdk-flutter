@@ -252,6 +252,8 @@ class Api with Logging {
     required Strategy strategy,
     String? code,
     String? password,
+    String? redirectUrl,
+    String? rotatingToken,
   }) async {
     final factor = signIn.factorFor(strategy, stage);
     if (factor is! Factor) {
@@ -264,9 +266,25 @@ class Api with Logging {
         'strategy': strategy,
         'code': code,
         'password': password,
+        'redirect_url': redirectUrl,
+        'rotating_token_nonce': rotatingToken,
       },
     );
   }
+
+  Future<ApiResponse> sendOauthToken(
+    SignIn signIn, {
+    required Strategy strategy,
+    required String token,
+  }) =>
+      _fetchApiResponse(
+        '/client/sign_ins/${signIn.id}',
+        method: HttpMethod.get,
+        params: {
+          'strategy': strategy,
+          'rotating_token_nonce': token,
+        },
+      );
 
   // User
 

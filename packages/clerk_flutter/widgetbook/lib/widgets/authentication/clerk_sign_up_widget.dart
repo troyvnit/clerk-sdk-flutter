@@ -6,6 +6,6 @@ import 'package:widgetbook_workspace/use_case_frame.dart';
 @widgetbook.UseCase(name: 'Authentication', type: ClerkSignUpWidget)
 Widget buildClerkSignUpWidgetUseCase(BuildContext context) {
   return const UseCaseFrame(
-    child: ClerkSignUpWidget(),
+    child: SizedBox.shrink(), //ClerkSignUpWidget(),
   );
 }

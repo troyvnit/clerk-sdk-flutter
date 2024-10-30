@@ -11,6 +11,8 @@ enum _AuthState {
 
   bool get isSigningIn => this == signingIn;
   bool get isSigningUp => this == signingUp;
+
+  _AuthState get nextState => values[(index + 1) % values.length];
 }
 
 /// The [ClerkAuthenticationWidget] renders a UI for signing users or up.
@@ -30,38 +32,9 @@ class ClerkAuthenticationWidget extends StatefulWidget {
 }
 
 class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
-  static const _errorDisplayDuration = Duration(seconds: 3);
-
   _AuthState _state = _AuthState.signingIn;
-  Clerk.AuthError? _error;
 
-  void _toggle() {
-    setState(() {
-      _state = switch (_state) {
-        _AuthState.signingIn => _AuthState.signingUp,
-        _AuthState.signingUp => _AuthState.signingIn,
-      };
-    });
-  }
-
-  void _setError(Clerk.AuthError error) {
-    setState(() => _error = error);
-    Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
-  }
-
-  Future<T?> _callAuth<T>(Future<T> Function() fn, [VoidCallback? onError]) async {
-    T? result;
-    try {
-      Overlay.of(context).insert(_holdingPattern);
-      result = await fn.call();
-    } on Clerk.AuthError catch (error) {
-      onError?.call();
-      _setError(error);
-    } finally {
-      _holdingPattern.remove();
-    }
-    return result;
-  }
+  void _toggle() => setState(() => _state = _state.nextState);
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +44,16 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
         topPortion: _TopPortion(state: _state),
         middlePortion: Column(
           children: [
-            ErrorMessage(error: _error),
-            Closeable(open: _state.isSigningIn, child: ClerkSignInWidget(callAuth: _callAuth)),
-            Closeable(open: _state.isSigningUp, child: ClerkSignUpWidget(callAuth: _callAuth)),
+            ClerkAuthBuilder(
+              builder: (context, auth) {
+                return Closeable(
+                  closed: auth.signIn is Clerk.SignIn || auth.signUp is Clerk.SignUp,
+                  child: const ClerkSSO(),
+                );
+              },
+            ),
+            Closeable(open: _state.isSigningIn, child: const ClerkSignInWidget()),
+            Closeable(open: _state.isSigningUp, child: const ClerkSignUpWidget()),
           ],
         ),
         bottomPortion: _BottomPortion(state: _state, onChange: _toggle),
@@ -85,6 +65,8 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
 @immutable
 class _TopPortion extends StatelessWidget {
   final _AuthState state;
+
+  const _TopPortion({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -102,10 +84,7 @@ class _TopPortion extends StatelessWidget {
               dimension: 32.0,
               child: display.logoUrl?.isNotEmpty == true
                   ? Image.network(display.logoUrl!)
-                  : SvgPicture.asset(
-                      ClerkAssets.defaultOrganizationLogo,
-                      package: 'clerk_flutter',
-                    ),
+                  : SvgPicture.asset(ClerkAssets.defaultOrganizationLogo, package: 'clerk_flutter'),
             ),
           ),
         ),
@@ -137,8 +116,6 @@ class _TopPortion extends StatelessWidget {
       ],
     );
   }
-
-  const _TopPortion({super.key, required this.state});
 }
 
 @immutable
@@ -185,14 +162,3 @@ class _BottomPortion extends StatelessWidget {
     );
   }
 }
-
-final _holdingPattern = OverlayEntry(
-  builder: (context) => const SizedBox(
-    width: double.infinity,
-    height: double.infinity,
-    child: ColoredBox(
-      color: Colors.black26,
-      child: Center(child: CircularProgressIndicator()),
-    ),
-  ),
-);

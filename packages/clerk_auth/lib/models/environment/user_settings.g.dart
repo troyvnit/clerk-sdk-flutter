@@ -7,9 +7,7 @@ part of 'user_settings.dart';
 // **************************************************************************
 
 UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
-      attributes: json['attributes'] == null
-          ? UserAttributes.empty
-          : UserAttributes.fromJson(json['attributes'] as Map<String, dynamic>),
+      attributes: json['attributes'] == null ? const {} : _toAttributeMap(json['attributes']),
       signIn: json['sign_in'] == null
           ? SignInSettings.empty
           : SignInSettings.fromJson(json['sign_in'] as Map<String, dynamic>),
@@ -21,34 +19,27 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
           : Restrictions.fromJson(json['restrictions'] as Map<String, dynamic>),
       usernameSettings: json['username_settings'] == null
           ? UsernameSettings.empty
-          : UsernameSettings.fromJson(
-              json['username_settings'] as Map<String, dynamic>),
+          : UsernameSettings.fromJson(json['username_settings'] as Map<String, dynamic>),
       actions: json['actions'] == null
           ? Actions.empty
           : Actions.fromJson(json['actions'] as Map<String, dynamic>),
       attackProtection: json['attack_protection'] == null
           ? AttackProtection.empty
-          : AttackProtection.fromJson(
-              json['attack_protection'] as Map<String, dynamic>),
+          : AttackProtection.fromJson(json['attack_protection'] as Map<String, dynamic>),
       passkeySettings: json['passkey_settings'] == null
           ? PasskeySettings.empty
-          : PasskeySettings.fromJson(
-              json['passkey_settings'] as Map<String, dynamic>),
+          : PasskeySettings.fromJson(json['passkey_settings'] as Map<String, dynamic>),
       passwordSettings: json['password_settings'] == null
           ? PasswordSettings.empty
-          : PasswordSettings.fromJson(
-              json['password_settings'] as Map<String, dynamic>),
+          : PasswordSettings.fromJson(json['password_settings'] as Map<String, dynamic>),
       socialSettings: (json['social'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(
-                k, SocialConnection.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, SocialConnection.fromJson(e as Map<String, dynamic>)),
           ) ??
           const {},
       saml: _readSamlEnabled(json, 'saml') as bool? ?? false,
     );
 
-Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
-    <String, dynamic>{
-      'attributes': instance.attributes.toJson(),
+Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) => <String, dynamic>{
       'sign_in': instance.signIn.toJson(),
       'sign_up': instance.signUp.toJson(),
       'restrictions': instance.restrictions.toJson(),
@@ -57,6 +48,20 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'attack_protection': instance.attackProtection.toJson(),
       'passkey_settings': instance.passkeySettings.toJson(),
       'password_settings': instance.passwordSettings.toJson(),
+      'attributes': instance.attributes.map((k, e) => MapEntry(_$AttributeEnumMap[k]!, e.toJson())),
       'saml': instance.saml,
       'social': instance.socialSettings.map((k, e) => MapEntry(k, e.toJson())),
     };
+
+const _$AttributeEnumMap = {
+  UserAttribute.firstName: 'first_name',
+  UserAttribute.lastName: 'last_name',
+  UserAttribute.username: 'username',
+  UserAttribute.emailAddress: 'email_address',
+  UserAttribute.phoneNumber: 'phone_number',
+  UserAttribute.password: 'password',
+  UserAttribute.web3Wallet: 'web3_wallet',
+  UserAttribute.authenticatorApp: 'authenticator_app',
+  UserAttribute.backupCode: 'backup_code',
+  UserAttribute.passkey: 'passkey',
+};

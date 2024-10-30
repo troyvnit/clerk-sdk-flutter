@@ -1,17 +1,15 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'user_attribute.dart';
+part of 'user_attribute_data.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UserAttribute _$UserAttributeFromJson(Map<String, dynamic> json) =>
-    UserAttribute(
-      isEnabled:
-          json['is_enabled'] == null ? false : isTrue(json['is_enabled']),
-      isRequired:
-          json['is_required'] == null ? false : isTrue(json['is_required']),
+UserAttributeData _$UserAttributeDataFromJson(Map<String, dynamic> json) =>
+    UserAttributeData(
+      isEnabled: json['enabled'] == null ? false : isTrue(json['enabled']),
+      isRequired: json['required'] == null ? false : isTrue(json['required']),
       usedForFirstFactor: json['used_for_first_factor'] == null
           ? false
           : isTrue(json['used_for_first_factor']),
@@ -32,7 +30,7 @@ UserAttribute _$UserAttributeFromJson(Map<String, dynamic> json) =>
           : toStrategyList(json['verifications']),
     );
 
-Map<String, dynamic> _$UserAttributeToJson(UserAttribute instance) =>
+Map<String, dynamic> _$UserAttributeDataToJson(UserAttributeData instance) =>
     <String, dynamic>{
       'first_factors': instance.firstFactors.map((e) => e.toJson()).toList(),
       'second_factors': instance.secondFactors.map((e) => e.toJson()).toList(),
@@ -40,6 +38,6 @@ Map<String, dynamic> _$UserAttributeToJson(UserAttribute instance) =>
       'used_for_first_factor': instance.usedForFirstFactor,
       'user_for_second_factor': instance.userForSecondFactor,
       'verify_at_sign_up': instance.verifyAtSignUp,
-      'is_enabled': instance.isEnabled,
-      'is_required': instance.isRequired,
+      'enabled': instance.isEnabled,
+      'required': instance.isRequired,
     };

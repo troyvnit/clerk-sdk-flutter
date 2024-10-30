@@ -14,7 +14,6 @@ export 'restrictions.dart';
 export 'sign_in_settings.dart';
 export 'sign_up_settings.dart';
 export 'social_connection.dart';
-export 'user_attribute.dart';
-export 'user_attributes.dart';
+export 'user_attribute_data.dart';
 export 'user_settings.dart';
 export 'username_settings.dart';

@@ -1,25 +1,25 @@
 // ignore_for_file: public_member_api_docs
 
-import 'dart:ui';
-
 import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
-import 'package:flutter/material.dart' show Divider, OutlineInputBorder;
-import 'package:flutter/widgets.dart'
-    show
-        BorderRadius,
-        BorderSide,
-        EdgeInsets,
-        EdgeInsetsDirectional,
-        SizedBox,
-        SliverToBoxAdapter,
-        Spacer;
+import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
-typedef FutureCallback<T> = Future<T?> Function<T>(Future<T> Function(), [VoidCallback]);
+typedef FutureCallback<T> = Future<T?> Function<T>(Future<T> Function());
 
 extension NullExtension on String {
   String? get orNullIfEmpty => isEmpty ? null : this;
 }
+
+final awaitingAuthResponseOverlay = OverlayEntry(
+  builder: (context) => const SizedBox(
+    width: double.infinity,
+    height: double.infinity,
+    child: ColoredBox(
+      color: Colors.black26,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  ),
+);
 
 const emptyWidget = SizedBox();
 const emptyWidgetWide = SizedBox(width: double.infinity);

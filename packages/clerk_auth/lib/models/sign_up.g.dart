@@ -72,6 +72,7 @@ const _$StatusEnumMap = {
   Status.needsIdentifier: 'needs_identifier',
   Status.needsFirstFactor: 'needs_first_factor',
   Status.needsSecondFactor: 'needs_second_factor',
+  Status.transferable: 'transferable',
   Status.unverified: 'unverified',
   Status.verified: 'verified',
   Status.complete: 'complete',

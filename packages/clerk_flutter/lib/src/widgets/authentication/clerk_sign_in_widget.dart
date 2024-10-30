@@ -11,23 +11,41 @@ import 'package:flutter/material.dart';
 /// properties.
 
 class ClerkSignInWidget extends StatefulWidget {
-  final FutureCallback callAuth;
-
-  const ClerkSignInWidget({required this.callAuth});
+  const ClerkSignInWidget();
 
   @override
   State<ClerkSignInWidget> createState() => _ClerkSignInWidgetState();
 }
 
 class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
+  static const _errorDisplayDuration = Duration(seconds: 3);
+
   Clerk.Strategy _strategy = Clerk.Strategy.password;
   String _identifier = '';
   String _password = '';
   String _code = '';
-  Clerk.AuthError? _error;
+  String? _error;
 
   bool get _hasIdentifier => _identifier.isNotEmpty;
   bool get _hasPassword => _password.isNotEmpty;
+
+  Future<T?> _callAuth<T>(Future<T> Function() fn) async {
+    T? result;
+    try {
+      Overlay.of(context).insert(awaitingAuthResponseOverlay);
+      result = await fn.call();
+    } on Clerk.AuthError catch (error) {
+      setState(() {
+        _code = '';
+        _strategy = Clerk.Strategy.password;
+        _error = error.toString();
+      });
+      Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
+    } finally {
+      awaitingAuthResponseOverlay.remove();
+    }
+    return result;
+  }
 
   Future<void> _continue(Clerk.Auth auth, {Clerk.Strategy? strategy, String? code}) async {
     if (_hasIdentifier) {
@@ -40,25 +58,21 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
         });
       }
 
-      await widget.callAuth(
+      await _callAuth(
         () => auth.attemptSignIn(
           strategy: newStrategy,
           identifier: _identifier,
           password: _password.orNullIfEmpty,
           code: newCode.orNullIfEmpty,
         ),
-        () {
-          _code = '';
-          _strategy = Clerk.Strategy.password;
-        },
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final translator = ClerkAuth.translatorOf(context);
     final auth = ClerkAuth.of(context);
+    final translator = auth.translator;
     final env = auth.env;
     final oauthStrategies = env.auth.firstFactors.where((f) => f.isOauth);
     final otherStrategies = env.auth.firstFactors.where((f) => f.isOtherStrategy);
@@ -76,34 +90,12 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(
-          padding: horizontalPadding32 + bottomPadding24,
-          child: Row(
-            children: [
-              for (final connection in socialConnections)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: SocialConnectionButton(
-                      key: ValueKey(connection),
-                      connection: connection,
-                      callAuth: widget.callAuth,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const Padding(
-          padding: horizontalPadding32,
-          child: OrDivider(),
-        ),
-        verticalMargin24,
+        ErrorMessage(error: _error),
         Padding(
           padding: horizontalPadding32 + bottomPadding8,
           child: ClerkTextFormField(
             key: const Key('identifier'),
-            label: translator.alternates(identifiers.toList()),
+            label: translator.alternatives(identifiers.toList()).capitalized,
             onChanged: (text) {
               if (text.isEmpty != _identifier.isEmpty) {
                 // only rebuild if we need the password box to animate
@@ -130,37 +122,14 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
             ),
           ),
         ),
-        Closeable(
+        ClerkCodeInput(
           key: const Key('code'),
           open: _strategy.requiresCode,
-          child: Padding(
-            padding: horizontalPadding32 + verticalPadding8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: bottomPadding4,
-                  child: Text(
-                    safeIdentifier is String
-                        ? translator.translate(
-                            'Enter code sent to ###',
-                            substitution: safeIdentifier,
-                          )
-                        : translator.translate('Enter code'),
-                    textAlign: TextAlign.start,
-                    maxLines: 1,
-                    style: ClerkTextStyle.inputLabel,
-                  ),
-                ),
-                MultiDigitCodeInput(
-                  onSubmit: (code) async {
-                    await _continue(auth, code: code);
-                    return false;
-                  },
-                ),
-              ],
-            ),
-          ),
+          title: translator.translate('Enter code sent to ###', substitution: safeIdentifier),
+          onSubmit: (code) async {
+            await _continue(auth, code: code);
+            return false;
+          },
         ),
         Closeable(
           open: _strategy == Clerk.Strategy.password && _hasIdentifier,
@@ -213,7 +182,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
           ),
         ),
         ErrorMessage(error: _error),
-        verticalMargin16,
+        verticalMargin32,
       ],
     );
   }

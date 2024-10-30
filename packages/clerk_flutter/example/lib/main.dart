@@ -8,7 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: '.env.example');
-  await setUpLogging(printer: const LogPrinter());
+  // await setUpLogging(printer: const LogPrinter());
   runApp(const MainApp());
 }
 

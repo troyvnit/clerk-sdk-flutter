@@ -1,3 +1,5 @@
+import 'package:clerk_auth/clerk_auth.dart';
+
 class Strategy {
   static const _oauthToken = 'oauth_token';
   static const _oauthCustom = 'oauth_custom';
@@ -98,6 +100,14 @@ class Strategy {
     }
 
     return null;
+  }
+
+  static Strategy forField(Field field) {
+    return switch (field) {
+      Field.phoneNumber => Strategy.phoneCode,
+      Field.emailAddress => Strategy.emailCode,
+      _ => throw AuthError(message: 'No way to verify ${field.name}'),
+    };
   }
 
   String toJson() => toString();

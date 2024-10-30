@@ -1,7 +1,6 @@
-import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:phone_input/phone_input_package.dart';
 
 /// A reusable and Clerk styled [TextFormField] for collecting phone numbers.
 ///
@@ -9,72 +8,87 @@ class ClerkPhoneNumberFormField extends StatelessWidget {
   /// Constructs a new [ClerkPhoneNumberFormField].
   const ClerkPhoneNumberFormField({
     super.key,
-    this.showLabel = true,
+    required this.onChanged,
+    this.label,
     this.optional = false,
+    this.initial,
   });
 
+  /// Report changes back to calling widget
+  final ValueChanged<String> onChanged;
+
   /// Show label?
-  final bool showLabel;
+  final String? label;
 
   /// Is this field optional?
   final bool optional;
 
+  /// initial value
+  final String? initial;
+
   @override
   Widget build(BuildContext context) {
+    final translator = ClerkAuth.translatorOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
-            if (showLabel) //
-              const Text(
-                'Phone number',
-                textAlign: TextAlign.start,
-                maxLines: 1,
+            if (label case String label) //
+              FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Text(
+                  translator.translate(label),
+                  textAlign: TextAlign.start,
+                  maxLines: 2,
+                  style: ClerkTextStyle.inputLabel,
+                ),
               ),
             spacer,
-            if (optional) //
-              const Text(
-                'Optional',
+            if (optional)
+              Text(
+                translator.translate('Optional'),
                 textAlign: TextAlign.end,
                 maxLines: 1,
+                style: ClerkTextStyle.inputLabel.copyWith(
+                  color: ClerkColors.stormGrey,
+                  fontSize: 12.0,
+                ),
               ),
           ],
         ),
         verticalMargin4,
-        SizedBox(
-          height: 32.0,
-          child: ClipRRect(
-            clipBehavior: Clip.antiAlias,
-            borderRadius: borderRadius8,
-            child: DecoratedBox(
-              decoration: insetBoxShadowDecoration,
-              child: TextFormField(
-                decoration: InputDecoration(
-                  border: outlineInputBorder,
-                  enabledBorder: outlineInputBorder,
-                  focusedBorder: outlineInputBorder,
-                  contentPadding: horizontalPadding8,
-                  prefixIcon: Padding(
-                    padding: leftPadding12 + rightPadding8,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('US'),
-                        horizontalMargin12,
-                        SvgPicture.asset(ClerkAssets.chevronUpDown, package: 'clerk_flutter'),
-                        horizontalMargin12,
-                        const Text('+1'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+        DecoratedBox(
+          decoration: insetBoxShadowDecoration,
+          child: PhoneInput(
+            initialValue: PhoneNumber.parse(initial ?? ''),
+            showFlagInInput: true,
+            flagSize: 16,
+            onChanged: (phoneNumber) {
+              if (phoneNumber case PhoneNumber phoneNumber) {
+                onChanged(phoneNumber.intlFormattedNsn);
+              }
+            },
+            decoration: const InputDecoration(
+              errorStyle: TextStyle(
+                  color: Colors.transparent, height: 0.01), // weird hack because 0 doesn't work
+              isDense: true,
+              border: InputBorder.none,
+              constraints: BoxConstraints(maxHeight: 32, minHeight: 32),
             ),
+            countrySelectorNavigator: const CountrySelectorNavigator.dialog(
+              addFavoriteSeparator: true,
+              favorites: const [IsoCode.US, IsoCode.GB],
+            ),
+            validator: PhoneValidator.valid(),
           ),
         ),
       ],
     );
   }
+}
+
+extension on PhoneNumber {
+  String get intlFormattedNsn => '(+$countryCode) ${getFormattedNsn()}';
 }

@@ -18,20 +18,15 @@ class Auth {
   void update() {}
 
   // `init` must be called before `env` or `client` are accessed
-  Future<Auth> init() async {
-    await _getClientAndEnv();
-    return this;
-  }
-
-  Future<void> refresh() async {
-    await _getClientAndEnv();
-    update();
-  }
-
-  Future<void> _getClientAndEnv() async {
+  Future<void> init() async {
     final [client, env] = await Future.wait([_api.createClient(), _api.environment()]);
     this.client = client as Client;
     this.env = env as Environment;
+  }
+
+  Future<void> refreshClient() async {
+    this.client = await _api.currentClient();
+    update();
   }
 
   late Environment env;
@@ -62,6 +57,12 @@ class Auth {
     update();
   }
 
+  Future<ApiResponse> transfer() async {
+    final result = await _api.transfer().then(_housekeeping);
+    update();
+    return result;
+  }
+
   Future<Client> oauthSignIn({required Strategy strategy}) async {
     // If we already have a user, can return
     if (client.user is User) return client;
@@ -72,6 +73,7 @@ class Auth {
           .prepareSignIn(signIn, stage: Stage.first, strategy: strategy, redirectUrl: oauthRedirect)
           .then(_housekeeping);
     }
+
     return client;
   }
 
@@ -93,8 +95,8 @@ class Auth {
 
     if (client.user is! User) {
       switch (client.signIn) {
-        case SignIn signIn when strategy?.isOauth == true && token?.isNotEmpty == true:
-          await _api.sendOauthToken(signIn, strategy: strategy!, token: token!).then(_housekeeping);
+        case SignIn signIn when strategy?.isOauth == true:
+          await _api.sendOauthToken(signIn, strategy: strategy!, token: token).then(_housekeeping);
 
         case SignIn signIn when strategy == Strategy.emailLink:
           await _api
@@ -109,7 +111,7 @@ class Auth {
           final signInCompleter = Completer<Client>();
 
           _pollForCompletion(signInCompleter, () async {
-            await _api.currentClient().then(_housekeeping);
+            final client = await _api.currentClient();
             return client.user is User ? client : null;
           });
 
@@ -187,6 +189,19 @@ class Auth {
 
     if (client.user is! User) {
       switch (client.signUp) {
+        case SignUp signUp when strategy?.requiresCode == true && code is String:
+          await _api.attemptSignUp(signUp, strategy: strategy!, code: code).then(_housekeeping);
+
+        case SignUp signUp
+            when signUp.status == Status.missingRequirements &&
+                signUp.missingFields.isEmpty &&
+                signUp.unverifiedFields.isNotEmpty:
+          for (final field in signUp.unverifiedFields) {
+            await _api
+                .prepareSignUp(signUp, strategy: Strategy.forField(field))
+                .then(_housekeeping);
+          }
+
         case SignUp signUp
             when signUp.status == Status.missingRequirements &&
                 signUp.missingFields.isEmpty &&

@@ -20,6 +20,7 @@ enum Status {
   needsIdentifier,
   needsFirstFactor,
   needsSecondFactor,
+  transferable,
   unverified,
   verified,
   complete,
@@ -44,6 +45,31 @@ enum IdentificationStrategy {
 
   @override
   String toString() => name.toSnakeCase();
+}
+
+@JsonEnum(fieldRename: FieldRename.snake)
+enum UserAttribute {
+  username,
+  emailAddress,
+  phoneNumber,
+  firstName,
+  lastName,
+  password,
+  passwordConfirmation,
+  web3Wallet,
+  authenticatorApp,
+  backupCode,
+  passkey,
+  ;
+
+  bool get obscure => this == password || this == passwordConfirmation;
+
+  String get snakeCaseName => name.toSnakeCase();
+
+  @override
+  String toString() => snakeCaseName;
+
+  String get title => snakeCaseName.replaceAll('_', ' ').capitalized;
 }
 
 @JsonEnum(fieldRename: FieldRename.snake)
@@ -85,7 +111,7 @@ enum Field {
   String toString() => name.toSnakeCase();
 }
 
-extension CaseExtension on String {
+extension StringExtension on String {
   bool _isUpper(int c) => c >= 0x41 && c <= 0x5a;
 
   String toSnakeCase({String separator = "_"}) {
@@ -102,4 +128,6 @@ extension CaseExtension on String {
     }
     return buffer.toString();
   }
+
+  String get capitalized => this[0].toUpperCase() + substring(1);
 }

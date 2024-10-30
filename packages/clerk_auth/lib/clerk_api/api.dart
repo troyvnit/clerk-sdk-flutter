@@ -55,23 +55,26 @@ class Api with Logging {
     final resp = await _fetch(path: '/environment', method: HttpMethod.get);
     if (resp.statusCode == HttpStatus.ok) {
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      final xxx = Environment.fromJson(body);
-      return xxx;
+      return Environment.fromJson(body);
     }
     return Environment.empty;
   }
 
-  Future<Client> createClient() async {
-    final resp = await _fetch(path: '/client');
+  Future<Client> _fetchClient({required HttpMethod method}) async {
+    final resp = await _fetch(
+      path: '/client',
+      method: method,
+      headers: _headers(method),
+    );
     if (resp.statusCode == HttpStatus.ok) {
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      final xxx = Client.fromJson(body[_kResponseKey]);
-      return xxx;
+      return Client.fromJson(body[_kResponseKey]);
     }
     return Client.empty;
   }
 
-  Future<ApiResponse> currentClient() => _fetchApiResponse('/client', method: HttpMethod.get);
+  Future<Client> createClient() => _fetchClient(method: HttpMethod.post);
+  Future<Client> currentClient() => _fetchClient(method: HttpMethod.get);
 
   // Sign out / delete user
 
@@ -198,6 +201,11 @@ class Api with Logging {
     );
   }
 
+  Future<ApiResponse> transfer() => _fetchApiResponse(
+        '/client/sign_ups',
+        params: {'transfer': true},
+      );
+
   // Sign In API
 
   Future<ApiResponse> createSignIn({
@@ -275,7 +283,7 @@ class Api with Logging {
   Future<ApiResponse> sendOauthToken(
     SignIn signIn, {
     required Strategy strategy,
-    required String token,
+    String? token,
   }) =>
       _fetchApiResponse(
         '/client/sign_ins/${signIn.id}',

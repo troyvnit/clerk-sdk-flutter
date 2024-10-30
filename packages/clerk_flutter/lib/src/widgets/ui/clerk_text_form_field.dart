@@ -12,6 +12,8 @@ class ClerkTextFormField extends StatelessWidget {
     this.obscureText = false,
     required this.onChanged,
     this.onSubmit,
+    this.initial,
+    this.onObscure,
   });
 
   /// Report changes back to calling widget
@@ -29,8 +31,15 @@ class ClerkTextFormField extends StatelessWidget {
   /// can we see the text or not?
   final bool obscureText;
 
+  /// function to change obscuritu
+  final VoidCallback? onObscure;
+
+  /// initial value
+  final String? initial;
+
   @override
   Widget build(BuildContext context) {
+    final translator = ClerkAuth.translatorOf(context);
     return Column(
       // crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -42,16 +51,16 @@ class ClerkTextFormField extends StatelessWidget {
               FittedBox(
                 fit: BoxFit.fitWidth,
                 child: Text(
-                  label,
+                  translator.translate(label),
                   textAlign: TextAlign.start,
                   maxLines: 2,
                   style: ClerkTextStyle.inputLabel,
                 ),
               ),
             spacer,
-            if (optional) //
+            if (optional)
               Text(
-                ClerkAuth.translatorOf(context).translate('Optional'),
+                translator.translate('Optional'),
                 textAlign: TextAlign.end,
                 maxLines: 1,
                 style: ClerkTextStyle.inputLabel.copyWith(
@@ -70,14 +79,16 @@ class ClerkTextFormField extends StatelessWidget {
             child: DecoratedBox(
               decoration: insetBoxShadowDecoration,
               child: TextFormField(
+                initialValue: initial,
                 onChanged: onChanged,
                 onFieldSubmitted: onSubmit,
                 obscureText: obscureText,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: outlineInputBorder,
                   enabledBorder: outlineInputBorder,
                   focusedBorder: outlineInputBorder,
                   contentPadding: horizontalPadding8,
+                  suffixIcon: _obscureTextIcon(),
                 ),
               ),
             ),
@@ -85,5 +96,16 @@ class ClerkTextFormField extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget? _obscureTextIcon() {
+    if (onObscure case VoidCallback onObscure) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onObscure,
+        child: Icon(obscureText ? Icons.visibility : Icons.visibility_off, size: 16),
+      );
+    }
+    return null;
   }
 }

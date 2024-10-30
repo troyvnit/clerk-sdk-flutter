@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../../models/models.dart';
@@ -8,7 +9,6 @@ part 'user_settings.g.dart';
 class UserSettings {
   static const empty = UserSettings();
 
-  final UserAttributes attributes;
   final SignInSettings signIn;
   final SignUpSettings signUp;
   final Restrictions restrictions;
@@ -18,6 +18,9 @@ class UserSettings {
   final PasskeySettings passkeySettings;
   final PasswordSettings passwordSettings;
 
+  @JsonKey(fromJson: _toAttributeMap)
+  final Map<UserAttribute, UserAttributeData> attributes;
+
   @JsonKey(readValue: _readSamlEnabled)
   final bool saml;
 
@@ -25,7 +28,7 @@ class UserSettings {
   final Map<String, SocialConnection> socialSettings;
 
   const UserSettings({
-    this.attributes = UserAttributes.empty,
+    this.attributes = const {},
     this.signIn = SignInSettings.empty,
     this.signUp = SignUpSettings.empty,
     this.restrictions = Restrictions.empty,
@@ -44,3 +47,14 @@ class UserSettings {
 }
 
 bool _readSamlEnabled(map, _) => map['saml']?['enabled'] == true;
+
+Map<UserAttribute, UserAttributeData> _toAttributeMap(dynamic data) {
+  final result = <UserAttribute, UserAttributeData>{};
+  if (data case Map<String, dynamic> data) {
+    for (final entry in data.entries) {
+      final key = UserAttribute.values.firstWhereOrNull((a) => a.snakeCaseName == entry.key);
+      if (key case UserAttribute key) result[key] = UserAttributeData.fromJson(entry.value);
+    }
+  }
+  return result;
+}

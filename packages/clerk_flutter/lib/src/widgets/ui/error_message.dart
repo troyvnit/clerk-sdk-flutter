@@ -1,9 +1,8 @@
-import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
 class ErrorMessage extends StatefulWidget {
-  final Clerk.AuthError? error;
+  final String? error;
 
   const ErrorMessage({super.key, this.error});
 
@@ -27,19 +26,20 @@ class _ErrorMessageState extends State<ErrorMessage> {
   }
 
   void _setErrorMessage() {
-    if (widget.error case Clerk.AuthError error) {
-      errorMessage = error.toString();
+    if (widget.error case String error) {
+      errorMessage = error;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final translator = ClerkAuth.translatorOf(context);
     return Closeable(
-      closed: widget.error is! Clerk.AuthError,
+      open: widget.error is String,
       child: Padding(
         padding: horizontalPadding32 + bottomPadding8,
         child: Text(
-          errorMessage,
+          translator.translate(errorMessage),
           textAlign: TextAlign.left,
           maxLines: 2,
           style: ClerkTextStyle.error,

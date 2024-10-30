@@ -28,7 +28,7 @@ class ClerkAuth extends StatefulWidget {
     required this.publicKey,
     required this.publishableKey,
     required this.child,
-    this.translator = const ClerkTranslator(),
+    this.translator = const DefaultClerkTranslator(),
     this.persistor,
     this.loading,
   });
@@ -36,39 +36,40 @@ class ClerkAuth extends StatefulWidget {
   @override
   State<ClerkAuth> createState() => _ClerkAuthState();
 
-  static Clerk.Auth of(BuildContext context) {
+  static ClerkAuthProvider of(BuildContext context) {
     final result = context.dependOnInheritedWidgetOfExactType<_ClerkAuthData>();
     assert(result != null, 'No Clerk `Auth` found in context');
     return result!.auth;
   }
 
-  static Clerk.DisplayConfig displayConfigOf(BuildContext context) {
-    final result = context.findAncestorWidgetOfExactType<_ClerkAuthData>();
+  static Clerk.User? userOf(BuildContext context) => of(context).user;
+  static Clerk.Session? sessionOf(BuildContext context) => of(context).session;
+
+  static ClerkAuthProvider _authOf(BuildContext context) {
+    final result = context.dependOnInheritedWidgetOfExactType<_ClerkAuthData>();
     assert(result != null, 'No Clerk `Auth` found in context');
-    return result!.auth.env.display;
+    return result!.auth;
   }
 
-  static ClerkTranslator translatorOf(context) {
-    final result = context.findAncestorWidgetOfExactType<_ClerkAuthData>();
-    assert(result != null, 'No Clerk `Auth` found in context');
-    return result!.translator;
-  }
+  static Clerk.DisplayConfig displayConfigOf(BuildContext context) => _authOf(context).env.display;
+  static ClerkTranslator translatorOf(BuildContext context) => _authOf(context).translator;
 }
 
 class _ClerkAuthState extends State<ClerkAuth> {
-  late _ClerkNotifyingAuth _auth;
-  late Future<Clerk.Auth> _authFuture;
+  late ClerkAuthProvider _auth;
+  late Future<ClerkAuthProvider> _authFuture;
 
   @override
   void initState() {
     super.initState();
-    _auth = _ClerkNotifyingAuth(
+    _auth = ClerkAuthProvider(
       publishableKey: widget.publishableKey,
       publicKey: widget.publicKey,
       persistor: widget.persistor,
+      translator: widget.translator,
     );
     _auth.addListener(() => setState(() {}));
-    _authFuture = _auth.init();
+    _authFuture = _auth.init().then((_) => _auth);
   }
 
   @override
@@ -83,11 +84,7 @@ class _ClerkAuthState extends State<ClerkAuth> {
       future: _authFuture,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return _ClerkAuthData(
-            child: widget.child,
-            auth: snapshot.data!,
-            translator: widget.translator,
-          );
+          return _ClerkAuthData(child: widget.child, auth: snapshot.data!);
         }
         return widget.loading ?? emptyWidget;
       },
@@ -98,15 +95,13 @@ class _ClerkAuthState extends State<ClerkAuth> {
 /// Data class holding the auth object
 class _ClerkAuthData extends InheritedWidget {
   /// Clerk auth object
-  final Clerk.Auth auth;
+  final ClerkAuthProvider auth;
   final Clerk.Client client;
   final Clerk.Environment env;
-  final ClerkTranslator translator;
 
   _ClerkAuthData({
     required super.child,
     required this.auth,
-    required this.translator,
   })  : this.client = auth.client,
         this.env = auth.env;
 
@@ -114,8 +109,15 @@ class _ClerkAuthData extends InheritedWidget {
   bool updateShouldNotify(_ClerkAuthData old) => old.client != client || old.env != env;
 }
 
-class _ClerkNotifyingAuth extends Clerk.Auth with ChangeNotifier {
-  _ClerkNotifyingAuth({required super.publicKey, required super.publishableKey, super.persistor});
+class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
+  final ClerkTranslator translator;
+
+  ClerkAuthProvider({
+    required super.publicKey,
+    required super.publishableKey,
+    ClerkTranslator? translator,
+    super.persistor,
+  }) : this.translator = translator ?? const DefaultClerkTranslator();
 
   @override
   void update() => notifyListeners();

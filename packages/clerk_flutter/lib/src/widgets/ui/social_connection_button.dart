@@ -30,7 +30,7 @@ class SocialConnectionButton extends StatelessWidget {
     final client = await callAuth(() => auth.oauthSignIn(strategy: strategy));
     final url = client?.signIn?.firstFactorVerification?.providerUrl;
     if (url case String url) {
-      late final OverlayEntry overlay;
+      late final OverlayEntry? overlay;
       overlay = OverlayEntry(
         builder: (context) {
           final controller = WebViewController()
@@ -40,12 +40,18 @@ class SocialConnectionButton extends StatelessWidget {
               NavigationDelegate(
                 onNavigationRequest: (request) async {
                   if (request.url.startsWith(Clerk.Auth.oauthRedirect)) {
-                    final uri = Uri.parse(request.url);
-                    final rotatingToken = uri.queryParameters[_kRotatingTokenNonce];
-                    callAuth(
-                      () => auth.attemptSignIn(strategy: strategy, token: rotatingToken),
-                    );
-                    overlay.remove();
+                    if (overlay is OverlayEntry && auth.client.user is! Clerk.User) {
+                      final uri = Uri.parse(request.url);
+                      final token = uri.queryParameters[_kRotatingTokenNonce];
+                      if (token case String token) {
+                        await callAuth(() => auth.attemptSignIn(strategy: strategy, token: token));
+                      } else {
+                        await auth.refreshClient();
+                        await callAuth(() => auth.transfer());
+                      }
+                      overlay?.remove();
+                      overlay = null;
+                    }
                     return NavigationDecision.prevent;
                   }
                   return NavigationDecision.navigate;
@@ -59,7 +65,7 @@ class SocialConnectionButton extends StatelessWidget {
           );
         },
       );
-      Overlay.of(context).insert(overlay);
+      Overlay.of(context).insert(overlay!);
     }
   }
 
@@ -84,7 +90,7 @@ class SocialConnectionButton extends StatelessWidget {
                 child: connection.logoUrl.isNotEmpty
                     ? Image.network(connection.logoUrl)
                     : Text(
-                        connection.name.characters.first.toUpperCase(),
+                        connection.name[0].toUpperCase(),
                         textAlign: TextAlign.center,
                         style: ClerkTextStyle.title.copyWith(height: .95),
                       ),

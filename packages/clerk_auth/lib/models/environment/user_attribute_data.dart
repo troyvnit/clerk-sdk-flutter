@@ -2,11 +2,11 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../models.dart';
 
-part 'user_attribute.g.dart';
+part 'user_attribute_data.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
-class UserAttribute {
-  static const empty = UserAttribute();
+class UserAttributeData {
+  static const empty = UserAttributeData();
 
   @JsonKey(fromJson: toStrategyList)
   final List<Strategy> firstFactors;
@@ -26,15 +26,15 @@ class UserAttribute {
   @JsonKey(fromJson: isTrue)
   final bool verifyAtSignUp;
 
-  @JsonKey(fromJson: isTrue)
+  @JsonKey(name: 'enabled', fromJson: isTrue)
   final bool isEnabled;
 
-  @JsonKey(fromJson: isTrue)
+  @JsonKey(name: 'required', fromJson: isTrue)
   final bool isRequired;
 
-  const UserAttribute({
-    this.isEnabled = false,
-    this.isRequired = false,
+  const UserAttributeData({
+    this.isEnabled = true,
+    this.isRequired = true,
     this.usedForFirstFactor = false,
     this.firstFactors = const [],
     this.userForSecondFactor = false,
@@ -43,7 +43,8 @@ class UserAttribute {
     this.verifications = const [],
   });
 
-  factory UserAttribute.fromJson(Map<String, dynamic> json) => _$UserAttributeFromJson(json);
+  factory UserAttributeData.fromJson(Map<String, dynamic> json) =>
+      _$UserAttributeDataFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UserAttributeToJson(this);
+  Map<String, dynamic> toJson() => _$UserAttributeDataToJson(this);
 }

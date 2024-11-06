@@ -44,6 +44,7 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
         topPortion: _TopPortion(state: _state),
         middlePortion: Column(
           children: [
+            ErrorMessage(),
             ClerkAuthBuilder(
               builder: (context, auth) {
                 return Closeable(
@@ -54,6 +55,7 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
             ),
             Closeable(open: _state.isSigningIn, child: const ClerkSignInWidget()),
             Closeable(open: _state.isSigningUp, child: const ClerkSignUpWidget()),
+            ErrorMessage(),
           ],
         ),
         bottomPortion: _BottomPortion(state: _state, onChange: _toggle),

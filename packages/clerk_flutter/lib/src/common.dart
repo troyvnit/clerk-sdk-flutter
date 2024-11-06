@@ -10,14 +10,12 @@ extension NullExtension on String {
   String? get orNullIfEmpty => isEmpty ? null : this;
 }
 
-final awaitingAuthResponseOverlay = OverlayEntry(
-  builder: (context) => const SizedBox(
-    width: double.infinity,
-    height: double.infinity,
-    child: ColoredBox(
-      color: Colors.black26,
-      child: Center(child: CircularProgressIndicator()),
-    ),
+final defaultLoadingWidget = const SizedBox(
+  width: double.infinity,
+  height: double.infinity,
+  child: ColoredBox(
+    color: Colors.black26,
+    child: Center(child: CircularProgressIndicator()),
   ),
 );
 

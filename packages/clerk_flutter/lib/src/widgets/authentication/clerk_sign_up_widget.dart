@@ -21,88 +21,16 @@ class ClerkSignUpWidget extends StatefulWidget {
 
 class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
   static final _phoneNumberRE = RegExp(r'[^0-9+]');
-  static const _errorDisplayDuration = Duration(seconds: 3);
 
-  final _values = <Clerk.UserAttribute, String>{
-    Clerk.UserAttribute.firstName: 'Nic',
-    Clerk.UserAttribute.lastName: 'Ford',
-    Clerk.UserAttribute.username: 'shinyford',
-    Clerk.UserAttribute.emailAddress: 'nicsford+clerk_test@gmail.com',
-    Clerk.UserAttribute.phoneNumber: '+15555550131',
-    Clerk.UserAttribute.password: r'3Bogart5$',
-    Clerk.UserAttribute.passwordConfirmation: r'3Bogart5$',
-  };
-  String? _error;
-  bool obscurePassword = true;
+  final _values = <Clerk.UserAttribute, String>{};
+  bool _obscurePassword = true;
 
-  Future<T?> _callAuth<T>(Future<T> Function() fn) async {
-    T? result;
-    try {
-      Overlay.of(context).insert(awaitingAuthResponseOverlay);
-      result = await fn.call();
-    } on Clerk.AuthError catch (error) {
-      _setError(error.toString());
-    } finally {
-      awaitingAuthResponseOverlay.remove();
-    }
-    return result;
-  }
-
-  void _setError(String error) {
-    setState(() => _error = error);
-    Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
-  }
-
-  static final _lowerCaseRE = RegExp(r'[a-z]');
-  static final _upperCaseRE = RegExp(r'[A-Z]');
-  static final _numberRE = RegExp(r'[0-9]');
-
-  String? _checkPassword(Clerk.Auth auth, String? password, String? confirmation) {
-    final translator = ClerkAuth.translatorOf(context);
-
-    if (password != confirmation) {
-      return translator.translate('Password and password confirmation must match');
-    }
-
-    if (password case String password when password.isNotEmpty) {
-      final criteria = auth.env.user.passwordSettings;
-      final missing = <String>[];
-
-      if (criteria.requireLowercase && _lowerCaseRE.hasMatch(password) == false) {
-        missing.add('a LOWERCASE letter');
-      }
-
-      if (criteria.requireUppercase && _upperCaseRE.hasMatch(password) == false) {
-        missing.add('an UPPERCASE letter');
-      }
-
-      if (criteria.requireNumbers && _numberRE.hasMatch(password) == false) {
-        missing.add('a NUMBER');
-      }
-
-      if (criteria.requireSpecialChar) {
-        final pRunes = password.runes.toSet();
-        final scRunes = criteria.allowedSpecialCharacters.runes.toSet();
-        final lacksSpecialChar = pRunes.intersection(scRunes).isEmpty;
-        if (lacksSpecialChar) missing.add('a SPECIAL CHARACTER (###)');
-      }
-
-      if (missing.isNotEmpty) {
-        final value =
-            translator.alternatives(missing, connector: 'and', prefix: 'Password requires');
-        return value.replaceFirst('###', criteria.allowedSpecialCharacters);
-      }
-    }
-
-    return null;
-  }
-
-  Future<void> _continue(Clerk.Auth auth, {String? code, Clerk.Strategy? strategy}) async {
-    await _callAuth(() async {
+  Future<void> _continue(ClerkAuthProvider auth, {String? code, Clerk.Strategy? strategy}) async {
+    await auth.call(context, () async {
       final password = _values[Clerk.UserAttribute.password];
       final passwordConfirmation = _values[Clerk.UserAttribute.passwordConfirmation];
-      if (_checkPassword(auth, password, passwordConfirmation) case String error) {
-        _setError(error);
+      if (auth.checkPassword(password, passwordConfirmation) case String error) {
+        auth.errors.add(error);
       } else {
         await auth.attemptSignUp(
           strategy: strategy ?? Clerk.Strategy.password,
@@ -132,7 +60,6 @@ class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ErrorMessage(error: _error),
         ClerkCodeInput(
           key: const Key('phone_code'),
           open: auth.signUp?.unverified(Clerk.Field.phoneNumber) == true,
@@ -177,9 +104,9 @@ class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
                           initial: _values[attribute.attr],
                           label: attribute.title,
                           optional: attribute.isOptional,
-                          obscureText: attribute.needsObscuring && obscurePassword,
+                          obscureText: attribute.needsObscuring && _obscurePassword,
                           onObscure: attribute.needsObscuring
-                              ? () => setState(() => obscurePassword = !obscurePassword)
+                              ? () => setState(() => _obscurePassword = !_obscurePassword)
                               : null,
                           onChanged: (value) => _values[attribute.attr] = value,
                         ),
@@ -202,7 +129,6 @@ class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
             ),
           ),
         ),
-        ErrorMessage(error: _error),
         verticalMargin32,
       ],
     );

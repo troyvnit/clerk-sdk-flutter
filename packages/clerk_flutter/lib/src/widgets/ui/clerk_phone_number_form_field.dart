@@ -62,7 +62,7 @@ class ClerkPhoneNumberFormField extends StatelessWidget {
         DecoratedBox(
           decoration: insetBoxShadowDecoration,
           child: PhoneInput(
-            initialValue: PhoneNumber.parse(initial ?? ''),
+            initialValue: initial is String ? PhoneNumber.parse(initial!) : null,
             showFlagInInput: true,
             flagSize: 16,
             onChanged: (phoneNumber) {

@@ -41,7 +41,6 @@ class Auth {
     if (resp.client case Client client when resp.isOkay) {
       this.client = client;
     } else {
-      print('STATUS: ${resp.status}');
       throw AuthError(code: resp.status, message: resp.errorMessage);
     }
     return resp;
@@ -57,10 +56,9 @@ class Auth {
     update();
   }
 
-  Future<ApiResponse> transfer() async {
-    final result = await _api.transfer().then(_housekeeping);
+  Future<void> transfer() async {
+    await _api.transfer().then(_housekeeping);
     update();
-    return result;
   }
 
   Future<Client> oauthSignIn({required Strategy strategy}) async {
@@ -77,6 +75,9 @@ class Auth {
     return client;
   }
 
+  /// Progressive sign in
+  ///
+  /// Repeatedly call with updated parameters until the user is signed in.
   Future<Client> attemptSignIn({
     String? identifier,
     Strategy? strategy,

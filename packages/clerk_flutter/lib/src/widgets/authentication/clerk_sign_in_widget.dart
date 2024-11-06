@@ -24,32 +24,19 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
   String _identifier = '';
   String _password = '';
   String _code = '';
-  String? _error;
 
   bool get _hasIdentifier => _identifier.isNotEmpty;
-  bool get _hasPassword => _password.isNotEmpty;
 
-  Future<T?> _callAuth<T>(Future<T> Function() fn) async {
-    T? result;
-    try {
-      Overlay.of(context).insert(awaitingAuthResponseOverlay);
-      result = await fn.call();
-    } on Clerk.AuthError catch (error) {
-      setState(() {
-        _code = '';
-        _strategy = Clerk.Strategy.password;
-        _error = error.toString();
-      });
-      Future.delayed(_errorDisplayDuration, () => setState(() => _error = null));
-    } finally {
-      awaitingAuthResponseOverlay.remove();
-    }
-    return result;
+  void _onError(Clerk.AuthError _) {
+    setState(() {
+      _code = '';
+      _strategy = Clerk.Strategy.password;
+    });
   }
 
-  Future<void> _continue(Clerk.Auth auth, {Clerk.Strategy? strategy, String? code}) async {
+  Future<void> _continue(ClerkAuthProvider auth, {Clerk.Strategy? strategy, String? code}) async {
     if (_hasIdentifier) {
-      final newStrategy = _hasPassword ? Clerk.Strategy.password : strategy ?? _strategy;
+      final newStrategy = strategy ?? _strategy;
       final newCode = code ?? _code;
       if (_strategy != newStrategy || _code != newCode) {
         setState(() {
@@ -58,13 +45,15 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
         });
       }
 
-      await _callAuth(
+      await auth.call(
+        context,
         () => auth.attemptSignIn(
           strategy: newStrategy,
           identifier: _identifier,
           password: _password.orNullIfEmpty,
           code: newCode.orNullIfEmpty,
         ),
+        onError: _onError,
       );
     }
   }
@@ -74,14 +63,10 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
     final auth = ClerkAuth.of(context);
     final translator = auth.translator;
     final env = auth.env;
-    final oauthStrategies = env.auth.firstFactors.where((f) => f.isOauth);
     final otherStrategies = env.auth.firstFactors.where((f) => f.isOtherStrategy);
     final hasPasswordStrategy = env.auth.firstFactors.contains(Clerk.Strategy.password);
     final identifiers =
         env.auth.identificationStrategies.where((i) => i.isOauth == false).map((i) => i.title);
-    final socialConnections = env.user.socialSettings.values.where(
-      (s) => oauthStrategies.contains(s.strategy),
-    );
     final factor =
         auth.client.signIn?.supportedFirstFactors.firstWhereOrNull((f) => f.strategy == _strategy);
     final safeIdentifier = factor?.safeIdentifier;
@@ -90,7 +75,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ErrorMessage(error: _error),
+        ErrorMessage(),
         Padding(
           padding: horizontalPadding32 + bottomPadding8,
           child: ClerkTextFormField(
@@ -127,7 +112,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
           open: _strategy.requiresCode,
           title: translator.translate('Enter code sent to ###', substitution: safeIdentifier),
           onSubmit: (code) async {
-            await _continue(auth, code: code);
+            await _continue(auth, code: code, strategy: _strategy);
             return false;
           },
         ),
@@ -143,7 +128,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
                     label: translator.translate('Password'),
                     obscureText: true,
                     onChanged: (password) => _password = password,
-                    onSubmit: (_) => _continue(auth),
+                    onSubmit: (_) => _continue(auth, strategy: Clerk.Strategy.password),
                   ),
                 ),
               if (otherStrategies.isNotEmpty) ...[
@@ -181,7 +166,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
             ],
           ),
         ),
-        ErrorMessage(error: _error),
+        ErrorMessage(),
         verticalMargin32,
       ],
     );

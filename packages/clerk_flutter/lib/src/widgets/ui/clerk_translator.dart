@@ -37,7 +37,9 @@ class DefaultClerkTranslator implements ClerkTranslator {
   /// and returns a textual representation of its contents as alternatives
   /// e.g. "first, second or third"
   ///
-  /// Should be overridden for languages where that is not the correct
+  /// Connecting word can be overridden, and a prefix can be prepended
+  ///
+  /// Should be overridden for languages where this does not provide the correct
   /// representation for alternates
   @override
   String alternatives(List<String> items, {String connector = 'or', String? prefix}) {

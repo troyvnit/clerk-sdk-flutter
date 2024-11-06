@@ -13,7 +13,8 @@ class Closeable extends StatelessWidget {
     bool? open,
     required this.child,
     this.duration = _defaultDuration,
-  })  : assert((closed is bool) != (open is bool), 'Only one of closed or open allowed'),
+  })  : assert((closed is bool) || (open is bool), 'One of closed or open required'),
+        assert((closed is bool) != (open is bool), 'Only one of closed or open allowed'),
         _value = (open == true || closed == false) ? 1 : 0;
 
   Widget build(BuildContext context) {

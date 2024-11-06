@@ -24,7 +24,7 @@ class MainApp extends StatelessWidget {
         child: Scaffold(
           body: Center(
             child: ClerkAuthBuilder(
-              signedInBuilder: (context, auth) => const ClerkSignOutWidget(),
+              signedInBuilder: (context, auth) => const ClerkSignOutPanel(),
               signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
             ),
           ),

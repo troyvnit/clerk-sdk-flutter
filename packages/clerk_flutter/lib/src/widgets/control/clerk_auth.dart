@@ -57,7 +57,8 @@ class ClerkAuth extends StatefulWidget {
   static ClerkTranslator translatorOf(BuildContext context) => nonDependentOf(context).translator;
   static Clerk.DisplayConfig displayConfigOf(BuildContext context) =>
       nonDependentOf(context).env.display;
-  static Stream<String> errorStreamOf(BuildContext context) => nonDependentOf(context).errorStream;
+  static Stream<Clerk.AuthError> errorStreamOf(BuildContext context) =>
+      nonDependentOf(context).errorStream;
 }
 
 class _ClerkAuthState extends State<ClerkAuth> {
@@ -122,9 +123,9 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
   static final _numberRE = RegExp(r'[0-9]');
 
   final ClerkTranslator translator;
-  final errors = StreamController<String>();
+  final _errors = StreamController<Clerk.AuthError>();
+  late final errorStream = _errors.stream.asBroadcastStream();
   final OverlayEntry loadingOverlay;
-  late final errorStream = errors.stream.asBroadcastStream();
 
   ClerkAuthProvider({
     required super.publicKey,
@@ -200,7 +201,7 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
       Overlay.of(context).insert(loadingOverlay);
       result = await fn.call();
     } on Clerk.AuthError catch (error) {
-      errors.add(error.toString());
+      _errors.add(error);
       onError?.call(error);
     } finally {
       loadingOverlay.remove();
@@ -276,4 +277,6 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
 
     return null;
   }
+
+  void addError(String message) => _errors.add(Clerk.AuthError(message: message));
 }

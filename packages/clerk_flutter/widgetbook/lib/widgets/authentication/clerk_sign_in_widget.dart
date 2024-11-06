@@ -4,7 +4,7 @@ import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'package:widgetbook_workspace/use_case_frame.dart';
 
-@widgetbook.UseCase(name: 'Authentication', type: ClerkSignInWidget)
+@widgetbook.UseCase(name: 'Authentication', type: ClerkSignInPanel)
 Widget buildClerkSignInWidgetUseCase(BuildContext context) {
   final sizeAdjust = context.knobs.boolean(
     label: 'Adjust Size',

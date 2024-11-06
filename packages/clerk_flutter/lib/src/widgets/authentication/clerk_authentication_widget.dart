@@ -44,18 +44,18 @@ class _ClerkAuthenticationWidgetState extends State<ClerkAuthenticationWidget> {
         topPortion: _TopPortion(state: _state),
         middlePortion: Column(
           children: [
-            ErrorMessage(),
+            ClerkErrorMessage(),
             ClerkAuthBuilder(
               builder: (context, auth) {
                 return Closeable(
                   closed: auth.signIn is Clerk.SignIn || auth.signUp is Clerk.SignUp,
-                  child: const ClerkSSO(),
+                  child: const ClerkSSOPanel(),
                 );
               },
             ),
-            Closeable(open: _state.isSigningIn, child: const ClerkSignInWidget()),
-            Closeable(open: _state.isSigningUp, child: const ClerkSignUpWidget()),
-            ErrorMessage(),
+            Closeable(open: _state.isSigningIn, child: const ClerkSignInPanel()),
+            Closeable(open: _state.isSigningUp, child: const ClerkSignUpPanel()),
+            ClerkErrorMessage(),
           ],
         ),
         bottomPortion: _BottomPortion(state: _state, onChange: _toggle),

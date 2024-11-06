@@ -3,21 +3,21 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-/// The [ClerkSignInWidget] renders a UI for signing in users.
+/// The [ClerkSignInPanel] renders a UI for signing in users.
 ///
-/// The functionality of the [ClerkSignInWidget] is controlled by the instance settings you
+/// The functionality of the [ClerkSignInPanel] is controlled by the instance settings you
 /// specify in your Clerk Dashboard, such as sign-in and sign-ip options and social
-/// connections. You can further customize you [ClerkSignInWidget] by passing additional
+/// connections. You can further customize you [ClerkSignInPanel] by passing additional
 /// properties.
 
-class ClerkSignInWidget extends StatefulWidget {
-  const ClerkSignInWidget();
+class ClerkSignInPanel extends StatefulWidget {
+  const ClerkSignInPanel();
 
   @override
-  State<ClerkSignInWidget> createState() => _ClerkSignInWidgetState();
+  State<ClerkSignInPanel> createState() => _ClerkSignInPanelState();
 }
 
-class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
+class _ClerkSignInPanelState extends State<ClerkSignInPanel> {
   static const _errorDisplayDuration = Duration(seconds: 3);
 
   Clerk.Strategy _strategy = Clerk.Strategy.password;
@@ -75,7 +75,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ErrorMessage(),
+        ClerkErrorMessage(),
         Padding(
           padding: horizontalPadding32 + bottomPadding8,
           child: ClerkTextFormField(
@@ -166,7 +166,7 @@ class _ClerkSignInWidgetState extends State<ClerkSignInWidget> {
             ],
           ),
         ),
-        ErrorMessage(),
+        ClerkErrorMessage(),
         verticalMargin32,
       ],
     );

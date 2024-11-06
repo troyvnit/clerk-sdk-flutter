@@ -2,14 +2,14 @@ import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
-class ClerkSSO extends StatefulWidget {
-  const ClerkSSO({super.key});
+class ClerkSSOPanel extends StatefulWidget {
+  const ClerkSSOPanel({super.key});
 
   @override
-  State<ClerkSSO> createState() => _ClerkSSOState();
+  State<ClerkSSOPanel> createState() => _ClerkSSOPanelState();
 }
 
-class _ClerkSSOState extends State<ClerkSSO> {
+class _ClerkSSOPanelState extends State<ClerkSSOPanel> {
   static const _errorDisplayDuration = Duration(seconds: 3);
 
   @override

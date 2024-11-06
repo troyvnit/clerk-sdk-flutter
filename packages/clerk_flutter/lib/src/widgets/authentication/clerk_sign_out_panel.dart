@@ -1,14 +1,12 @@
 import 'package:clerk_flutter/clerk_flutter.dart';
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
 import 'package:flutter/material.dart';
 
-/// The [ClerkSignOutWidget] renders a UI for signing out users.
+/// The [ClerkSignOutPanel] renders a UI for signing out users.
 ///
 @immutable
-class ClerkSignOutWidget extends StatelessWidget {
-  /// Constructs a new [ClerkSignOutWidget].
-  const ClerkSignOutWidget({super.key});
+class ClerkSignOutPanel extends StatelessWidget {
+  /// Constructs a new [ClerkSignOutPanel].
+  const ClerkSignOutPanel({super.key});
 
   @override
   Widget build(BuildContext context) {

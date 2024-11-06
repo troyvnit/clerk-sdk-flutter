@@ -2,24 +2,24 @@ import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
-/// The [ClerkSignUpWidget] renders a UI for signing up users.
+/// The [ClerkSignUpPanel] renders a UI for signing up users.
 ///
-/// The functionality of the [ClerkSignUpWidget] is controlled by the instance settings
+/// The functionality of the [ClerkSignUpPanel] is controlled by the instance settings
 /// you specify in your Clerk Dashboard, such as sign-in and social connections. You can
-/// further customize your [ClerkSignUpWidget] by passing additional properties.
+/// further customize your [ClerkSignUpPanel] by passing additional properties.
 ///
 /// https://clerk.com/docs/components/authentication/sign-up
 ///
 ///
 @immutable
-class ClerkSignUpWidget extends StatefulWidget {
-  const ClerkSignUpWidget();
+class ClerkSignUpPanel extends StatefulWidget {
+  const ClerkSignUpPanel();
 
   @override
-  State<ClerkSignUpWidget> createState() => _ClerkSignUpWidgetState();
+  State<ClerkSignUpPanel> createState() => _ClerkSignUpPanelState();
 }
 
-class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
+class _ClerkSignUpPanelState extends State<ClerkSignUpPanel> {
   static final _phoneNumberRE = RegExp(r'[^0-9+]');
 
   final _values = <Clerk.UserAttribute, String>{};
@@ -29,8 +29,8 @@ class _ClerkSignUpWidgetState extends State<ClerkSignUpWidget> {
     await auth.call(context, () async {
       final password = _values[Clerk.UserAttribute.password];
       final passwordConfirmation = _values[Clerk.UserAttribute.passwordConfirmation];
-      if (auth.checkPassword(password, passwordConfirmation) case String error) {
-        auth.errors.add(error);
+      if (auth.checkPassword(password, passwordConfirmation) case String errorMessage) {
+        auth.addError(errorMessage);
       } else {
         await auth.attemptSignUp(
           strategy: strategy ?? Clerk.Strategy.password,

@@ -10,11 +10,11 @@ class Email extends UserIdentifyingData {
   final bool reserved;
   final Verification? verification;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime updatedAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? updatedAt;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime createdAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? createdAt;
 
   Email({
     required super.id,

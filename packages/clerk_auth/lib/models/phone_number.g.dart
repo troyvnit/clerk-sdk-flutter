@@ -15,10 +15,8 @@ PhoneNumber _$PhoneNumberFromJson(Map<String, dynamic> json) => PhoneNumber(
       verification: json['verification'] == null
           ? null
           : Verification.fromJson(json['verification'] as Map<String, dynamic>),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          (json['updated_at'] as num).toInt()),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-          (json['created_at'] as num).toInt()),
+      updatedAt: intToDateTime(json['updated_at']),
+      createdAt: intToDateTime(json['created_at']),
     );
 
 Map<String, dynamic> _$PhoneNumberToJson(PhoneNumber instance) =>
@@ -29,6 +27,6 @@ Map<String, dynamic> _$PhoneNumberToJson(PhoneNumber instance) =>
       'reserved_for_second_factor': instance.reservedForSecondFactor,
       'default_second_factor': instance.defaultSecondFactor,
       'verification': instance.verification?.toJson(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
     };

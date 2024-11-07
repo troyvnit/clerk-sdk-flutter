@@ -8,8 +8,8 @@ part of 'user_attribute_data.dart';
 
 UserAttributeData _$UserAttributeDataFromJson(Map<String, dynamic> json) =>
     UserAttributeData(
-      isEnabled: json['enabled'] == null ? false : isTrue(json['enabled']),
-      isRequired: json['required'] == null ? false : isTrue(json['required']),
+      isEnabled: json['enabled'] == null ? true : isTrue(json['enabled']),
+      isRequired: json['required'] == null ? true : isTrue(json['required']),
       usedForFirstFactor: json['used_for_first_factor'] == null
           ? false
           : isTrue(json['used_for_first_factor']),

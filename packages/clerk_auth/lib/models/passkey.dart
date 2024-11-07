@@ -9,8 +9,12 @@ class Passkey {
   final String id;
   final String name;
   final Verification verification;
-  final DateTime updatedAt;
-  final DateTime createdAt;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? updatedAt;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? createdAt;
 
   @JsonKey(fromJson: intToDateTime)
   final DateTime? lastUsedAt;
@@ -24,8 +28,7 @@ class Passkey {
     required this.createdAt,
   });
 
-  factory Passkey.fromJson(Map<String, dynamic> json) =>
-      _$PasskeyFromJson(json);
+  factory Passkey.fromJson(Map<String, dynamic> json) => _$PasskeyFromJson(json);
 
   Map<String, dynamic> toJson() => _$PasskeyToJson(this);
 }

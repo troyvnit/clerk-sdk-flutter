@@ -8,8 +8,12 @@ part 'web3_wallet.g.dart';
 class Web3Wallet extends UserIdentifyingData {
   final String web3Wallet;
   final Verification verification;
-  final DateTime updatedAt;
-  final DateTime createdAt;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? updatedAt;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? createdAt;
 
   Web3Wallet({
     required super.id,

@@ -15,8 +15,8 @@ class SignIn {
   final Verification? secondFactorVerification;
   final String? createdSessionId;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime abandonAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? abandonAt;
 
   @JsonKey(defaultValue: const [])
   final List<Factor> supportedFirstFactors;

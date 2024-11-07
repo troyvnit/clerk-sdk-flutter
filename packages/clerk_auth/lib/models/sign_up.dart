@@ -26,8 +26,8 @@ class SignUp {
   final String? createdSessionId;
   final String? createdUserId;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime abandonAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? abandonAt;
 
   const SignUp({
     required this.id,

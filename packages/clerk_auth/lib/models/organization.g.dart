@@ -19,8 +19,8 @@ Organization _$OrganizationFromJson(Map<String, dynamic> json) => Organization(
       pendingInvitationsCount:
           (json['pending_invitations_count'] as num).toInt(),
       publicMetadata: json['public_metadata'] as Map<String, dynamic>,
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: intToDateTime(json['updated_at']),
+      createdAt: intToDateTime(json['created_at']),
     );
 
 Map<String, dynamic> _$OrganizationToJson(Organization instance) =>
@@ -36,6 +36,6 @@ Map<String, dynamic> _$OrganizationToJson(Organization instance) =>
       'members_count': instance.membersCount,
       'pending_invitations_count': instance.pendingInvitationsCount,
       'public_metadata': instance.publicMetadata,
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
     };

@@ -12,11 +12,11 @@ class PhoneNumber extends UserIdentifyingData {
   final bool defaultSecondFactor;
   final Verification? verification;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime updatedAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? updatedAt;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime createdAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? createdAt;
 
   PhoneNumber({
     required super.id,

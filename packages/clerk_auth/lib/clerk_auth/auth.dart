@@ -18,11 +18,10 @@ class Auth {
   void update() {}
 
   // `init` must be called before `env` or `client` are accessed
-  Future<Auth> init() async {
+  Future<void> init() async {
     final [client, env] = await Future.wait([_api.createClient(), _api.environment()]);
     this.client = client as Client;
     this.env = env as Environment;
-    return this;
   }
 
   Future<void> refreshClient() async {

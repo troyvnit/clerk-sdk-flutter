@@ -34,8 +34,7 @@ SignIn _$SignInFromJson(Map<String, dynamic> json) => SignIn(
           : Verification.fromJson(
               json['second_factor_verification'] as Map<String, dynamic>),
       createdSessionId: json['created_session_id'] as String?,
-      abandonAt: DateTime.fromMillisecondsSinceEpoch(
-          (json['abandon_at'] as num).toInt()),
+      abandonAt: intToDateTime(json['abandon_at']),
     );
 
 Map<String, dynamic> _$SignInToJson(SignIn instance) => <String, dynamic>{
@@ -47,7 +46,7 @@ Map<String, dynamic> _$SignInToJson(SignIn instance) => <String, dynamic>{
       'first_factor_verification': instance.firstFactorVerification?.toJson(),
       'second_factor_verification': instance.secondFactorVerification?.toJson(),
       'created_session_id': instance.createdSessionId,
-      'abandon_at': instance.abandonAt.toIso8601String(),
+      'abandon_at': instance.abandonAt?.toIso8601String(),
       'supported_first_factors':
           instance.supportedFirstFactors.map((e) => e.toJson()).toList(),
       'supported_second_factors':

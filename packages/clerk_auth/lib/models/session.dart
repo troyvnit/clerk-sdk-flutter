@@ -12,14 +12,14 @@ class Session {
   final SessionToken? lastActiveToken;
   final User user;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime lastActiveAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? lastActiveAt;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime expireAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? expireAt;
 
-  @JsonKey(fromJson: DateTime.fromMillisecondsSinceEpoch)
-  final DateTime abandonAt;
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? abandonAt;
 
   Session({
     required this.id,
@@ -32,8 +32,7 @@ class Session {
     this.lastActiveToken,
   });
 
-  factory Session.fromJson(Map<String, dynamic> json) =>
-      _$SessionFromJson(json);
+  factory Session.fromJson(Map<String, dynamic> json) => _$SessionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionToJson(this);
 }

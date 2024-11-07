@@ -22,22 +22,24 @@ enum HttpMethod {
 }
 
 class Api with Logging {
-  Api._({required this.tokenCache, required this.domain});
+  Api._(this._tokenCache, this._domain, this._client);
 
   factory Api({
     required String publishableKey,
     required String publicKey,
+    http.Client? client,
     Persistor? persistor,
   }) =>
       _instance ??= Api._(
-        tokenCache: TokenCache(publicKey, persistor),
-        domain: deriveDomainFrom(publishableKey),
+        TokenCache(publicKey, persistor),
+        deriveDomainFrom(publishableKey),
+        client ?? http.Client(),
       );
 
-  final TokenCache tokenCache;
-  final String domain;
+  final TokenCache _tokenCache;
+  final String _domain;
+  final http.Client _client;
 
-  static final _client = http.Client();
   static Api? _instance;
 
   static const _scheme = 'https';
@@ -48,6 +50,7 @@ class Api with Logging {
   static const _kErrorsKey = 'errors';
   static const _kClientKey = 'client';
   static const _kResponseKey = 'response';
+  static const _kDataKey = 'data';
 
   // environment & client
 
@@ -93,7 +96,7 @@ class Api with Logging {
       final headers = _headers(HttpMethod.delete);
       final resp = await _fetch(method: HttpMethod.delete, path: path, headers: headers);
       if (resp.statusCode == 200) {
-        tokenCache.clear();
+        _tokenCache.clear();
         return true;
       } else {
         logSevere('HTTP error on DELETE $path: ${resp.statusCode}', resp);
@@ -351,17 +354,76 @@ class Api with Logging {
   // Session
 
   Future<String> sessionToken() async {
-    if (tokenCache.sessionToken.isEmpty && tokenCache.canRefreshSessionToken) {
-      final resp = await _fetch(path: '/client/sessions/${tokenCache.sessionId}/tokens');
+    if (_tokenCache.sessionToken.isEmpty && _tokenCache.canRefreshSessionToken) {
+      final resp = await _fetch(path: '/client/sessions/${_tokenCache.sessionId}/tokens');
       if (resp.statusCode == HttpStatus.ok) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
-        tokenCache.sessionToken = body[_kJwtKey] as String;
+        _tokenCache.sessionToken = body[_kJwtKey] as String;
       }
     }
-    return tokenCache.sessionToken;
+    return _tokenCache.sessionToken;
   }
 
   // Internal
+
+  static const _listFetchLimit = 50;
+
+  Future<List<Map<String, dynamic>>> _fetchList(
+    String url, {
+    HttpMethod method = HttpMethod.post,
+    Map<String, String>? headers,
+    Map<String, dynamic>? params,
+
+    /// for requests that require a `_client_session_id` query parameter,
+    /// set this to true. see: https://clerk.com/docs/reference/frontend-api/tag/Email-Addresses#operation/createEmailAddresses
+    bool requiresSessionId = false,
+  }) async {
+    final result = <Map<String, dynamic>>[];
+    final fullHeaders = _headers(method, headers);
+    for (int offset = 0; true; offset += _listFetchLimit) {
+      try {
+        final resp = await _fetch(
+          method: method,
+          path: url,
+          params: {
+            'offset': offset,
+            'limit': _listFetchLimit,
+            ...?params,
+          },
+          headers: fullHeaders,
+          requiresSessionId: requiresSessionId,
+        );
+
+        final body = json.decode(resp.body) as Map<String, dynamic>;
+
+        final clientData = switch (body[_kClientKey]) {
+          Map<String, dynamic> client when client.isNotEmpty => client,
+          _ => body[_kResponseKey],
+        };
+        if (clientData case Map<String, dynamic> clientJson) {
+          final client = Client.fromJson(clientJson);
+          _tokenCache.updateFrom(resp, client.activeSession);
+        }
+
+        if (resp.statusCode == HttpStatus.ok) {
+          final data =
+              body[_kResponseKey] is List ? body[_kResponseKey] : body[_kResponseKey][_kDataKey];
+          result.add(data);
+          if (data.length < _listFetchLimit) return result;
+        } else {
+          final errors = body[_kErrorsKey] != null
+              ? List<Map<String, dynamic>>.from(body[_kErrorsKey]).map(ApiError.fromJson).toList()
+              : ['unknown error'];
+          logSevere(body);
+          throw AuthError(message: errors.map((e) => e.toString()).join('; '));
+        }
+      } catch (error, stacktrace) {
+        print('ERROR: $error');
+        logSevere('Error during fetch', error, stacktrace);
+        throw AuthError(message: error.toString());
+      }
+    }
+  }
 
   Future<ApiResponse> _fetchApiResponse(
     String url, {
@@ -393,7 +455,7 @@ class Api with Logging {
       };
       if (clientData case Map<String, dynamic> clientJson) {
         final client = Client.fromJson(clientJson);
-        tokenCache.updateFrom(resp, client.activeSession);
+        _tokenCache.updateFrom(resp, client.activeSession);
         return ApiResponse(client: client, status: resp.statusCode, errors: errors);
       } else {
         logSevere(body);
@@ -421,7 +483,7 @@ class Api with Logging {
       _kIsNative: true,
       _kClerkJsVersion: Auth.jsVersion,
       if (requiresSessionId) //
-        _kClerkSessionId: tokenCache.sessionId,
+        _kClerkSessionId: _tokenCache.sessionId,
       if (method.isGet) //
         ...?params,
     };
@@ -449,15 +511,15 @@ class Api with Logging {
   }
 
   Uri _uri(String path, Map<String, dynamic> params) =>
-      Uri(scheme: _scheme, host: domain, path: 'v1$path', queryParameters: params.toStringMap());
+      Uri(scheme: _scheme, host: _domain, path: 'v1$path', queryParameters: params.toStringMap());
 
   Map<String, String> _headers(HttpMethod method, [Map<String, String>? headers]) {
     return {
       HttpHeaders.acceptHeader: 'application/json',
       HttpHeaders.contentTypeHeader:
           method.isGet ? 'application/json' : 'application/x-www-form-urlencoded',
-      if (tokenCache.clientToken.isNotEmpty) //
-        HttpHeaders.authorizationHeader: tokenCache.clientToken,
+      if (_tokenCache.clientToken.isNotEmpty) //
+        HttpHeaders.authorizationHeader: _tokenCache.clientToken,
       ...?headers,
     };
   }

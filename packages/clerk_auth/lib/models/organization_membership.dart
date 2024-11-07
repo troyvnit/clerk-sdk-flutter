@@ -8,10 +8,14 @@ part 'organization_membership.g.dart';
 class OrganizationMembership {
   final String id;
   final String role;
-  final DateTime updatedAt;
-  final DateTime createdAt;
   final Organization organization;
   final UserPublic publicUserData;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? updatedAt;
+
+  @JsonKey(fromJson: intToDateTime)
+  final DateTime? createdAt;
 
   OrganizationMembership({
     required this.id,

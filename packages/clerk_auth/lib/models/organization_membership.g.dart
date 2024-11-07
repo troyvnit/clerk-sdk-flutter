@@ -11,8 +11,8 @@ OrganizationMembership _$OrganizationMembershipFromJson(
     OrganizationMembership(
       id: json['id'] as String,
       role: json['role'] as String,
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: intToDateTime(json['updated_at']),
+      createdAt: intToDateTime(json['created_at']),
       organization:
           Organization.fromJson(json['organization'] as Map<String, dynamic>),
       publicUserData:
@@ -24,8 +24,8 @@ Map<String, dynamic> _$OrganizationMembershipToJson(
     <String, dynamic>{
       'id': instance.id,
       'role': instance.role,
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'created_at': instance.createdAt.toIso8601String(),
       'organization': instance.organization.toJson(),
       'public_user_data': instance.publicUserData.toJson(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
     };

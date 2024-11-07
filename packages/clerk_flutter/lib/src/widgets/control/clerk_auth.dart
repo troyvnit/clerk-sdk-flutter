@@ -76,7 +76,7 @@ class _ClerkAuthState extends State<ClerkAuth> {
       loading: widget.loading,
     );
     _auth.addListener(() => setState(() {}));
-    _authFuture = _auth.init().then((_) => _auth);
+    _authFuture = _auth.init() as Future<ClerkAuthProvider>;
   }
 
   @override

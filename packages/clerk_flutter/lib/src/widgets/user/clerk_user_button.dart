@@ -26,15 +26,12 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
       child: ClerkAuthBuilder(builder: (context, auth) {
         final translator = auth.translator;
 
-        for (final session in auth.client.sessions) {
-          final idx = _sessions.indexWhere((s) => s.id == session.id);
-          if (idx > -1) {
-            _sessions[idx] = session;
-          } else {
-            _sessions.add(session);
-          }
-        }
+        // adding to a list of existing sessions means we have ones that are now deleted
+        // available for prettier UI
+        _sessions.addOrReplaceAll(auth.client.sessions, by: (s) => s.id);
 
+        // after a delay period, all deleted sessions will have been closed, so we can
+        // clear the `_sessions` cache of any such for next time round
         Future.delayed(_closeDelay, () => _sessions = [...auth.client.sessions]);
 
         return ClerkVerticalCard(

@@ -30,3 +30,22 @@ extension StringExtension on String {
       .map((t) => t[0])
       .join();
 }
+
+extension ListExtension on List {
+  void addOrReplaceAll<T>(Iterable<T> list, {dynamic Function(T)? by}) {
+    if (isEmpty) {
+      addAll(list);
+    } else {
+      by ??= (t) => t;
+      for (final item in list) {
+        final identifier = by.call(item);
+        final idx = indexWhere((i) => by!.call(i) == identifier);
+        if (idx > -1) {
+          this[idx] = item;
+        } else {
+          add(item);
+        }
+      }
+    }
+  }
+}

@@ -32,6 +32,8 @@ class Session {
     this.lastActiveToken,
   });
 
+  bool get isActive => status.isActive;
+
   factory Session.fromJson(Map<String, dynamic> json) => _$SessionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionToJson(this);

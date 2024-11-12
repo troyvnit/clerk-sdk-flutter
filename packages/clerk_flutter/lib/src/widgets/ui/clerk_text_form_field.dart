@@ -48,17 +48,19 @@ class ClerkTextFormField extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (label case String label) //
-              FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Text(
-                  translator.translate(label),
-                  textAlign: TextAlign.start,
-                  maxLines: 2,
-                  style: ClerkTextStyle.inputLabel,
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Text(
+                    translator.translate(label),
+                    textAlign: TextAlign.start,
+                    maxLines: 2,
+                    style: ClerkTextStyle.inputLabel,
+                  ),
                 ),
               ),
-            spacer,
-            if (optional)
+            if (optional) ...[
+              spacer,
               Text(
                 translator.translate('Optional'),
                 textAlign: TextAlign.end,
@@ -68,6 +70,7 @@ class ClerkTextFormField extends StatelessWidget {
                   fontSize: 12.0,
                 ),
               ),
+            ],
           ],
         ),
         verticalMargin4,

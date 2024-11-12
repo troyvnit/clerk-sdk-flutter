@@ -1,4 +1,5 @@
 import 'package:clerk_auth/clerk_auth.dart';
+import 'package:common/common.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 typedef AuthParameters = Map<Field, dynamic>;
@@ -109,25 +110,4 @@ enum Field {
 
   @override
   String toString() => name.toSnakeCase();
-}
-
-extension StringExtension on String {
-  bool _isUpper(int c) => c >= 0x41 && c <= 0x5a;
-
-  String toSnakeCase({String separator = "_"}) {
-    if (isEmpty) return this;
-
-    final buffer = StringBuffer();
-    for (final rune in runes) {
-      if (_isUpper(rune)) {
-        buffer.write(separator);
-        buffer.writeCharCode(rune | 0x20);
-      } else {
-        buffer.writeCharCode(rune);
-      }
-    }
-    return buffer.toString();
-  }
-
-  String get capitalized => this[0].toUpperCase() + substring(1);
 }

@@ -21,11 +21,13 @@ class Closeable extends StatelessWidget {
     return AnimatedOpacity(
       duration: duration,
       opacity: _value,
-      child: AnimatedAlign(
-        duration: duration,
-        alignment: Alignment.topLeft,
-        heightFactor: _value,
-        child: child,
+      child: ClipRect(
+        child: AnimatedAlign(
+          duration: duration,
+          alignment: Alignment.topLeft,
+          heightFactor: _value,
+          child: child,
+        ),
       ),
     );
   }

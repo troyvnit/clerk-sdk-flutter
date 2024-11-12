@@ -7,40 +7,26 @@ import 'package:clerk_auth/clerk_auth.dart';
 import 'package:common/common.dart';
 import 'package:http/http.dart' as http;
 
-enum HttpMethod {
-  delete,
-  get,
-  patch,
-  post,
-  put;
-
-  bool get isGet => this == get;
-  bool get isNotGet => isGet == false;
-
-  @override
-  String toString() => name.toUpperCase();
-}
-
 class Api with Logging {
+  static final _caches = <String, Api>{};
+
   Api._(this._tokenCache, this._domain, this._client);
 
   factory Api({
     required String publishableKey,
     required String publicKey,
-    http.Client? client,
+    HttpClient? client,
     Persistor? persistor,
   }) =>
-      _instance ??= Api._(
+      _caches[publicKey] ??= Api._(
         TokenCache(publicKey, persistor),
         deriveDomainFrom(publishableKey),
-        client ?? http.Client(),
+        client ?? DefaultHttpClient(),
       );
 
   final TokenCache _tokenCache;
   final String _domain;
-  final http.Client _client;
-
-  static Api? _instance;
+  final HttpClient _client;
 
   static const _scheme = 'https';
   static const _kJwtKey = 'jwt';
@@ -107,6 +93,12 @@ class Api with Logging {
 
     return false;
   }
+
+  // Sessions
+
+  Future<ApiResponse> activateSession(String id) => _fetchApiResponse('/client/sessions/$id/touch');
+
+  Future<ApiResponse> signOutSession(String id) => _fetchApiResponse('/client/sessions/$id/remove');
 
   // Sign Up API
 
@@ -366,65 +358,6 @@ class Api with Logging {
 
   // Internal
 
-  static const _listFetchLimit = 50;
-
-  Future<List<Map<String, dynamic>>> _fetchList(
-    String url, {
-    HttpMethod method = HttpMethod.post,
-    Map<String, String>? headers,
-    Map<String, dynamic>? params,
-
-    /// for requests that require a `_client_session_id` query parameter,
-    /// set this to true. see: https://clerk.com/docs/reference/frontend-api/tag/Email-Addresses#operation/createEmailAddresses
-    bool requiresSessionId = false,
-  }) async {
-    final result = <Map<String, dynamic>>[];
-    final fullHeaders = _headers(method, headers);
-    for (int offset = 0; true; offset += _listFetchLimit) {
-      try {
-        final resp = await _fetch(
-          method: method,
-          path: url,
-          params: {
-            'offset': offset,
-            'limit': _listFetchLimit,
-            ...?params,
-          },
-          headers: fullHeaders,
-          requiresSessionId: requiresSessionId,
-        );
-
-        final body = json.decode(resp.body) as Map<String, dynamic>;
-
-        final clientData = switch (body[_kClientKey]) {
-          Map<String, dynamic> client when client.isNotEmpty => client,
-          _ => body[_kResponseKey],
-        };
-        if (clientData case Map<String, dynamic> clientJson) {
-          final client = Client.fromJson(clientJson);
-          _tokenCache.updateFrom(resp, client.activeSession);
-        }
-
-        if (resp.statusCode == HttpStatus.ok) {
-          final data =
-              body[_kResponseKey] is List ? body[_kResponseKey] : body[_kResponseKey][_kDataKey];
-          result.add(data);
-          if (data.length < _listFetchLimit) return result;
-        } else {
-          final errors = body[_kErrorsKey] != null
-              ? List<Map<String, dynamic>>.from(body[_kErrorsKey]).map(ApiError.fromJson).toList()
-              : ['unknown error'];
-          logSevere(body);
-          throw AuthError(message: errors.map((e) => e.toString()).join('; '));
-        }
-      } catch (error, stacktrace) {
-        print('ERROR: $error');
-        logSevere('Error during fetch', error, stacktrace);
-        throw AuthError(message: error.toString());
-      }
-    }
-  }
-
   Future<ApiResponse> _fetchApiResponse(
     String url, {
     HttpMethod method = HttpMethod.post,
@@ -492,7 +425,7 @@ class Api with Logging {
 
     logInfo('$method $uri ${body.toString()}');
 
-    final resp = await _client.sendHttpRequest(method, uri, body: body, headers: headers);
+    final resp = await _client.send(method, uri, headers, body);
 
     if (resp.statusCode == HttpStatus.tooManyRequests) {
       final delay = int.tryParse(resp.headers['retry-after'] ?? '') ?? 500;
@@ -539,27 +472,4 @@ class Api with Logging {
     final encodedDomain = utf8.decode(base64.decode(encodedPart));
     return encodedDomain.split('\$').first;
   }
-}
-
-extension SendExtension on http.Client {
-  Future<http.Response> sendHttpRequest(
-    HttpMethod method,
-    Uri uri, {
-    Map<String, String>? headers,
-    Map<String, dynamic>? body,
-  }) async {
-    final request = http.Request(method.toString(), uri);
-    if (headers != null) {
-      request.headers.addAll(headers);
-    }
-    if (body != null) {
-      request.bodyFields = body.toStringMap();
-    }
-    final streamedResponse = await request.send();
-    return http.Response.fromStream(streamedResponse);
-  }
-}
-
-extension StringMapExtension on Map {
-  Map<String, String> toStringMap() => map((k, v) => MapEntry(k.toString(), v.toString()));
 }

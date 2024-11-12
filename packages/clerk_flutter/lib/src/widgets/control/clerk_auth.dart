@@ -8,10 +8,10 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// Control widget initialising Clerk Auth system
 class ClerkAuth extends StatefulWidget {
   /// Clerk public key from dashboard
-  final String publicKey;
+  final String? publicKey;
 
   /// Clerk publishable key from dashboard
-  final String publishableKey;
+  final String? publishableKey;
 
   /// Persistence service for caching tokens
   final Clerk.Persistor? persistor;
@@ -25,16 +25,20 @@ class ClerkAuth extends StatefulWidget {
   /// Loading widget
   final Widget? loading;
 
+  /// auth instance from elsewhere
+  final ClerkAuthProvider? auth;
+
   /// Constructor that constructs a construct constructingly
   const ClerkAuth({
     super.key,
-    required this.publicKey,
-    required this.publishableKey,
     required this.child,
+    this.publicKey,
+    this.publishableKey,
+    this.auth,
     this.translator = const DefaultClerkTranslator(),
     this.persistor,
     this.loading,
-  });
+  }) : assert((publicKey is String && publishableKey is String) != auth is Clerk.Auth);
 
   @override
   State<ClerkAuth> createState() => _ClerkAuthState();
@@ -65,23 +69,30 @@ class _ClerkAuthState extends State<ClerkAuth> {
   late ClerkAuthProvider _auth;
   late Future<ClerkAuthProvider> _authFuture;
 
+  void _update() => setState(() {});
+
   @override
   void initState() {
     super.initState();
-    _auth = ClerkAuthProvider(
-      publishableKey: widget.publishableKey,
-      publicKey: widget.publicKey,
-      persistor: widget.persistor,
-      translator: widget.translator,
-      loading: widget.loading,
-    );
-    _auth.addListener(() => setState(() {}));
+    _auth = widget.auth ??
+        ClerkAuthProvider(
+          publishableKey: widget.publishableKey!,
+          publicKey: widget.publicKey!,
+          persistor: widget.persistor,
+          translator: widget.translator,
+          loading: widget.loading,
+        );
+    _auth.addListener(_update);
     _authFuture = _auth.init().then((_) => _auth);
   }
 
   @override
   void dispose() {
-    _auth.dispose();
+    if (widget.auth is ClerkAuthProvider) {
+      _auth.removeListener(_update);
+    } else {
+      _auth.dispose();
+    }
     super.dispose();
   }
 
@@ -159,7 +170,7 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
               NavigationDelegate(
                 onNavigationRequest: (request) async {
                   if (request.url.startsWith(Clerk.Auth.oauthRedirect)) {
-                    if (overlay is OverlayEntry && auth.client.user is! Clerk.User) {
+                    if (overlay is OverlayEntry) {
                       final uri = Uri.parse(request.url);
                       final token = uri.queryParameters[_kRotatingTokenNonce];
                       if (token case String token) {

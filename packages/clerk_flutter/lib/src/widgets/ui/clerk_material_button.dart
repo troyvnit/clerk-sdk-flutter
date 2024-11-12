@@ -24,6 +24,7 @@ class ClerkMaterialButton extends StatelessWidget {
     this.style = ClerkMaterialButtonStyle.dark,
     this.elevation = 2.0,
     this.square = false,
+    this.height = 32,
   });
 
   /// Called when the button is tapped or otherwise activated.
@@ -40,6 +41,9 @@ class ClerkMaterialButton extends StatelessWidget {
 
   /// Should the button be square?
   final bool square;
+
+  /// height of the button
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -65,8 +69,8 @@ class ClerkMaterialButton extends StatelessWidget {
       ),
     );
     return SizedBox(
-      height: 32.0,
-      width: square ? 32.0 : null,
+      height: height,
+      width: square ? height : null,
       child: FilledButton(
         onPressed: onPressed,
         style: ButtonStyle(
@@ -75,7 +79,7 @@ class ClerkMaterialButton extends StatelessWidget {
           foregroundColor: MaterialStateProperty.all(textColor),
           shape: MaterialStateProperty.all(
             RoundedRectangleBorder(
-              borderRadius: borderRadius8,
+              borderRadius: BorderRadius.circular(height / 6),
               side: const BorderSide(color: ClerkColors.dawnPink),
             ),
           ),

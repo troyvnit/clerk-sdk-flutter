@@ -1,6 +1,7 @@
 import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:collection/collection.dart';
+import 'package:common/common.dart';
 import 'package:flutter/material.dart';
 
 /// The [ClerkSignInPanel] renders a UI for signing in users.
@@ -63,10 +64,10 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel> {
     final auth = ClerkAuth.of(context);
     final translator = auth.translator;
     final env = auth.env;
-    final otherStrategies = env.auth.firstFactors.where((f) => f.isOtherStrategy);
-    final hasPasswordStrategy = env.auth.firstFactors.contains(Clerk.Strategy.password);
+    final otherStrategies = env.config.firstFactors.where((f) => f.isOtherStrategy);
+    final hasPasswordStrategy = env.config.firstFactors.contains(Clerk.Strategy.password);
     final identifiers =
-        env.auth.identificationStrategies.where((i) => i.isOauth == false).map((i) => i.title);
+        env.config.identificationStrategies.where((i) => i.isOauth == false).map((i) => i.title);
     final factor =
         auth.client.signIn?.supportedFirstFactors.firstWhereOrNull((f) => f.strategy == _strategy);
     final safeIdentifier = factor?.safeIdentifier;

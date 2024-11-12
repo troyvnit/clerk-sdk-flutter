@@ -38,11 +38,11 @@ class Client {
 
   Session? get activeSession {
     for (final session in sessions) {
-      if (session.id == lastActiveSessionId) return session;
+      if (session.isActive) return session;
     }
 
     for (final session in sessions) {
-      if (session.status.isActive) return session;
+      if (session.id == lastActiveSessionId) return session;
     }
 
     return null;

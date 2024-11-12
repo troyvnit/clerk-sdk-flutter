@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'clerk_auth.dart';
 
-typedef AuthWidgetBuilder = Widget Function(BuildContext context, Clerk.Auth auth);
+typedef AuthWidgetBuilder = Widget Function(BuildContext context, ClerkAuthProvider auth);
 
 class ClerkAuthBuilder extends StatelessWidget {
   final AuthWidgetBuilder? signedInBuilder;

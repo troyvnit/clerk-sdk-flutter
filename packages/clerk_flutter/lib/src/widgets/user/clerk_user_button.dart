@@ -1,261 +1,271 @@
-import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/common.dart';
-import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
-import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
-import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
-import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
+import 'package:clerk_auth/clerk_auth.dart' as Clerk;
+import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:common/common.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
-/// The [ClerkUserButton] is used to render the familiar user button UI popularized by
-/// Google.
-///
-/// Clerk is the only provider with multi-session support, allowing users to sign into
-/// multiple accounts at once and switch between them. For multi-session apps, the
-/// [ClerkUserButton] automatically supports instant account switching, without the need of
-/// a full page reload. For more information you can check out the Multi-session
-/// applications guide.
-///
-/// https://clerk.com/docs/components/user/user-button
-///
-@immutable
 class ClerkUserButton extends StatefulWidget {
-  /// Constructs a new [ClerkUserButton].
-  const ClerkUserButton({
-    super.key,
-    this.avatar,
-  });
-
-  /// The user's avatar.
-  final Widget? avatar;
+  const ClerkUserButton({super.key});
 
   @override
   State<ClerkUserButton> createState() => _ClerkUserButtonState();
 }
 
 class _ClerkUserButtonState extends State<ClerkUserButton> {
-  static int _selectedUserIndex = 0;
+  static const _closeDelay = Duration(milliseconds: 250);
+
+  List<Clerk.Session> _sessions = [];
 
   @override
   Widget build(BuildContext context) {
-    return MenuAnchor(
-      alignmentOffset: const Offset(0.0, 8.0),
-      style: MenuStyle(
-        backgroundColor: MaterialStateProperty.all(Colors.transparent),
-        shadowColor: MaterialStateProperty.all(Colors.transparent),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        color: ClerkColors.white,
+        boxShadow: [BoxShadow(color: ClerkColors.mercury, blurRadius: 15)],
       ),
-      menuChildren: [
-        ClerkVerticalCard(
-          topPortion: _UserSelector(selectedUserIndex: _selectedUserIndex),
-          bottomPortion: const Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: ClerkAuthBuilder(builder: (context, auth) {
+        final translator = auth.translator;
+
+        for (final session in auth.client.sessions) {
+          final idx = _sessions.indexWhere((s) => s.id == session.id);
+          if (idx > -1) {
+            _sessions[idx] = session;
+          } else {
+            _sessions.add(session);
+          }
+        }
+
+        Future.delayed(_closeDelay, () => _sessions = [...auth.client.sessions]);
+
+        return ClerkVerticalCard(
+          topPortion: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              verticalMargin12,
-              Padding(
-                padding: horizontalPadding32,
-                child: Row(
-                  children: [
-                    ClerkIcon(ClerkAssets.signOutIconLight),
-                    horizontalMargin12,
-                    Text(
-                      'Sign out of all accounts',
-                      maxLines: 1,
-                      style: ClerkTextStyle.userButtonTitle,
-                    ),
-                  ],
+              for (final session in _sessions)
+                Closeable(
+                  key: Key(session.id),
+                  duration: _closeDelay,
+                  open: auth.client.sessions.contains(session),
+                  child: _SessionRow(
+                    session: session,
+                    selected: session == auth.client.activeSession,
+                    onTap: () => auth.call(context, () => auth.setActiveSession(session)),
+                  ),
                 ),
-              ),
-              verticalMargin12,
-            ],
-          ),
-        ),
-      ],
-      builder: (BuildContext context, MenuController controller, Widget? child) {
-        return GestureDetector(
-          onTap: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          child: child,
-        );
-      },
-      child: CircleAvatar(
-        backgroundColor: ClerkColors.brightGrey,
-        radius: 28.0 / 2.0,
-        child: ClipRRect(
-          borderRadius: borderRadius28,
-          child: widget.avatar,
-        ),
-      ),
-    );
-  }
-}
-
-@immutable
-class _User {
-  const _User({
-    required this.name,
-    required this.email,
-  });
-
-  final String name;
-  final String email;
-}
-
-@immutable
-class _UserSelector extends StatelessWidget {
-  const _UserSelector({
-    required this.selectedUserIndex,
-  });
-
-  static const _users = [
-    _User(
-      name: 'Cameron Walker',
-      email: 'cameron.j.r.walkder@gmail.com',
-    ),
-    _User(
-      name: 'Cameron Walker',
-      email: 'cameron@walker.com',
-    ),
-    _User(
-      name: 'Cameron Walker',
-      email: 'walker@personal.com',
-    ),
-  ];
-
-  final int selectedUserIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final user in _users) ...[
-            Padding(
-              padding: horizontalPadding20 + verticalPadding16,
-              child: _UserTile(
-                user: user,
-                selected: selectedUserIndex == _users.indexOf(user),
-              ),
-            ),
-            Divider(
-              height: 1.0,
-              thickness: 1.0,
-              color: ClerkColors.lightGrey,
-            ),
-          ],
-          Padding(
-            padding: horizontalPadding20 + verticalPadding16,
-            child: const Row(
-              children: [
-                SizedBox(
-                  width: 36.0,
-                  child: Center(
-                    child: ClerkIcon(
-                      ClerkAssets.addIcon,
-                      size: 24.0,
+              if (auth.env.config.singleSessionMode == false)
+                Padding(
+                  padding: horizontalPadding20 + verticalPadding8,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _signIn(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox.square(
+                          dimension: 22,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: ClerkColors.dawnPink,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: ClerkColors.mercury),
+                            ),
+                            child: const Icon(Icons.add, size: 16, color: ClerkColors.stormGrey),
+                          ),
+                        ),
+                        horizontalMargin24,
+                        Text(
+                          translator.translate('Add account'),
+                          style:
+                              ClerkTextStyle.buttonTitle.copyWith(color: ClerkColors.almostBlack),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                horizontalMargin8,
-                Text('Add account', maxLines: 1, style: ClerkTextStyle.userButtonTitle),
-              ],
+            ],
+          ),
+          bottomPortion: Closeable(
+            open: auth.client.sessions.length > 1,
+            child: Padding(
+              padding: horizontalPadding16 + verticalPadding12,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => auth.call(context, () => auth.signOut()),
+                child: Row(
+                  children: [
+                    const Icon(Icons.logout, color: ClerkColors.grey, size: 16),
+                    horizontalMargin8,
+                    Text(
+                      translator.translate('Sign out of all accounts'),
+                      style: ClerkTextStyle.buttonTitle,
+                    )
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      }),
     );
+  }
+
+  Future<void> _signIn(BuildContext context) async {
+    final auth = ClerkAuth.nonDependentOf(context);
+    final numSessions = auth.client.sessions.length;
+
+    late final OverlayEntry overlay;
+    late VoidCallback unloadOverlay;
+
+    unloadOverlay = () {
+      if (auth.client.sessions.length != numSessions) {
+        overlay.remove();
+        auth.removeListener(unloadOverlay);
+      }
+    };
+
+    overlay = OverlayEntry(
+      builder: (context) {
+        return ClerkAuth(
+          auth: auth,
+          child: const Scaffold(
+            backgroundColor: ClerkColors.whiteSmoke,
+            body: Padding(
+              padding: allPadding32,
+              child: ClerkAuthenticationWidget(),
+            ),
+          ),
+        );
+      },
+    );
+    auth.addListener(unloadOverlay);
+    Overlay.of(context).insert(overlay);
   }
 }
 
-@immutable
-class _UserTile extends StatelessWidget {
-  const _UserTile({
-    required this.user,
-    required this.selected,
-  });
-
-  final _User user;
+class _SessionRow extends StatelessWidget {
+  final Clerk.Session session;
   final bool selected;
+  final VoidCallback? onTap;
+
+  const _SessionRow({
+    super.key,
+    required this.session,
+    this.onTap,
+    this.selected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final translator = ClerkAuth.translatorOf(context);
+    final user = session.user;
+    return Column(
       children: [
-        CircleAvatar(
-          backgroundColor: ClerkColors.brightGrey,
-          radius: 18.0,
-          child: ClipRRect(
-            borderRadius: borderRadius18,
-            child: SvgPicture.network(
-              'https://api.dicebear.com/9.x/dylan/svg?seed=${user.email.hashCode}',
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Padding(
+            padding: horizontalPadding16 + topPadding4,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: ClerkColors.mountainMist,
+                  child: user.imageUrl is String
+                      ? ClipRRect(
+                          borderRadius: const BorderRadius.all(Radius.circular(16)),
+                          child: Image.network(
+                            user.imageUrl!,
+                            width: 32,
+                            height: 32,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Text(user.name.initials, style: ClerkTextStyle.subtitleDark),
+                ),
+                horizontalMargin16,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: ClerkTextStyle.buttonTitle.copyWith(color: ClerkColors.almostBlack),
+                    ),
+                    if (user.email is String) Text(user.email!, style: ClerkTextStyle.buttonTitle),
+                  ],
+                )
+              ],
             ),
           ),
         ),
-        horizontalMargin12,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                user.name,
-                style: ClerkTextStyle.userButtonSubtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                user.email,
-                style: ClerkTextStyle.userButtonSubtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (selected) //
-                ...[
-                verticalMargin16,
-                const Row(
+        Padding(
+          padding: horizontalPadding16 + topPadding4,
+          child: Closeable(
+            open: selected,
+            child: Padding(
+              padding: leftPadding48 + bottomPadding8,
+              child: Builder(builder: (context) {
+                final auth = ClerkAuth.nonDependentOf(context);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    // Expanded(
+                    //   child: ClerkMaterialButton(
+                    //     onPressed: () => auth.call(context, () => auth.signOut()),
+                    //     label: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.center,
+                    //       crossAxisAlignment: CrossAxisAlignment.end,
+                    //       children: [
+                    //         const Icon(Icons.settings, color: ClerkColors.charcoalGrey, size: 11),
+                    //         horizontalMargin8,
+                    //         Text(
+                    //           translator.translate('Manage account'),
+                    //           style: ClerkTextStyle.buttonSubtitle.copyWith(
+                    //             fontSize: 8,
+                    //             color: ClerkColors.charcoalGrey,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //     style: ClerkMaterialButtonStyle.light,
+                    //     height: 16,
+                    //   ),
+                    // ),
+                    // horizontalMargin8,
                     Expanded(
                       child: ClerkMaterialButton(
-                        style: ClerkMaterialButtonStyle.light,
+                        onPressed: () {
+                          if (auth.client.sessions.length == 1) {
+                            auth.call(context, () => auth.signOut());
+                          } else {
+                            auth.call(context, () => auth.signOutSession(session));
+                          }
+                        },
                         label: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            ClerkIcon(ClerkAssets.gearIcon),
+                            const Icon(Icons.logout, color: ClerkColors.charcoalGrey, size: 11),
                             horizontalMargin8,
-                            Text('Manage account'),
+                            Text(
+                              translator.translate('Sign Out'),
+                              style: ClerkTextStyle.buttonSubtitle.copyWith(
+                                fontSize: 8,
+                                color: ClerkColors.charcoalGrey,
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ),
-                    horizontalMargin8,
-                    Expanded(
-                      child: ClerkMaterialButton(
                         style: ClerkMaterialButtonStyle.light,
-                        label: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ClerkIcon(ClerkAssets.signOutIcon),
-                            horizontalMargin8,
-                            Text('Sign out'),
-                          ],
-                        ),
+                        height: 16,
                       ),
                     ),
                   ],
-                ),
-              ],
-            ],
+                );
+              }),
+            ),
           ),
         ),
+        const Divider(height: 1, color: ClerkColors.dawnPink),
       ],
     );
   }

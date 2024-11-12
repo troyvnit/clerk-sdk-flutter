@@ -89,9 +89,7 @@ class User {
   String? _persisted(String? id, List<UserIdentifyingData>? items) {
     if (id is String && items is List<UserIdentifyingData>) {
       for (final item in items) {
-        if (item.id == id) {
-          return item.identifier;
-        }
+        if (item.id == id) return item.identifier;
       }
     }
     return null;

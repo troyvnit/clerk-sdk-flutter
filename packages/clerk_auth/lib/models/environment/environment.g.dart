@@ -7,7 +7,7 @@ part of 'environment.dart';
 // **************************************************************************
 
 Environment _$EnvironmentFromJson(Map<String, dynamic> json) => Environment(
-      auth: json['auth_config'] == null
+      config: json['auth_config'] == null
           ? AuthConfig.empty
           : AuthConfig.fromJson(json['auth_config'] as Map<String, dynamic>),
       display: json['display_config'] == null
@@ -27,7 +27,7 @@ Environment _$EnvironmentFromJson(Map<String, dynamic> json) => Environment(
 
 Map<String, dynamic> _$EnvironmentToJson(Environment instance) =>
     <String, dynamic>{
-      'auth_config': instance.auth.toJson(),
+      'auth_config': instance.config.toJson(),
       'display_config': instance.display.toJson(),
       'user_settings': instance.user.toJson(),
       'organization_settings': instance.organization.toJson(),

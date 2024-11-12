@@ -8,7 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: '.env.example');
-  // await setUpLogging(printer: const LogPrinter());
+  await setUpLogging(printer: const LogPrinter());
   runApp(const MainApp());
 }
 
@@ -22,9 +22,13 @@ class MainApp extends StatelessWidget {
         publicKey: dotenv.env['public_key'] ?? '',
         publishableKey: dotenv.env['publishable_key'] ?? '',
         child: Scaffold(
+          backgroundColor: ClerkColors.whiteSmoke,
           body: Center(
             child: ClerkAuthBuilder(
-              signedInBuilder: (context, auth) => const ClerkSignOutPanel(),
+              signedInBuilder: (context, auth) => const Padding(
+                padding: allPadding32,
+                child: ClerkUserButton(),
+              ),
               signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
             ),
           ),

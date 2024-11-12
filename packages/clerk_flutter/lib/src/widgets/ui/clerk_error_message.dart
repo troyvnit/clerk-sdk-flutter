@@ -33,7 +33,7 @@ class _ErrorMessageState extends State<_ErrorMessage> {
   void didUpdateWidget(covariant _ErrorMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
     final error = widget.error?.toString() ?? '';
-    if (error != _error) {
+    if (mounted && error != _error) {
       _error = error;
       _timer?.cancel();
       _timer = Timer(_errorDisplayDuration, () => setState(() => _timer = null));

@@ -62,9 +62,6 @@ class Auth {
   }
 
   Future<Client> oauthSignIn({required Strategy strategy}) async {
-    // If we already have a user, can return
-    if (client.user is User) return client;
-
     await _api.createSignIn(strategy: strategy, redirectUrl: oauthRedirect).then(_housekeeping);
     if (client.signIn case SignIn signIn) {
       await _api
@@ -72,6 +69,7 @@ class Auth {
           .then(_housekeeping);
     }
 
+    update();
     return client;
   }
 
@@ -85,68 +83,63 @@ class Auth {
     String? code,
     String? token,
   }) async {
-    // If we already have a user, can return
-    if (client.user is User) return client;
-
     if (client.signIn == null && identifier is String) {
       // if a password has been presented, we can immediately attempt a sign in
       // if `password` is null it will be ignored
       await _api.createSignIn(identifier: identifier, password: password).then(_housekeeping);
     }
 
-    if (client.user is! User) {
-      switch (client.signIn) {
-        case SignIn signIn when strategy?.isOauth == true:
-          await _api.sendOauthToken(signIn, strategy: strategy!, token: token).then(_housekeeping);
+    switch (client.signIn) {
+      case SignIn signIn when strategy?.isOauth == true:
+        await _api.sendOauthToken(signIn, strategy: strategy!, token: token).then(_housekeeping);
 
-        case SignIn signIn when strategy == Strategy.emailLink:
+      case SignIn signIn when strategy == Strategy.emailLink:
+        await _api
+            .prepareSignIn(
+              signIn,
+              stage: Stage.first,
+              strategy: Strategy.emailLink,
+              redirectUrl: emailLinkRedirect,
+            )
+            .then(_housekeeping);
+
+        final signInCompleter = Completer<Client>();
+
+        _pollForCompletion(signInCompleter, () async {
+          final client = await _api.currentClient();
+          return client.user is User ? client : null;
+        });
+
+        update();
+        return signInCompleter.future;
+
+      case SignIn signIn
+          when signIn.status == Status.needsFirstFactor && strategy == Strategy.password:
+        await _api
+            .attemptSignIn(
+              signIn,
+              stage: Stage.first,
+              strategy: Strategy.password,
+              password: password,
+            )
+            .then(_housekeeping);
+
+      case SignIn signIn when signIn.status.needsFactor && strategy?.requiresCode == true:
+        final stage = Stage.forStatus(signIn.status);
+        if (code?.isNotEmpty == true) {
           await _api
-              .prepareSignIn(
-                signIn,
-                stage: Stage.first,
-                strategy: Strategy.emailLink,
-                redirectUrl: emailLinkRedirect,
-              )
+              .attemptSignIn(signIn, stage: stage, strategy: strategy!, code: code)
               .then(_housekeeping);
+        } else {
+          await _api.prepareSignIn(signIn, stage: stage, strategy: strategy!).then(_housekeeping);
+        }
 
-          final signInCompleter = Completer<Client>();
-
-          _pollForCompletion(signInCompleter, () async {
-            final client = await _api.currentClient();
-            return client.user is User ? client : null;
-          });
-
-          update();
-          return signInCompleter.future;
-
-        case SignIn signIn
-            when signIn.status == Status.needsFirstFactor && strategy == Strategy.password:
-          await _api
-              .attemptSignIn(
-                signIn,
-                stage: Stage.first,
-                strategy: Strategy.password,
-                password: password,
-              )
-              .then(_housekeeping);
-
-        case SignIn signIn when signIn.status.needsFactor && strategy?.requiresCode == true:
-          final stage = Stage.forStatus(signIn.status);
-          if (code?.isNotEmpty == true) {
-            await _api
-                .attemptSignIn(signIn, stage: stage, strategy: strategy!, code: code)
-                .then(_housekeeping);
-          } else {
-            await _api.prepareSignIn(signIn, stage: stage, strategy: strategy!).then(_housekeeping);
-          }
-
-        case SignIn signIn when signIn.status.needsFactor && strategy is Strategy:
-          final stage = Stage.forStatus(signIn.status);
-          await _api.prepareSignIn(signIn, stage: stage, strategy: strategy).then(_housekeeping);
-          await _api
-              .attemptSignIn(signIn, stage: stage, strategy: strategy, code: code)
-              .then(_housekeeping);
-      }
+      case SignIn signIn when signIn.status.needsFactor && strategy is Strategy:
+        final stage = Stage.forStatus(signIn.status);
+        await _api.prepareSignIn(signIn, stage: stage, strategy: strategy).then(_housekeeping);
+        await _api
+            .attemptSignIn(signIn, stage: stage, strategy: strategy, code: code)
+            .then(_housekeeping);
     }
 
     update();
@@ -169,8 +162,6 @@ class Auth {
     if (password != passwordConfirmation) {
       throw AuthError(message: "Password and password confirmation must match");
     }
-    // If we already have a user, can return
-    if (client.user is User) return client;
 
     if (client.signUp == null) {
       await _api
@@ -232,6 +223,16 @@ class Auth {
 
     update();
     return client;
+  }
+
+  Future<void> signOutSession(Session session) async {
+    await _api.signOutSession(session.id).then(_housekeeping);
+    update();
+  }
+
+  Future<void> setActiveSession(Session session) async {
+    await _api.activateSession(session.id).then(_housekeeping);
+    update();
   }
 
   void _pollForCompletion<T>(Completer<T> completer, Future<T?> Function() fn) async {

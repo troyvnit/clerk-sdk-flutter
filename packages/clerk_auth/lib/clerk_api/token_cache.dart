@@ -7,17 +7,13 @@ import 'package:logger/logger.dart';
 
 class TokenCache {
   static const _tokenExpiryBuffer = Duration(seconds: 10);
-  static final _caches = <String, TokenCache>{};
 
   final String publicKey;
   final Persistor? persistor;
   final logger = Logger();
   late final RSAPublicKey rsaKey = RSAPublicKey(publicKey);
 
-  TokenCache._(this.publicKey, this.persistor);
-
-  factory TokenCache(String publicKey, Persistor? persistor) =>
-      _caches[publicKey] ??= TokenCache._(publicKey, persistor);
+  TokenCache(this.publicKey, this.persistor);
 
   bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
 

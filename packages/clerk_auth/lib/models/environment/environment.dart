@@ -9,7 +9,7 @@ class Environment {
   static final empty = Environment();
 
   @JsonKey(name: 'auth_config')
-  final AuthConfig auth;
+  final AuthConfig config;
 
   @JsonKey(name: 'display_config')
   final DisplayConfig display;
@@ -23,7 +23,7 @@ class Environment {
   final bool maintenanceMode;
 
   const Environment({
-    this.auth = AuthConfig.empty,
+    this.config = AuthConfig.empty,
     this.display = DisplayConfig.empty,
     this.user = UserSettings.empty,
     this.organization = OrganizationSettings.empty,

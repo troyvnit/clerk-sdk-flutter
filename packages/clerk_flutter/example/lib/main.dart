@@ -27,7 +27,7 @@ class MainApp extends StatelessWidget {
             padding: horizontalPadding32,
             child: Center(
               child: ClerkAuthBuilder(
-                signedInBuilder: (context, auth) => const ClerkUserButton(),
+                signedInBuilder: (context, auth) => ClerkUserButton(),
                 signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
               ),
             ),

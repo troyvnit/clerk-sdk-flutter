@@ -38,7 +38,14 @@ class ClerkAuth extends StatefulWidget {
     this.translator = const DefaultClerkTranslator(),
     this.persistor,
     this.loading,
-  }) : assert((publicKey is String && publishableKey is String) != auth is ClerkAuthProvider);
+  })  : assert(
+          (publicKey is String) != (auth is ClerkAuthProvider),
+          'Either publicKey or an auth instance must be provided, but not both',
+        ),
+        assert(
+          (publicKey is String) == (publishableKey is String),
+          'Both publicKey and publishableKey must be provided, or neither',
+        );
 
   @override
   State<ClerkAuth> createState() => _ClerkAuthState();

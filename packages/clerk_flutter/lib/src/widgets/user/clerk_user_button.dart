@@ -5,19 +5,14 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:common/common.dart';
 import 'package:flutter/material.dart';
 
-class ClerkUserButton extends StatefulWidget {
-  final bool showName;
-
-  const ClerkUserButton({super.key, this.showName = true});
-
-  @override
-  State<ClerkUserButton> createState() => _ClerkUserButtonState();
-}
-
-class _ClerkUserButtonState extends State<ClerkUserButton> {
+class ClerkUserButton extends StatelessWidget {
   static const _closeDelay = Duration(milliseconds: 250);
 
-  List<Clerk.Session> _sessions = [];
+  final bool showName;
+
+  ClerkUserButton({super.key, this.showName = true});
+
+  final _sessions = <Clerk.Session>[];
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +27,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
         final sessions = auth.client.sessions;
 
         // adding to a list of existing sessions means we have ones that are now deleted
-        // available for prettier UI
+        // still available in `_sessions`, making for prettier UI
         _sessions.addOrReplaceAll(sessions, by: (s) => s.id);
 
         // after a delay period, all deleted sessions will have been closed, so we can
@@ -55,7 +50,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                   session: session,
                   closed: auth.client.sessions.contains(session) == false,
                   selected: session == auth.client.activeSession,
-                  showName: widget.showName,
+                  showName: showName,
                   onTap: () => auth.call(context, () => auth.setActiveSession(session)),
                 ),
               if (auth.env.config.singleSessionMode == false)
@@ -71,6 +66,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                           icon: Icons.add,
                           backgroundColor: ClerkColors.dawnPink,
                           borderColor: ClerkColors.nobel,
+                          dashed: true,
                         ),
                         horizontalMargin24,
                         Text(
@@ -163,6 +159,7 @@ class _CircleIcon extends StatelessWidget {
   final Color color;
   final Color backgroundColor;
   final Color? borderColor;
+  final bool dashed;
 
   const _CircleIcon({
     super.key,
@@ -170,6 +167,7 @@ class _CircleIcon extends StatelessWidget {
     this.color = ClerkColors.stormGrey,
     this.backgroundColor = Colors.transparent,
     this.borderColor,
+    this.dashed = false,
   });
 
   @override
@@ -181,7 +179,7 @@ class _CircleIcon extends StatelessWidget {
           color: borderColor ?? color,
           backgroundColor: backgroundColor,
           dashLength: 2,
-          gapLength: 2,
+          gapLength: dashed ? 2 : 0,
         ),
         child: Icon(icon, size: 16, color: color),
       ),
@@ -290,8 +288,9 @@ class _SessionRow extends StatelessWidget {
                         if (showName)
                           Text(
                             user.name,
-                            style:
-                                ClerkTextStyle.buttonTitle.copyWith(color: ClerkColors.almostBlack),
+                            style: ClerkTextStyle.buttonTitle.copyWith(
+                              color: ClerkColors.almostBlack,
+                            ),
                           ),
                         if (user.email is String)
                           Text(user.email!, style: ClerkTextStyle.buttonTitle),

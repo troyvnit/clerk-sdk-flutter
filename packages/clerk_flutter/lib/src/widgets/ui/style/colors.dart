@@ -52,7 +52,7 @@ class ClerkColors {
   /// Mountain Mist (user button subtitle and status indicator color).
   static const mountainMist = Color(0xFF9394a1);
 
-  /// Deset Storm (status indicator color).
+  /// Desert Storm (status indicator color).
   static const desertStorm = Color(0xFFf7f7f8);
 
   /// Carmine pink (cta and error color).

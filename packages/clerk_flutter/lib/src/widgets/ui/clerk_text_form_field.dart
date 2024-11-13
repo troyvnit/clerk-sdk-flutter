@@ -49,14 +49,11 @@ class ClerkTextFormField extends StatelessWidget {
           children: [
             if (label case String label) //
               Expanded(
-                child: FittedBox(
-                  fit: BoxFit.fitWidth,
-                  child: Text(
-                    translator.translate(label),
-                    textAlign: TextAlign.start,
-                    maxLines: 2,
-                    style: ClerkTextStyle.inputLabel,
-                  ),
+                child: Text(
+                  translator.translate(label),
+                  textAlign: TextAlign.start,
+                  maxLines: 2,
+                  style: ClerkTextStyle.inputLabel,
                 ),
               ),
             if (optional) ...[

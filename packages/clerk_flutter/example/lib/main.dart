@@ -23,13 +23,13 @@ class MainApp extends StatelessWidget {
         publishableKey: dotenv.env['publishable_key'] ?? '',
         child: Scaffold(
           backgroundColor: ClerkColors.whiteSmoke,
-          body: Center(
-            child: ClerkAuthBuilder(
-              signedInBuilder: (context, auth) => const Padding(
-                padding: allPadding32,
-                child: ClerkUserButton(),
+          body: Padding(
+            padding: horizontalPadding32,
+            child: Center(
+              child: ClerkAuthBuilder(
+                signedInBuilder: (context, auth) => const ClerkUserButton(),
+                signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
               ),
-              signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
             ),
           ),
         ),

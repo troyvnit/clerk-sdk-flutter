@@ -36,13 +36,15 @@ class Client {
 
   Map<String, dynamic> toJson() => _$ClientToJson(this);
 
+  Set<String> get sessionIds => sessions.map((s) => s.id).toSet();
+
   Session? get activeSession {
     for (final session in sessions) {
-      if (session.isActive) return session;
+      if (session.id == lastActiveSessionId) return session;
     }
 
     for (final session in sessions) {
-      if (session.id == lastActiveSessionId) return session;
+      if (session.isActive) return session;
     }
 
     return null;

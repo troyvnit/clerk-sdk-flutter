@@ -1,22 +1,16 @@
-import 'package:clerk_auth/clerk_api/clerk_api.dart';
-import 'package:common/common.dart';
-import 'package:dart_dotenv/dart_dotenv.dart';
+import 'package:clerk_auth/src/clerk_api/api.dart';
+import 'package:clerk_auth/src/utils/logging.dart';
 import 'package:test/test.dart';
 
 import '../../test_helpers.dart';
 
 void main() {
   late final Api api;
-
-  final env = TestEnv();
+  late final TestEnv env;
 
   setUpAll(() async {
-    final dotEnv = DotEnv(filePath: '.env.test');
-    final values = dotEnv.getDotEnv();
-    env.addAll(values);
-
+    env = TestEnv('.env.test');
     api = Api(publicKey: env.publicKey, publishableKey: env.publishableKey);
-
     await setUpLogging(printer: TestLogPrinter());
   });
 
@@ -70,7 +64,7 @@ void main() {
           strategy: Strategy.emailCode,
           code: env.code,
         );
-        expect(response.client!.sessions.length > 0, true);
+        expect(response.client!.sessions.isNotEmpty, true);
 
         final client = response.client;
         expect(client?.signIn, null);
@@ -87,7 +81,7 @@ void main() {
         response = await api.createSignIn(identifier: 'test3+clerk_test@devangels.london');
         expect(response.client?.signIn?.status, Status.needsFirstFactor);
 
-        final redirectUrl = 'https://redirect.to.somewhere';
+        const redirectUrl = 'https://redirect.to.somewhere';
 
         signIn = response.client!.signIn!;
         response = await api.prepareSignIn(
@@ -125,7 +119,7 @@ void main() {
           strategy: Strategy.phoneCode,
           code: env.code,
         );
-        expect(response.client!.sessions.length > 0, true);
+        expect(response.client!.sessions.isNotEmpty, true);
 
         final client = response.client;
         expect(client?.signIn, null);

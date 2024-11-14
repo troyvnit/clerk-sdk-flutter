@@ -1,22 +1,15 @@
 import 'package:clerk_auth/clerk_auth.dart';
-import 'package:common/common.dart';
-import 'package:dart_dotenv/dart_dotenv.dart';
 import 'package:test/test.dart';
 
 import '../../test_helpers.dart';
 
 void main() {
   late final Auth auth;
-
-  final env = TestEnv();
+  late final TestEnv env;
 
   setUpAll(() async {
-    final dotEnv = DotEnv(filePath: '.env.test');
-    final values = dotEnv.getDotEnv();
-    env.addAll(values);
-
+    env = TestEnv('.env.test');
     auth = Auth(publicKey: env.publicKey, publishableKey: env.publishableKey);
-
     await setUpLogging(printer: TestLogPrinter());
   });
 
@@ -25,7 +18,7 @@ void main() {
   group('SignIn', () {
     test('can sign in with password in separate steps', () async {
       await runWithLogging(() async {
-        expect(await auth.user, null);
+        expect(auth.user, null);
         final client = await auth.attemptSignIn(identifier: 'test1+clerk_test@devangels.london');
         expect(client.signIn?.status, Status.needsFirstFactor);
 
@@ -38,7 +31,7 @@ void main() {
 
     test('can sign in with password in one step', () async {
       await runWithLogging(() async {
-        expect(await auth.user, null);
+        expect(auth.user, null);
         final client = await auth.attemptSignIn(
           identifier: 'test1+clerk_test@devangels.london',
           strategy: Strategy.password,
@@ -51,7 +44,7 @@ void main() {
 
     test('can sign in with email code', () async {
       await runWithLogging(() async {
-        expect(await auth.user, null);
+        expect(auth.user, null);
         final client = await auth.attemptSignIn(
           identifier: 'test1+clerk_test@devangels.london',
           strategy: Strategy.emailCode,
@@ -64,7 +57,7 @@ void main() {
 
     test('can sign in with phone code', () async {
       await runWithLogging(() async {
-        expect(await auth.user, null);
+        expect(auth.user, null);
         final client = await auth.attemptSignIn(
           identifier: 'test1+clerk_test@devangels.london',
           strategy: Strategy.phoneCode,

@@ -32,10 +32,11 @@ extension StringExtension on String {
 }
 
 extension ListExtension on List {
-  void addOrReplaceAll<T, S>(Iterable<T> list, {S Function(T)? by}) {
+  void addOrReplaceAll<T>(Iterable<T> list, {dynamic Function(T)? by}) {
+    by ??= (t) => t;
     for (final item in list) {
-      final identifier = by?.call(item) ?? item;
-      switch (indexWhere((i) => (by?.call(i) ?? i) == identifier)) {
+      final identifier = by.call(item);
+      switch (indexWhere((i) => by!.call(i) == identifier)) {
         case int idx when idx > -1:
           this[idx] = item;
         default:

@@ -5,14 +5,33 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:common/common.dart';
 import 'package:flutter/material.dart';
 
-class ClerkUserButton extends StatelessWidget {
-  static const _closeDelay = Duration(milliseconds: 250);
-
+class ClerkUserButton extends StatefulWidget {
   final bool showName;
 
-  ClerkUserButton({super.key, this.showName = true});
+  const ClerkUserButton({super.key, this.showName = true});
+
+  @override
+  State<ClerkUserButton> createState() => _ClerkUserButtonState();
+}
+
+class _ClerkUserButtonState extends State<ClerkUserButton> {
+  static const _closeDelay = Duration(milliseconds: 250);
 
   final _sessions = <Clerk.Session>[];
+
+  Future<void> _manage(List<Clerk.Session> sessions) async {
+    // adding to a list of existing sessions means we have ones that are now deleted
+    // still available in `_sessions`, making for prettier UI
+    _sessions.addOrReplaceAll(sessions, by: (s) => s.id);
+
+    // after a delay period, all deleted sessions will have been closed, so we can
+    // clear the `_sessions` cache of any such for next time round
+    // Using `removeWhere` maintains the list order in `_sessions`, stopping weird
+    // UI jumping as arbitrary list order is imposed
+    await Future.delayed(_closeDelay);
+
+    _sessions.removeWhere((s) => sessions.contains(s) == false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,19 +45,7 @@ class ClerkUserButton extends StatelessWidget {
         final translator = auth.translator;
         final sessions = auth.client.sessions;
 
-        // adding to a list of existing sessions means we have ones that are now deleted
-        // still available in `_sessions`, making for prettier UI
-        _sessions.addOrReplaceAll(sessions, by: (s) => s.id);
-
-        // after a delay period, all deleted sessions will have been closed, so we can
-        // clear the `_sessions` cache of any such for next time round
-        //
-        // Using `removeWhere` maintains the list order in `_sessions`, stopping weird
-        // UI jumping as arbitrary list order is imposed
-        Future.delayed(
-          _closeDelay,
-          () => _sessions.removeWhere((s) => sessions.contains(s) == false),
-        );
+        _manage(sessions);
 
         return ClerkVerticalCard(
           topPortion: Column(
@@ -48,9 +55,9 @@ class ClerkUserButton extends StatelessWidget {
                 _SessionRow(
                   key: Key(session.id),
                   session: session,
-                  closed: auth.client.sessions.contains(session) == false,
+                  closed: sessions.contains(session) == false,
                   selected: session == auth.client.activeSession,
-                  showName: showName,
+                  showName: widget.showName,
                   onTap: () => auth.call(context, () => auth.setActiveSession(session)),
                 ),
               if (auth.env.config.singleSessionMode == false)
@@ -82,7 +89,7 @@ class ClerkUserButton extends StatelessWidget {
             ],
           ),
           bottomPortion: Closeable(
-            open: auth.client.sessions.length > 1,
+            open: sessions.length > 1,
             child: Padding(
               padding: horizontalPadding16 + verticalPadding12,
               child: GestureDetector(
@@ -191,7 +198,7 @@ class _DottedBorderPainter extends CustomPainter {
   static const _twoPi = 2 * math.pi;
 
   final double dashLength;
-  final double gapLength;
+  final double gapLength; // actually, minimum gap length
 
   final Paint _paint;
   final Paint _backgroundPaint;
@@ -201,7 +208,10 @@ class _DottedBorderPainter extends CustomPainter {
     required Color backgroundColor,
     this.dashLength = 0,
     this.gapLength = 0,
-  })  : assert(dashLength > 0 || gapLength == 0, 'dashLength cannot be 0 unless gapLength is 0'),
+  })  : assert(
+          dashLength > 0 || gapLength == 0,
+          'dashLength cannot be 0 or less unless gapLength is 0',
+        ),
         _paint = Paint()
           ..style = PaintingStyle.stroke
           ..color = color,

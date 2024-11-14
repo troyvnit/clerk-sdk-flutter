@@ -136,14 +136,11 @@ class _ClerkAuthData extends InheritedWidget {
 
 class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
   static const _kRotatingTokenNonce = 'rotating_token_nonce';
-  static final _lowerCaseRE = RegExp(r'[a-z]');
-  static final _upperCaseRE = RegExp(r'[A-Z]');
-  static final _numberRE = RegExp(r'[0-9]');
 
   final ClerkTranslator translator;
   final _errors = StreamController<Clerk.AuthError>();
   late final errorStream = _errors.stream.asBroadcastStream();
-  final OverlayEntry loadingOverlay;
+  final OverlayEntry _loadingOverlay;
 
   ClerkAuthProvider({
     required super.publicKey,
@@ -151,7 +148,7 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
     this.translator = const DefaultClerkTranslator(),
     Widget? loading,
     super.persistor,
-  }) : this.loadingOverlay = OverlayEntry(builder: (context) => loading ?? defaultLoadingWidget);
+  }) : _loadingOverlay = OverlayEntry(builder: (context) => loading ?? defaultLoadingWidget);
 
   @override
   void update() => notifyListeners();
@@ -216,13 +213,13 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
   }) async {
     T? result;
     try {
-      Overlay.of(context).insert(loadingOverlay);
+      Overlay.of(context).insert(_loadingOverlay);
       result = await fn.call();
     } on Clerk.AuthError catch (error) {
       _errors.add(error);
       onError?.call(error);
     } finally {
-      loadingOverlay.remove();
+      _loadingOverlay.remove();
     }
     return result;
   }
@@ -232,23 +229,7 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
   bool passwordIsValid(String? password, String? confirmation) {
     if (password case String password when password.isNotEmpty) {
       if (password != confirmation) return false;
-
-      final criteria = env.user.passwordSettings;
-
-      if (criteria.requireLowercase && _lowerCaseRE.hasMatch(password) == false) return false;
-
-      if (criteria.requireUppercase && _upperCaseRE.hasMatch(password) == false) return false;
-
-      if (criteria.requireNumbers && _numberRE.hasMatch(password) == false) return false;
-
-      if (criteria.requireSpecialChar) {
-        final pRunes = password.runes.toSet();
-        final scRunes = criteria.allowedSpecialCharacters.runes.toSet();
-        final lacksSpecialChar = pRunes.intersection(scRunes).isEmpty;
-        if (lacksSpecialChar) return false;
-      }
-
-      return true;
+      return env.user.passwordSettings.meetsRequiredCriteria(password);
     }
 
     return false;
@@ -267,23 +248,20 @@ class ClerkAuthProvider extends Clerk.Auth with ChangeNotifier {
       final criteria = env.user.passwordSettings;
       final missing = <String>[];
 
-      if (criteria.requireLowercase && _lowerCaseRE.hasMatch(password) == false) {
+      if (criteria.meetsLowerCaseCriteria(password) == false) {
         missing.add('a LOWERCASE letter');
       }
 
-      if (criteria.requireUppercase && _upperCaseRE.hasMatch(password) == false) {
+      if (criteria.meetsUpperCaseCriteria(password) == false) {
         missing.add('an UPPERCASE letter');
       }
 
-      if (criteria.requireNumbers && _numberRE.hasMatch(password) == false) {
+      if (criteria.meetsNumberCriteria(password) == false) {
         missing.add('a NUMBER');
       }
 
-      if (criteria.requireSpecialChar) {
-        final pRunes = password.runes.toSet();
-        final scRunes = criteria.allowedSpecialCharacters.runes.toSet();
-        final lacksSpecialChar = pRunes.intersection(scRunes).isEmpty;
-        if (lacksSpecialChar) missing.add('a SPECIAL CHARACTER (###)');
+      if (criteria.meetsSpecialCharCriteria(password) == false) {
+        missing.add('a SPECIAL CHARACTER (###)');
       }
 
       if (missing.isNotEmpty) {

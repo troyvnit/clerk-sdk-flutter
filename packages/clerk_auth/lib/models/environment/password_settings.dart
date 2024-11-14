@@ -6,6 +6,10 @@ part 'password_settings.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
 class PasswordSettings {
+  static final _lowerCaseRE = RegExp(r'[a-z]');
+  static final _upperCaseRE = RegExp(r'[A-Z]');
+  static final _numberRE = RegExp(r'[0-9]');
+
   static const empty = PasswordSettings();
 
   final String allowedSpecialCharacters;
@@ -51,4 +55,21 @@ class PasswordSettings {
   factory PasswordSettings.fromJson(Map<String, dynamic> json) => _$PasswordSettingsFromJson(json);
 
   Map<String, dynamic> toJson() => _$PasswordSettingsToJson(this);
+
+  bool meetsLowerCaseCriteria(String password) =>
+      requireLowercase == false || _lowerCaseRE.hasMatch(password);
+  bool meetsUpperCaseCriteria(String password) =>
+      requireUppercase == false || _upperCaseRE.hasMatch(password);
+  bool meetsNumberCriteria(String password) =>
+      requireNumbers == false || _numberRE.hasMatch(password);
+
+  bool meetsSpecialCharCriteria(String password) =>
+      requireSpecialChar == false ||
+      allowedSpecialCharacters.runes.toSet().intersection(password.runes.toSet()).isNotEmpty;
+
+  bool meetsRequiredCriteria(String password) =>
+      meetsLowerCaseCriteria(password) &&
+      meetsUpperCaseCriteria(password) &&
+      meetsNumberCriteria(password) &&
+      meetsSpecialCharCriteria(password);
 }

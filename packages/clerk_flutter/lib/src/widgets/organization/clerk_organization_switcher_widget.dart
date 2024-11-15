@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/src/assets.dart';
+import 'package:clerk_flutter/src/widgets/common.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
@@ -66,6 +66,7 @@ class ClerkOrganizationSwitcherWidget extends StatelessWidget {
                     ClerkAssets.clerkSampleAppIcon,
                     height: 16.0,
                     width: 14.0,
+                    package: 'clerk_flutter',
                   ),
                   horizontalMargin8,
                   const Expanded(

@@ -1,21 +1,22 @@
 name: clerk_flutter
 description: Package that will allow you to authenticate and use Clerk from Flutter code.
-version: 0.0.1
-publish_to: 'none'
+version: 0.0.1+1
+homepage: https://clerk.com/docs
+repository: https://github.com/clerk/clerk-sdk-flutter/tree/main/packages/clerk_flutter
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
   flutter: '>=3.24.0'
 
 dependencies:
-  clerk_auth: any
+  clerk_auth: ^0.0.1+1
   collection: ^1.18.0
   flutter:
     sdk: flutter
   flutter_inset_box_shadow: ^1.0.8
   flutter_svg: ^2.0.10+1
-  webview_flutter: ^4.8.0
   phone_input: ^1.0.0
+  webview_flutter: ^4.8.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0

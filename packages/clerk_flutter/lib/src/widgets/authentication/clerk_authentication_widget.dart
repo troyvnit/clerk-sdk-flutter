@@ -1,5 +1,5 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
-import 'package:clerk_flutter/assets.dart';
+import 'package:clerk_flutter/src/assets.dart';
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';

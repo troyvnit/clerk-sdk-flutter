@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:clerk_auth/clerk_auth.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
+import 'package:logging/logging.dart';
 
 class TokenCache {
   TokenCache(this.publicKey, this.persistor);
@@ -13,8 +13,8 @@ class TokenCache {
 
   static const _tokenExpiryBuffer = Duration(seconds: 10);
 
-  final logger = Logger();
-  late final RSAPublicKey rsaKey = RSAPublicKey(publicKey);
+  final logger = Logger('TokenCache');
+  late final rsaKey = RSAPublicKey(publicKey);
 
   bool get canRefreshSessionToken => clientToken.isNotEmpty && sessionId.isNotEmpty;
 
@@ -22,11 +22,15 @@ class TokenCache {
   String _clientToken = '';
   String _sessionToken = '';
   DateTime _sessionTokenExpiry = DateTime.fromMillisecondsSinceEpoch(0);
+
   bool get _sessionTokenHasExpired => DateTime.now().isAfter(_sessionTokenExpiry);
 
   String get _sessionIdKey => '_clerkSessionId_${publicKey.hashCode}';
+
   String get _sessionTokenKey => '_clerkSessionToken_${publicKey.hashCode}';
+
   String get _sessionTokenExpiryKey => '_clerkSessionTokenExpiry_${publicKey.hashCode}';
+
   String get _clientTokenKey => '_clerkClientToken_${publicKey.hashCode}';
 
   List<String> get _persistorKeys => [
@@ -75,8 +79,8 @@ class TokenCache {
       JWT.verify(token, rsaKey);
       _clientToken = token;
       persistor?.write(_clientTokenKey, token);
-    } catch (ex) {
-      logger.e('ERROR SETTING CLIENT TOKEN: $ex');
+    } catch (error, stackTrace) {
+      logger.severe('ERROR SETTING CLIENT TOKEN: $error', error, stackTrace);
     }
   }
 
@@ -101,8 +105,8 @@ class TokenCache {
           _sessionTokenExpiry.millisecondsSinceEpoch.toString(),
         );
       }
-    } catch (ex) {
-      logger.e('ERROR SETTING SESSION TOKEN: $ex');
+    } catch (error, stackTrace) {
+      logger.severe('ERROR SETTING SESSION TOKEN: $error', error, stackTrace);
     }
   }
 

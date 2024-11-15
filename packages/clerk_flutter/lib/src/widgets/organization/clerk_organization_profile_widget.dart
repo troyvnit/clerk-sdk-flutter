@@ -1,5 +1,5 @@
-import 'package:clerk_flutter/assets.dart';
-import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/src/assets.dart';
+import 'package:clerk_flutter/src/widgets/common.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_profile_nav_tile.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_two_panel_view.dart';

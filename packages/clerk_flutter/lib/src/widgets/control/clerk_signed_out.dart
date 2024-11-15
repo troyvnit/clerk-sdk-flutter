@@ -1,4 +1,4 @@
-import 'package:clerk_flutter/src/common.dart';
+import 'package:clerk_flutter/src/widgets/common.dart';
 import 'package:flutter/material.dart';
 
 import 'clerk_auth.dart';

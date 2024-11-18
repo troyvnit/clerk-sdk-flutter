@@ -1,15 +1,14 @@
 import 'package:clerk_auth/clerk_auth.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 typedef AuthParameters = Map<Field, dynamic>;
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum EnrollmentMode {
-  manualInvitation,
-  ;
-
-  @override
-  String toString() => name.toSnakeCase();
+  manualInvitation;
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum Status {
   abandoned,
   active,
@@ -20,30 +19,24 @@ enum Status {
   transferable,
   unverified,
   verified,
-  complete,
-  ;
+  complete;
 
   bool get isActive => this == active;
 
   bool get needsFactor => this == needsFirstFactor || this == needsSecondFactor;
-
-  @override
-  String toString() => name;
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum IdentificationStrategy {
   emailAddress,
   oauthApple,
   oauthGithub,
   oauthGoogle,
   phoneNumber,
-  username,
-  ;
-
-  @override
-  String toString() => name.toSnakeCase();
+  username;
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum UserAttribute {
   username,
   emailAddress,
@@ -55,25 +48,19 @@ enum UserAttribute {
   web3Wallet,
   authenticatorApp,
   backupCode,
-  passkey,
-  ;
+  passkey;
 
   bool get obscure => this == password || this == passwordConfirmation;
 
   String get snakeCaseName => name.toSnakeCase();
 
-  @override
-  String toString() => snakeCaseName;
-
   String get title => snakeCaseName.replaceAll('_', ' ').capitalized;
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum Stage {
   first,
   second;
-
-  @override
-  String toString() => name;
 
   static Stage forStatus(Status status) {
     return switch (status) {
@@ -84,6 +71,7 @@ enum Stage {
   }
 }
 
+@JsonEnum(fieldRename: FieldRename.snake)
 enum Field {
   emailAddress,
   externalAccount,
@@ -98,9 +86,5 @@ enum Field {
   web3Wallet,
   code,
   token,
-  signature,
-  ;
-
-  @override
-  String toString() => name.toSnakeCase();
+  signature;
 }

@@ -27,5 +27,5 @@ Map<String, dynamic> _$OrganizationDomainsToJson(
     };
 
 const _$EnrollmentModeEnumMap = {
-  EnrollmentMode.manualInvitation: 'manualInvitation',
+  EnrollmentMode.manualInvitation: 'manual_invitation',
 };

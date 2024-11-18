@@ -64,14 +64,14 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
 
 const _$UserAttributeEnumMap = {
   UserAttribute.username: 'username',
-  UserAttribute.emailAddress: 'emailAddress',
-  UserAttribute.phoneNumber: 'phoneNumber',
-  UserAttribute.firstName: 'firstName',
-  UserAttribute.lastName: 'lastName',
+  UserAttribute.emailAddress: 'email_address',
+  UserAttribute.phoneNumber: 'phone_number',
+  UserAttribute.firstName: 'first_name',
+  UserAttribute.lastName: 'last_name',
   UserAttribute.password: 'password',
-  UserAttribute.passwordConfirmation: 'passwordConfirmation',
-  UserAttribute.web3Wallet: 'web3Wallet',
-  UserAttribute.authenticatorApp: 'authenticatorApp',
-  UserAttribute.backupCode: 'backupCode',
+  UserAttribute.passwordConfirmation: 'password_confirmation',
+  UserAttribute.web3Wallet: 'web3_wallet',
+  UserAttribute.authenticatorApp: 'authenticator_app',
+  UserAttribute.backupCode: 'backup_code',
   UserAttribute.passkey: 'passkey',
 };

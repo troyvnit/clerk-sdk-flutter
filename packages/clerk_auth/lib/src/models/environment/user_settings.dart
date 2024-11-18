@@ -53,7 +53,7 @@ Map<UserAttribute, UserAttributeData> _toAttributeMap(dynamic data) {
   final result = <UserAttribute, UserAttributeData>{};
   if (data case Map<String, dynamic> data) {
     for (final entry in data.entries) {
-      final key = UserAttribute.values.firstWhereOrNull((a) => a.snakeCaseName == entry.key);
+      final key = UserAttribute.values.firstWhereOrNull((a) => a.toString() == entry.key);
       if (key case UserAttribute key) result[key] = UserAttributeData.fromJson(entry.value);
     }
   }

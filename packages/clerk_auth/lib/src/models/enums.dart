@@ -1,14 +1,19 @@
 import 'package:clerk_auth/clerk_auth.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+part 'enums.g.dart';
+
 typedef AuthParameters = Map<Field, dynamic>;
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum EnrollmentMode {
   manualInvitation;
+
+  @override
+  String toString() => _$EnrollmentModeEnumMap[this]!;
 }
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum Status {
   abandoned,
   active,
@@ -24,9 +29,12 @@ enum Status {
   bool get isActive => this == active;
 
   bool get needsFactor => this == needsFirstFactor || this == needsSecondFactor;
+
+  @override
+  String toString() => _$StatusEnumMap[this]!;
 }
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum IdentificationStrategy {
   emailAddress,
   oauthApple,
@@ -34,9 +42,12 @@ enum IdentificationStrategy {
   oauthGoogle,
   phoneNumber,
   username;
+
+  @override
+  String toString() => _$IdentificationStrategyEnumMap[this]!;
 }
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum UserAttribute {
   username,
   emailAddress,
@@ -52,12 +63,13 @@ enum UserAttribute {
 
   bool get obscure => this == password || this == passwordConfirmation;
 
-  String get snakeCaseName => name.toSnakeCase();
+  String get title => toString().replaceAll('_', ' ').capitalized;
 
-  String get title => snakeCaseName.replaceAll('_', ' ').capitalized;
+  @override
+  String toString() => _$UserAttributeEnumMap[this]!;
 }
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum Stage {
   first,
   second;
@@ -69,9 +81,12 @@ enum Stage {
       _ => throw AuthError(message: 'No Stage for $status'),
     };
   }
+
+  @override
+  String toString() => _$StageEnumMap[this]!;
 }
 
-@JsonEnum(fieldRename: FieldRename.snake)
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum Field {
   emailAddress,
   externalAccount,
@@ -87,4 +102,7 @@ enum Field {
   code,
   token,
   signature;
+
+  @override
+  String toString() => _$FieldEnumMap[this]!;
 }

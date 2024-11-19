@@ -3,6 +3,9 @@ description: Package that will allow you to authenticate and use Clerk from Dart
 version: 0.0.2-dev
 homepage: https://clerk.com/docs
 repository: https://github.com/clerk/clerk-sdk-flutter/tree/main/packages/clerk_auth
+issue_tracker: https://github.com/clerk/clerk-sdk-flutter/labels/package%3A%20clerk_auth
+topics:
+  - authentication
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

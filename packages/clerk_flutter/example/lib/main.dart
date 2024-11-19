@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:clerk_auth/clerk_auth.dart' as Clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
@@ -9,20 +10,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   await setUpLogging(printer: const LogPrinter());
-  runApp(const MainApp());
+
+  const publicKey = String.fromEnvironment('public_key');
+  const publishableKey = String.fromEnvironment('publishable_key');
+  if (publicKey.isEmpty || publishableKey.isEmpty) {
+    print('Please run the example with: '
+        '--dart-define-from-file=example.env');
+    exit(1);
+  }
+
+  runApp(const MainApp(
+    publicKey: publicKey,
+    publishableKey: publishableKey,
+  ));
 }
 
-class MainApp extends StatelessWidget {
-  final persistor = const _Persistor();
+class MainApp extends StatefulWidget {
+  const MainApp({
+    super.key,
+    required this.publicKey,
+    required this.publishableKey,
+  });
 
-  const MainApp({super.key});
+  final String publicKey;
+  final String publishableKey;
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  final persistor = const _Persistor();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: ClerkAuth(
-        publicKey: const String.fromEnvironment('public_key'),
-        publishableKey: const String.fromEnvironment('publishable_key'),
+        publicKey: widget.publicKey,
+        publishableKey: widget.publishableKey,
         persistor: persistor,
         child: Scaffold(
           backgroundColor: ClerkColors.whiteSmoke,
@@ -31,8 +56,7 @@ class MainApp extends StatelessWidget {
             child: Center(
               child: ClerkAuthBuilder(
                 signedInBuilder: (context, auth) => const ClerkUserButton(),
-                signedOutBuilder: (context, auth) =>
-                    const ClerkAuthenticationWidget(),
+                signedOutBuilder: (context, auth) => const ClerkAuthenticationWidget(),
               ),
             ),
           ),

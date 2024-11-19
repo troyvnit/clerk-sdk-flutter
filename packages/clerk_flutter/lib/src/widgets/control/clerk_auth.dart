@@ -7,37 +7,16 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 /// Control widget initialising Clerk Auth system
 class ClerkAuth extends StatefulWidget {
-  /// Clerk public key from dashboard
-  final String? publicKey;
-
-  /// Clerk publishable key from dashboard
-  final String? publishableKey;
-
-  /// Persistence service for caching tokens
-  final clerk.Persistor? persistor;
-
-  /// Injectable translations for strings
-  final ClerkTranslator translator;
-
-  /// child widget tree
-  final Widget child;
-
-  /// Loading widget
-  final Widget? loading;
-
-  /// auth instance from elsewhere
-  final ClerkAuthProvider? auth;
-
   /// Constructor that constructs a construct constructingly
   const ClerkAuth({
     super.key,
-    required this.child,
     this.publicKey,
     this.publishableKey,
     this.auth,
     this.translator = const DefaultClerkTranslator(),
     this.persistor,
     this.loading,
+    required this.child,
   })  : assert(
           (publicKey is String) != (auth is ClerkAuthProvider),
           'Either publicKey or an auth instance must be provided, but not both',
@@ -46,6 +25,27 @@ class ClerkAuth extends StatefulWidget {
           (publicKey is String) == (publishableKey is String),
           'Both publicKey and publishableKey must be provided, or neither',
         );
+
+  /// Clerk public key from dashboard
+  final String? publicKey;
+
+  /// Clerk publishable key from dashboard
+  final String? publishableKey;
+
+  /// auth instance from elsewhere
+  final ClerkAuthProvider? auth;
+
+  /// Persistence service for caching tokens
+  final clerk.Persistor? persistor;
+
+  /// Injectable translations for strings
+  final ClerkTranslator translator;
+
+  /// Loading widget
+  final Widget? loading;
+
+  /// child widget tree
+  final Widget child;
 
   @override
   State<ClerkAuth> createState() => _ClerkAuthState();

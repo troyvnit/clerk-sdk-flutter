@@ -7,11 +7,16 @@ import 'clerk_auth.dart';
 typedef AuthWidgetBuilder = Widget Function(BuildContext context, ClerkAuthProvider auth);
 
 class ClerkAuthBuilder extends StatelessWidget {
+  const ClerkAuthBuilder({
+    super.key,
+    this.signedInBuilder,
+    this.signedOutBuilder,
+    this.builder,
+  });
+
   final AuthWidgetBuilder? signedInBuilder;
   final AuthWidgetBuilder? signedOutBuilder;
   final AuthWidgetBuilder? builder;
-
-  const ClerkAuthBuilder({super.key, this.signedInBuilder, this.signedOutBuilder, this.builder});
 
   @override
   Widget build(BuildContext context) {

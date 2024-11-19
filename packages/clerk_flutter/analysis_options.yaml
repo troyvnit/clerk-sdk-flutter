@@ -4,6 +4,9 @@ include: package:flutter_lints/flutter.yaml
 #   exclude:
 #     - path/to/excluded/files/**
 
+formatter:
+  page_width: 100
+
 linter:
   rules:
     - avoid_print

@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 ///
 /// https://clerk.com/docs/components/authentication/sign-up
 ///
-///
 @immutable
 class ClerkSignUpPanel extends StatefulWidget {
+  /// Construct a new [ClerkSignUpPanel]
   const ClerkSignUpPanel({super.key});
 
   @override
@@ -158,11 +158,11 @@ class _Attribute {
 
   int get index => attr.index;
 
-  bool get needsObscuring => attr.obscure;
+  bool get needsObscuring => attr.isPassword;
 
   bool get isPhoneNumber => attr == clerk.UserAttribute.phoneNumber;
 
   bool get isOptional => isRequired == false;
 
-  String get title => attr.title;
+  String get title => attr.toString().replaceAll('_', ' ').capitalized;
 }

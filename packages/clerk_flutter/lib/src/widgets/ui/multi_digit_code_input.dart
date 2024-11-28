@@ -2,9 +2,13 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Typedef for function that will verify input
 typedef InputVerifier = Future<bool> Function(String);
 
+/// A widget which takes a multiple-digit OTC code
+///
 class MultiDigitCodeInput extends StatefulWidget {
+  /// Construct a [MultiDigitCodeInput]
   const MultiDigitCodeInput({
     super.key,
     required this.onSubmit,
@@ -12,8 +16,13 @@ class MultiDigitCodeInput extends StatefulWidget {
     this.isSmall = false,
   });
 
+  /// Function to call once all digits have been entered
   final InputVerifier onSubmit;
+
+  /// The number of digits to be entered
   final int length;
+
+  /// Whether the widget should display in a trimmer form
   final bool isSmall;
 
   @override

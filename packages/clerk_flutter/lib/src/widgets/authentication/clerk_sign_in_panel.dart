@@ -9,8 +9,9 @@ import 'package:flutter/material.dart';
 /// specify in your Clerk Dashboard, such as sign-in and sign-ip options and social
 /// connections. You can further customize you [ClerkSignInPanel] by passing additional
 /// properties.
-
+///
 class ClerkSignInPanel extends StatefulWidget {
+  /// Constructs a new [ClerkSignInPanel].
   const ClerkSignInPanel({super.key});
 
   @override
@@ -68,7 +69,7 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel> {
         env.config.firstFactors.contains(clerk.Strategy.password);
     final identifiers = env.config.identificationStrategies
         .where((i) => i.isOauth == false)
-        .map((i) => i.title);
+        .map((i) => i.toString().replaceAll('_', ' '));
     final factor = auth.client.signIn?.supportedFirstFactors
         .firstWhereOrNull((f) => f.strategy == _strategy);
     final safeIdentifier = factor?.safeIdentifier;

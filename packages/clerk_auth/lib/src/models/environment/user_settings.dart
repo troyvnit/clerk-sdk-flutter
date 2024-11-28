@@ -4,8 +4,10 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_settings.g.dart';
 
+/// [UserSettings] Clerk object
 @JsonSerializable()
 class UserSettings {
+  /// Constructor
   const UserSettings({
     this.attributes = const {},
     this.signIn = SignInSettings.empty,
@@ -20,29 +22,50 @@ class UserSettings {
     this.saml = false,
   });
 
+  /// sign in settings
   final SignInSettings signIn;
+
+  /// sign up settings
   final SignUpSettings signUp;
+
+  /// restrictions
   final Restrictions restrictions;
+
+  /// username settings
   final UsernameSettings usernameSettings;
+
+  /// actions
   final Actions actions;
+
+  /// attack protection
   final AttackProtection attackProtection;
+
+  /// passkey settings
   final PasskeySettings passkeySettings;
+
+  /// password settings
   final PasswordSettings passwordSettings;
 
+  /// attributes
   @JsonKey(fromJson: _toAttributeMap)
   final Map<UserAttribute, UserAttributeData> attributes;
 
+  /// saml?
   @JsonKey(readValue: _readSamlEnabled)
   final bool saml;
 
+  /// social settings
   @JsonKey(name: 'social')
   final Map<String, SocialConnection> socialSettings;
 
+  /// empty [UserSettings] object
   static const empty = UserSettings();
 
+  /// fromJson
   static UserSettings fromJson(Map<String, dynamic> json) =>
       _$UserSettingsFromJson(json);
 
+  /// toJson
   Map<String, dynamic> toJson() => _$UserSettingsToJson(this);
 }
 

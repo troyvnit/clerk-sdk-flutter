@@ -35,6 +35,8 @@ class StrategyButton extends StatelessWidget {
     ),
   };
 
+  /// boolean to say whether the [strategy] can be displayed
+  /// by this widget
   static bool supports(clerk.Strategy strategy) =>
       _descriptors[strategy] is _StrategyDescriptor;
 

@@ -4,9 +4,15 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
+/// The [ClerkUserButton] renders a list of all users from
+/// [clerk.Session]s currently signed in, plus controls to sign
+/// out of all sessions
+///
 class ClerkUserButton extends StatefulWidget {
+  /// Construct a [ClerkUserButton]
   const ClerkUserButton({super.key, this.showName = true});
 
+  /// Whether to show the user's name or not
   final bool showName;
 
   @override
@@ -57,8 +63,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                   closed: sessions.contains(session) == false,
                   selected: session == auth.client.activeSession,
                   showName: widget.showName,
-                  onTap: () =>
-                      auth.call(context, () => auth.setActiveSession(session)),
+                  onTap: () => auth.call(context, () => auth.activate(session)),
                 ),
               if (auth.env.config.singleSessionMode == false)
                 Padding(
@@ -69,7 +74,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const CircleIcon(
+                        const _CircleIcon(
                           icon: Icons.add,
                           backgroundColor: ClerkColors.dawnPink,
                           borderColor: ClerkColors.nobel,
@@ -114,7 +119,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
   }
 
   Future<void> _signIn(BuildContext context) async {
-    final auth = ClerkAuth.nonDependentOf(context);
+    final auth = ClerkAuth.above(context);
     final sessionIds = auth.client.sessionIds;
 
     late final OverlayEntry overlay;
@@ -147,7 +152,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: unload,
-                    child: const CircleIcon(icon: Icons.close),
+                    child: const _CircleIcon(icon: Icons.close),
                   ),
                 ),
               ],
@@ -161,21 +166,20 @@ class _ClerkUserButtonState extends State<ClerkUserButton> {
   }
 }
 
-class CircleIcon extends StatelessWidget {
-  const CircleIcon({
-    super.key,
+class _CircleIcon extends StatelessWidget {
+  const _CircleIcon({
     required this.icon,
-    this.color = ClerkColors.stormGrey,
     this.backgroundColor = Colors.transparent,
     this.borderColor,
     this.dashed = false,
   });
 
   final IconData icon;
-  final Color color;
   final Color backgroundColor;
   final Color? borderColor;
   final bool dashed;
+
+  static const color = ClerkColors.stormGrey;
 
   @override
   Widget build(BuildContext context) {
@@ -318,7 +322,7 @@ class _SessionRow extends StatelessWidget {
                 padding: horizontalPadding16 + leftPadding48 + bottomPadding8,
                 child: Builder(
                   builder: (context) {
-                    final auth = ClerkAuth.nonDependentOf(context);
+                    final auth = ClerkAuth.above(context);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -351,8 +355,8 @@ class _SessionRow extends StatelessWidget {
                               if (auth.client.sessions.length == 1) {
                                 auth.call(context, () => auth.signOut());
                               } else {
-                                auth.call(context,
-                                    () => auth.signOutSession(session));
+                                auth.call(
+                                    context, () => auth.signOutOf(session));
                               }
                             },
                             label: Row(

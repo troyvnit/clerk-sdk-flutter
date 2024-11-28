@@ -31,7 +31,7 @@ class ClerkTextFormField extends StatelessWidget {
   /// can we see the text or not?
   final bool obscureText;
 
-  /// function to change obscuritu
+  /// function to change obscurity
   final VoidCallback? onObscure;
 
   /// initial value

@@ -22,7 +22,7 @@ enum _AuthState {
 /// specify in your Clerk Dashboard, such as sign-in and sign-ip options and social
 /// connections. You can further customize you [ClerkAuthenticationWidget] by passing additional
 /// properties.
-
+///
 @immutable
 class ClerkAuthenticationWidget extends StatefulWidget {
   /// Constructs a new [ClerkAuthenticationWidget].

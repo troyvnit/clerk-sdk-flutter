@@ -4,7 +4,11 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
+/// Widget to display error messages as errors are received
+/// from the [ClerkAuthProvider]
+///
 class ClerkErrorMessage extends StatelessWidget {
+  /// Construct a [ClerkErrorMessage] widget
   const ClerkErrorMessage({super.key});
 
   @override

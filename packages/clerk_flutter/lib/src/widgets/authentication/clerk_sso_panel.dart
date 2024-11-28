@@ -2,7 +2,18 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 
+/// The [ClerkSSOPanel] renders a UI for signing up via configured
+/// oAuth providers.
+///
+/// The functionality of the [ClerkSSOPanel] is controlled by the instance settings
+/// you specify in your Clerk Dashboard, such as sign-in and social connections. You can
+/// further customize your [ClerkSSOPanel] by passing additional properties.
+///
+/// https://clerk.com/docs/components/authentication/sign-up
+///
+///
 class ClerkSSOPanel extends StatefulWidget {
+  /// Construct a new [ClerkSSOPanel]
   const ClerkSSOPanel({super.key});
 
   @override

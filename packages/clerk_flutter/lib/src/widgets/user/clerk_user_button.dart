@@ -375,7 +375,8 @@ class _SessionRow extends StatelessWidget {
                                   horizontalMargin8,
                                   Text(
                                     translator.translate('Sign Out'),
-                                    style: ClerkTextStyle.buttonSubtitle.copyWith(
+                                    style:
+                                        ClerkTextStyle.buttonSubtitle.copyWith(
                                       fontSize: 12,
                                       color: ClerkColors.charcoalGrey,
                                     ),

@@ -41,11 +41,14 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ClerkAuth(
-        publishableKey: publishableKey,
-        child: Scaffold(
+    return ClerkAuth(
+      publishableKey: publishableKey,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        builder: (BuildContext context, Widget? child) {
+          return ClerkErrorListener(child: child!);
+        },
+        home: Scaffold(
           backgroundColor: ClerkColors.whiteSmoke,
           body: SafeArea(
             child: Padding(

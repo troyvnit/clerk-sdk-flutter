@@ -47,9 +47,9 @@ class ClerkAuthProvider extends clerk.Auth with ChangeNotifier {
   final ClerkTranslator translator;
 
   /// The [clerk.AuthError] stream
-  late final errorStream = _errors.stream.asBroadcastStream();
+  late final errorStream = _errors.stream;
 
-  final _errors = StreamController<clerk.AuthError>();
+  final _errors = StreamController<clerk.AuthError>.broadcast();
   final OverlayEntry _loadingOverlay;
 
   static const _kRotatingTokenNonce = 'rotating_token_nonce';
@@ -71,7 +71,7 @@ class ClerkAuthProvider extends clerk.Auth with ChangeNotifier {
     clerk.Strategy strategy, {
     void Function(clerk.AuthError)? onError,
   }) async {
-    final auth = ClerkAuth.of(context);
+    final auth = ClerkAuth.of(context, listen: false);
     final client = await call(
       context,
       () => auth.oauthSignIn(strategy: strategy),

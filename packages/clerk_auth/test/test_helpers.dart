@@ -67,7 +67,10 @@ class TestHttpClient implements HttpClient {
     final hdrs = {...?headers}
       ..remove(HttpHeaders.acceptHeader)
       ..remove(HttpHeaders.contentTypeHeader)
-      ..remove(HttpHeaders.authorizationHeader);
+      ..remove(HttpHeaders.authorizationHeader)
+      ..remove('clerk-api-version')
+      ..remove('x-flutter-sdk-version')
+      ..remove('x-mobile');
 
     final queryParams = {
       ...uri.queryParameters,
@@ -77,14 +80,18 @@ class TestHttpClient implements HttpClient {
       ..remove('_is_native')
       ..remove('_clerk_js_version');
 
-    final path =
-        '${Uri(path: uri.path, queryParameters: queryParams.isNotEmpty ? queryParams : null)}';
+    final path = Uri(
+      path: uri.path,
+      queryParameters: queryParams.isNotEmpty ? queryParams : null,
+    ).toString();
 
     return [
       method,
       path,
-      if (hdrs.isNotEmpty) _mapToString(hdrs),
-      if (body?.isNotEmpty == true) _mapToString(body!),
+      if (hdrs.isNotEmpty) //
+        _mapToString(hdrs),
+      if (body?.isNotEmpty == true) //
+        _mapToString(body!),
     ].join(' ');
   }
 

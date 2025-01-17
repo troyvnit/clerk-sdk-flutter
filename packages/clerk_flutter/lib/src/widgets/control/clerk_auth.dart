@@ -79,13 +79,23 @@ class ClerkAuth extends StatefulWidget {
   static clerk.DisplayConfig displayConfigOf(BuildContext context) =>
       of(context, listen: false).env.display;
 
-  /// get the stream of [clerk.AuthError]
+  /// get the stream of [ClerkAuthProviderError]
   static Stream<clerk.AuthError> errorStreamOf(BuildContext context) =>
       of(context, listen: false).errorStream;
 }
 
-class _ClerkAuthState extends State<ClerkAuth> {
-  final _completer = Completer<ClerkAuthProvider>();
+class _ClerkAuthState extends State<ClerkAuth> with ClerkTelemetryStateMixin {
+  ClerkAuthProvider? _clerkAuth;
+
+  ClerkAuthProvider? get effectiveAuth => widget.auth ?? _clerkAuth;
+
+  @override
+  Map<String, dynamic> get telemetryPayload {
+    return {
+      'poll_mode': widget.pollMode.toString(),
+      'primary_instance': widget.auth == null,
+    };
+  }
 
   @override
   void initState() {
@@ -97,41 +107,35 @@ class _ClerkAuthState extends State<ClerkAuth> {
         translator: widget.translator,
         loading: widget.loading,
         pollMode: widget.pollMode,
-      ) //
-          .then(_completer.complete)
-          .catchError(_completer.completeError);
+      ).then((auth) {
+        if (mounted) {
+          setState(() => _clerkAuth = auth);
+        }
+      });
     }
   }
 
   @override
   void dispose() {
-    if (widget.auth == null) {
-      _completer.future.then((auth) => auth.terminate());
-    }
-
     super.dispose();
+    _clerkAuth?.terminate();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ClerkAuthProvider>(
-      initialData: widget.auth,
-      future: _completer.future,
-      builder: (context, snapshot) {
-        if (snapshot.data case ClerkAuthProvider auth) {
-          return ListenableBuilder(
-            listenable: auth,
-            builder: (BuildContext context, Widget? child) {
-              return _ClerkAuthData(
-                auth: auth,
-                child: widget.child,
-              );
-            },
+    if (effectiveAuth case ClerkAuthProvider auth) {
+      return ListenableBuilder(
+        listenable: auth,
+        builder: (BuildContext context, Widget? child) {
+          return _ClerkAuthData(
+            auth: auth,
+            child: widget.child,
           );
-        }
-        return widget.loading ?? emptyWidget;
-      },
-    );
+        },
+      );
+    }
+
+    return widget.loading ?? emptyWidget;
   }
 }
 

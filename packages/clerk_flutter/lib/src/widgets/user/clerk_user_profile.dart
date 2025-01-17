@@ -11,12 +11,18 @@ import 'package:phone_input/phone_input_package.dart';
 /// [ClerkUserProfile] displays user details
 /// and allows their editing
 ///
-class ClerkUserProfile extends StatelessWidget {
+class ClerkUserProfile extends StatefulWidget {
   /// Construct a [ClerkUserProfile]
   const ClerkUserProfile({super.key});
 
   static const _paddedDivider = Padding(padding: topPadding16, child: divider);
 
+  @override
+  State<ClerkUserProfile> createState() => _ClerkUserProfileState();
+}
+
+class _ClerkUserProfileState extends State<ClerkUserProfile>
+    with ClerkTelemetryStateMixin {
   bool _validate(String? identifier, clerk.IdentifierType type) {
     if (identifier?.trim() case String identifier when identifier.isNotEmpty) {
       switch (type) {
@@ -134,7 +140,7 @@ class ClerkUserProfile extends StatelessWidget {
                 maxLines: 1,
                 style: ClerkTextStyle.title,
               ),
-              _paddedDivider,
+              ClerkUserProfile._paddedDivider,
               Expanded(
                 child: ListView(
                   children: [
@@ -142,7 +148,7 @@ class ClerkUserProfile extends StatelessWidget {
                       title: translator.translate('Profile'),
                       child: _EditableUserData(user: user),
                     ),
-                    _paddedDivider,
+                    ClerkUserProfile._paddedDivider,
                     _ProfileRow(
                       title: translator.translate('Email address'),
                       child: _IdentifierData(
@@ -159,7 +165,7 @@ class ClerkUserProfile extends StatelessWidget {
                         },
                       ),
                     ),
-                    _paddedDivider,
+                    ClerkUserProfile._paddedDivider,
                     _ProfileRow(
                       title: translator.translate('Phone numbers'),
                       child: _IdentifierData(

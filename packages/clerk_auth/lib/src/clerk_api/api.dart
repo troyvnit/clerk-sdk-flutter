@@ -2,21 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show File, HttpHeaders, HttpStatus;
 
-import 'package:clerk_auth/clerk_auth.dart';
 import 'package:clerk_auth/src/clerk_api/token_cache.dart';
+import 'package:clerk_auth/src/clerk_auth/http_service.dart';
+import 'package:clerk_auth/src/clerk_auth/persistor.dart';
+import 'package:clerk_auth/src/clerk_constants.dart';
+import 'package:clerk_auth/src/models/api/api_error.dart';
+import 'package:clerk_auth/src/models/api/api_response.dart';
+import 'package:clerk_auth/src/models/models.dart';
+import 'package:clerk_auth/src/utils/extensions.dart';
+import 'package:clerk_auth/src/utils/logging.dart';
 import 'package:http/http.dart' as http;
-
-export 'package:clerk_auth/src/models/models.dart';
-
-/// [SessionTokenPollMode] manages how to refresh the [sessionToken]
-///
-enum SessionTokenPollMode {
-  /// Refresh whenever token expires (more http access and power use)
-  regular,
-
-  /// Refresh if expired when accessed (with possible increased latency at that time)
-  onDemand;
-}
 
 /// [Api] manages communication with the Clerk frontend API
 ///
@@ -40,7 +35,7 @@ class Api with Logging {
     required String publishableKey,
     required Persistor persistor,
     required HttpService httpService,
-    SessionTokenPollMode pollMode = SessionTokenPollMode.onDemand,
+    SessionTokenPollMode pollMode = SessionTokenPollMode.lazy,
   }) =>
       Api._(
         TokenCache(
@@ -75,7 +70,7 @@ class Api with Logging {
   /// Initialise the API
   Future<void> initialize() async {
     await _tokenCache.initialize();
-    if (_pollMode == SessionTokenPollMode.regular) {
+    if (_pollMode == SessionTokenPollMode.hungry) {
       await _pollForSessionToken();
     }
   }

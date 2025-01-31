@@ -13,6 +13,8 @@ import 'package:clerk_auth/src/utils/extensions.dart';
 import 'package:clerk_auth/src/utils/logging.dart';
 import 'package:http/http.dart' as http;
 
+export 'package:clerk_auth/src/models/enums.dart' show SessionTokenPollMode;
+
 /// [Api] manages communication with the Clerk frontend API
 ///
 class Api with Logging {
@@ -28,7 +30,7 @@ class Api with Logging {
   /// [client]: an optional instance of [HttpService] to manage low-level communications
   /// with the back end. Injected for e.g. test mocking
   ///
-  /// [pollMode]: session token poll mode, default on-demand,
+  /// [pollMode]: session token poll mode, default [SessionTokenPollMode.lazy],
   /// manages how to refresh the [sessionToken].
   ///
   factory Api({
@@ -64,6 +66,7 @@ class Api with Logging {
   static const _kClerkAPIVersion = 'clerk-api-version';
   static const _kXFlutterSDKVersion = 'x-flutter-sdk-version';
   static const _kXMobile = 'x-mobile';
+  static const _kOrganizationId = 'organization_id';
 
   static const _defaultPollDelay = Duration(seconds: 55);
 
@@ -101,7 +104,7 @@ class Api with Logging {
     final resp = await _fetch(
       path: '/client',
       method: method,
-      headers: _headers(method),
+      headers: _headers(method: method),
     );
     if (resp.statusCode == HttpStatus.ok) {
       final body = json.decode(resp.body) as Map<String, dynamic>;
@@ -139,7 +142,7 @@ class Api with Logging {
 
   Future<bool> _delete(String path, {bool requiresSessionId = false}) async {
     try {
-      final headers = _headers(HttpMethod.delete);
+      final headers = _headers(method: HttpMethod.delete);
       final resp = await _fetch(
         method: HttpMethod.delete,
         path: path,
@@ -449,14 +452,13 @@ class Api with Logging {
       final queryParams = _queryParams(HttpMethod.post, withSession: true);
       final uri = _uri('/me/profile_image', queryParams);
       final length = await file.length();
-      final headers = _headers(HttpMethod.post);
       final stream = http.ByteStream(file.openRead());
       final resp = await _httpService.sendByteStream(
         HttpMethod.post,
         uri,
         stream,
         length,
-        headers,
+        _headers(),
       );
       return _processResponse(resp);
     } catch (error, stacktrace) {
@@ -530,31 +532,39 @@ class Api with Logging {
   /// Return the [sessionToken] for the current active [Session], refreshing it
   /// if required
   ///
-  Future<String> sessionToken() async {
-    if (_tokenCache.sessionToken.isEmpty) await _updateSessionToken();
-    return _tokenCache.sessionToken;
+  Future<SessionToken?> sessionToken([Organization? org]) async {
+    return _tokenCache.sessionTokenFor(org) ?? await _updateSessionToken(org);
   }
 
-  Future<void> _updateSessionToken() async {
+  Future<SessionToken?> _updateSessionToken([Organization? org]) async {
     if (_tokenCache.canRefreshSessionToken) {
       final resp = await _fetch(
         path: '/client/sessions/${_tokenCache.sessionId}/tokens',
+        headers: _headers(),
+        params: {
+          if (org case Organization org) //
+            _kOrganizationId: org.externalId,
+        },
+        nullableKeys: [_kOrganizationId],
       );
       if (resp.statusCode == HttpStatus.ok) {
-        final body = jsonDecode(resp.body) as Map<String, dynamic>;
-        _tokenCache.sessionToken = body[_kJwtKey] as String;
+        final body = json.decode(resp.body) as Map<String, dynamic>;
+        final token = body[_kJwtKey] as String;
+        return _tokenCache.makeAndCacheSessionToken(token);
       }
     }
+    return null;
   }
 
   Future<void> _pollForSessionToken() async {
     _pollTimer?.cancel();
 
-    await _updateSessionToken(); // make sure updated
-
-    final diff =
-        _tokenCache.sessionTokenExpiry.difference(DateTime.timestamp());
-    final delay = diff.isNegative ? _defaultPollDelay : diff;
+    final sessionToken = await _updateSessionToken();
+    final delay = switch (sessionToken) {
+      SessionToken sessionToken when sessionToken.isNotExpired =>
+        sessionToken.expiry.difference(DateTime.timestamp()),
+      _ => _defaultPollDelay,
+    };
     _pollTimer = Timer(delay, _pollForSessionToken);
   }
 
@@ -571,12 +581,11 @@ class Api with Logging {
     bool withSession = false,
   }) async {
     try {
-      final fullHeaders = _headers(method, headers: headers);
       final resp = await _fetch(
         method: method,
         path: url,
         params: params,
-        headers: fullHeaders,
+        headers: _headers(method: method, headers: headers),
         withSession: withSession,
       );
 
@@ -623,17 +632,20 @@ class Api with Logging {
     Map<String, String>? headers,
     Map<String, dynamic>? params,
     bool withSession = false,
+    List<String> nullableKeys = const [],
   }) async {
-    params?.removeWhere((key, value) => value == null);
+    final parsedParams = {...?params}..removeWhere(
+        (key, value) => nullableKeys.contains(key) == false && value == null,
+      );
     final queryParams =
-        _queryParams(method, withSession: withSession, params: params);
+        _queryParams(method, withSession: withSession, params: parsedParams);
     final uri = _uri(path, queryParams);
 
     final resp = await _httpService.send(
       method,
       uri,
       headers: headers,
-      params: method.isNotGet ? params : null,
+      params: method.isNotGet ? parsedParams : null,
     );
 
     if (resp.statusCode == HttpStatus.tooManyRequests) {
@@ -675,8 +687,8 @@ class Api with Logging {
     );
   }
 
-  Map<String, String> _headers(
-    HttpMethod method, {
+  Map<String, String> _headers({
+    HttpMethod method = HttpMethod.post,
     Map<String, String>? headers,
   }) {
     return {

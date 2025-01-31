@@ -25,7 +25,7 @@ export 'persistor.dart';
 /// with the back end. Injected for e.g. test mocking
 ///
 /// [pollMode]: session token poll mode, default on-demand,
-/// manages how to refresh the [sessionToken].
+/// manages how to refresh the [sessionTokenFor].
 ///
 class Auth {
   /// Create an [Auth] object using appropriate Clerk credentials
@@ -39,7 +39,7 @@ class Auth {
   /// of telemetric data to the Clerk back end
   /// [httpService]: the service through which http requests are made
   /// [pollMode]: the mode by which session tokens are polled from the back
-  /// end: [hungry] or (default) [lazy]
+  /// end: [SessionTokenPollMode.hungry] or (default) [SessionTokenPollMode.lazy]
   Auth({
     required String publishableKey,
     required Persistor persistor,
@@ -161,6 +161,20 @@ class Auth {
   Future<void> transfer() async {
     await _api.transfer().then(_housekeeping);
     update();
+  }
+
+  /// Get the current [sessionToken] for an [Organization] , or the
+  /// last organization used if empty
+  ///
+  Future<SessionToken> sessionToken({Organization? organization}) async {
+    final org = env.organization.isEnabled
+        ? organization ?? Organization.personal
+        : null;
+    final token = await _api.sessionToken(org);
+    if (token is! SessionToken) {
+      throw AuthError(message: 'No session token retrieved');
+    }
+    return token;
   }
 
   /// Prepare for sign in via an oAuth provider

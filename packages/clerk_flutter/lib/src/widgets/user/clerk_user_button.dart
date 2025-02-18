@@ -3,28 +3,18 @@ import 'dart:async';
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/assets.dart';
+import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_avatar.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_page.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
+import 'package:clerk_flutter/src/widgets/ui/closeable.dart';
+import 'package:clerk_flutter/src/widgets/ui/common.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/user/add_account_panel.dart';
 import 'package:flutter/material.dart';
-
-/// Class to hold details of user actions available
-/// from the UI
-///
-class ClerkUserAction {
-  /// Construct a [ClerkUserAction]
-  const ClerkUserAction({
-    required this.asset,
-    required this.label,
-    required this.callback,
-  });
-
-  /// The icon for this action
-  final String asset;
-
-  /// The label for this action
-  final String label;
-
-  /// The callback to be invoked when tapped
-  final FutureOr<void> Function(BuildContext, ClerkAuthState) callback;
-}
 
 /// The [ClerkUserButton] renders a list of all users from
 /// [clerk.Session]s currently signed in, plus controls to sign
@@ -73,7 +63,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
     return [
       ClerkUserAction(
         asset: ClerkAssets.gearIcon,
-        label: translator.translate('Manage account'),
+        label: translator.translate('Profile'),
         callback: _manageAccount,
       ),
       ClerkUserAction(
@@ -97,16 +87,25 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
   }
 
   Future<void> _addAccount(BuildContext context, ClerkAuthState auth) =>
-      AddAccountScreen.show(context);
+      ClerkPage.show(
+        context,
+        builder: (context) => AddAccountPanel(
+          onDone: (context) => Navigator.of(context).pop(),
+        ),
+      );
 
   Future<void> _manageAccount(BuildContext context, ClerkAuthState auth) =>
-      ManageAccountScreen.show(context);
+      ClerkPage.show(
+        context,
+        builder: (context) => const ClerkUserProfile(),
+      );
 
   Future<void> _signOut<T>(BuildContext context, ClerkAuthState auth) async {
     if (auth.client.sessions.length == 1) {
-      await auth(context, () => auth.signOut());
+      await auth.safelyCall(context, () => auth.signOut());
     } else {
-      await auth(context, () => auth.signOutOf(auth.client.activeSession!));
+      await auth.safelyCall(
+          context, () => auth.signOutOf(auth.client.activeSession!));
     }
   }
 
@@ -143,7 +142,10 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
                     selected: session == auth.client.activeSession,
                     showName: widget.showName,
                     actions: sessionActions,
-                    onTap: () => auth(context, () => auth.activate(session)),
+                    onTap: () => auth.safelyCall(
+                      context,
+                      () => auth.activate(session),
+                    ),
                     onEnd: (closed) {
                       if (closed) _sessions.remove(session);
                     },
@@ -161,9 +163,7 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
                           horizontalMargin32,
                           Text(
                             action.label,
-                            style: ClerkTextStyle.buttonTitle.copyWith(
-                              color: ClerkColors.almostBlack,
-                            ),
+                            style: ClerkTextStyle.buttonTitleDark,
                           ),
                         ],
                       ),
@@ -177,7 +177,10 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
                 padding: horizontalPadding16 + verticalPadding12,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => auth(context, () => auth.signOut()),
+                  onTap: () => auth.safelyCall(
+                    context,
+                    () => auth.signOut(),
+                  ),
                   child: Row(
                     children: [
                       const Icon(
@@ -249,9 +252,7 @@ class _SessionRow extends StatelessWidget {
                         if (showName)
                           Text(
                             user.name,
-                            style: ClerkTextStyle.buttonTitle.copyWith(
-                              color: ClerkColors.almostBlack,
-                            ),
+                            style: ClerkTextStyle.buttonTitleDark,
                           ),
                         if (user.email is String)
                           Text(user.email!, style: ClerkTextStyle.buttonTitle),

@@ -6,6 +6,7 @@ import 'package:clerk_auth/src/clerk_api/telemetry.dart';
 import 'package:clerk_auth/src/clerk_auth/auth_error.dart';
 import 'package:clerk_auth/src/clerk_auth/http_service.dart';
 import 'package:clerk_auth/src/clerk_auth/persistor.dart';
+import 'package:clerk_auth/src/clerk_constants.dart';
 import 'package:clerk_auth/src/models/api/api_response.dart';
 import 'package:clerk_auth/src/models/models.dart';
 
@@ -64,10 +65,10 @@ class Auth {
 
   final Api _api;
 
-  static const _codeLength = 6;
+  static const _clientTimerPeriod = Duration(seconds: 11);
+  late final Timer _clientTimer;
 
-  /// default redirect URL for use with oAuth
-  static const oauthRedirect = 'https://www.clerk.com/oauth-redirect';
+  static const _codeLength = 6;
 
   /// The [Environment] object
   ///
@@ -121,6 +122,7 @@ class Auth {
     await telemetry.initialize(
       instanceType: this.env.display.instanceEnvironmentType,
     );
+    _clientTimer = Timer.periodic(_clientTimerPeriod, (_) => refreshClient());
   }
 
   /// Disposal of the [Auth] object
@@ -129,6 +131,7 @@ class Auth {
   /// method, if that is mixed in e.g. in clerk_flutter
   ///
   void terminate() {
+    _clientTimer.cancel();
     telemetry.terminate();
     _api.terminate();
   }
@@ -137,6 +140,13 @@ class Auth {
   ///
   Future<void> refreshClient() async {
     client = await _api.currentClient();
+    update();
+  }
+
+  /// Refresh the current [Environment]
+  ///
+  Future<void> refreshEnvironment() async {
+    env = await _api.environment();
     update();
   }
 
@@ -184,7 +194,10 @@ class Auth {
   ///
   Future<void> oauthSignIn({required Strategy strategy}) async {
     await _api
-        .createSignIn(strategy: strategy, redirectUrl: oauthRedirect)
+        .createSignIn(
+          strategy: strategy,
+          redirectUrl: ClerkConstants.oauthRedirect,
+        )
         .then(_housekeeping);
     if (client.signIn case SignIn signIn) {
       await _api
@@ -192,7 +205,7 @@ class Auth {
             signIn,
             stage: Stage.first,
             strategy: strategy,
-            redirectUrl: oauthRedirect,
+            redirectUrl: ClerkConstants.oauthRedirect,
           )
           .then(_housekeeping);
     }
@@ -203,7 +216,10 @@ class Auth {
   ///
   Future<void> oauthConnect({required Strategy strategy}) async {
     await _api
-        .connectAccount(strategy: strategy, redirectUrl: oauthRedirect)
+        .addExternalAccount(
+          strategy: strategy,
+          redirectUrl: ClerkConstants.oauthRedirect,
+        )
         .then(_housekeeping);
     update();
   }
@@ -399,6 +415,33 @@ class Auth {
     update();
   }
 
+  /// Create a new [Organization]
+  ///
+  Future<void> createOrganizationFor(
+    User user, {
+    required String name,
+    String? slug,
+    File? image,
+  }) async {
+    final session = client.sessionFor(user);
+    await _api.createOrganization(name, session: session).then(_housekeeping);
+
+    user = client.refreshUser(user);
+    if (user.organizationNamed(name) case Organization org) {
+      if (slug?.isNotEmpty == true) {
+        await _api
+            .updateOrganization(org, slug: slug, session: session)
+            .then(_housekeeping);
+      }
+      if (image case File image) {
+        await _api
+            .updateOrganizationLogo(org, image: image, session: session)
+            .then(_housekeeping);
+      }
+      update();
+    }
+  }
+
   /// Activate the given [Session]
   ///
   Future<void> activate(Session session) async {
@@ -419,7 +462,7 @@ class Auth {
         username: username,
         firstName: firstName,
         lastName: lastName,
-        userMetadata: metadata,
+        unsafeMetadata: metadata,
       );
       await _api.updateUser(newUser, env.config).then(_housekeeping);
       update();

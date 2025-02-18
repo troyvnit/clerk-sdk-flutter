@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs
 
+import 'package:clerk_flutter/src/assets.dart';
 import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
-import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:phone_input/phone_input_package.dart';
 
 extension NullExtension on String {
@@ -12,8 +14,10 @@ extension PhoneNumberExtension on PhoneNumber {
   String get intlFormattedNsn => '(+$countryCode) ${getFormattedNsn()}';
 }
 
-/// Enum specifying whether we are signing in or connecting an account
-enum OauthMode { signIn, connect }
+final defaultOrgLogo = SvgPicture.asset(
+  ClerkAssets.defaultOrganizationLogo,
+  package: 'clerk_flutter',
+);
 
 const defaultLoadingWidget = SizedBox(
   width: double.infinity,
@@ -46,6 +50,9 @@ const secondColumnWidth = 280.0;
 
 const divider =
     Divider(color: ClerkColors.dawnPink, thickness: 2.0, height: 2.0);
+
+const narrowDivider =
+    Divider(color: ClerkColors.dawnPink, thickness: 0, height: 1);
 
 // Margins
 
@@ -91,6 +98,7 @@ const emptyPadding = EdgeInsets.zero;
 
 const hor8ver4 = EdgeInsets.symmetric(horizontal: 8, vertical: 4);
 const hor32top20 = EdgeInsets.fromLTRB(32, 20, 32, 0);
+const hor24bottom16 = EdgeInsets.fromLTRB(24, 0, 24, 16);
 
 const horizontalPadding4 = EdgeInsets.symmetric(horizontal: 4.0);
 const horizontalPadding8 = EdgeInsets.symmetric(horizontal: 8.0);

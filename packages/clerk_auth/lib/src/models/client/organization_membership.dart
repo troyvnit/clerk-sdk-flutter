@@ -12,6 +12,7 @@ class OrganizationMembership {
   const OrganizationMembership({
     required this.id,
     required this.role,
+    required this.roleName,
     required this.updatedAt,
     required this.createdAt,
     required this.organization,
@@ -23,6 +24,9 @@ class OrganizationMembership {
 
   /// role
   final String role;
+
+  /// role name
+  final String roleName;
 
   /// organization
   final Organization organization;

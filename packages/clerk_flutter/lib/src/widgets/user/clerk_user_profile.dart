@@ -3,6 +3,19 @@ import 'dart:io';
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/assets.dart';
+import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_avatar.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_code_input.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_input_dialog.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_page.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_panel.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_phone_number_form_field.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_text_form_field.dart';
+import 'package:clerk_flutter/src/widgets/ui/common.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
+import 'package:clerk_flutter/src/widgets/user/connect_account_panel.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -101,9 +114,8 @@ class _ClerkUserProfileState extends State<ClerkUserProfile>
       },
     );
 
-    identifier = identifier.trim();
-
     if (submitted) {
+      identifier = identifier.trim().toLowerCase();
       if (_validate(identifier, type)) {
         await authState.addIdentifyingData(identifier, type);
         if (context.mounted) {
@@ -193,7 +205,12 @@ class _ClerkUserProfileState extends State<ClerkUserProfile>
                       child: _ExternalAccountList(
                         user: user,
                         env: auth.env,
-                        onAddNew: () => ConnectAccountScreen.show(context),
+                        onAddNew: () => ClerkPage.show(
+                          context,
+                          builder: (context) => ConnectAccountPanel(
+                            onDone: (context) => Navigator.of(context).pop(),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -226,31 +243,38 @@ class _ExternalAccountList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (user.externalAccounts case List<clerk.ExternalAccount> accounts) //
-          for (final account in accounts.where((a) => a.isVerified)) //
-            Padding(
-              padding: bottomPadding16,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (env.user.socialSettings[account.provider]
-                      case clerk.SocialConnection social) ...[
+          for (final account in accounts.where((a) => a.isExpired == false)) //
+            if (env.user.socialSettings[account.provider]
+                case clerk.SocialConnection social) //
+              Padding(
+                padding: bottomPadding16,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Image.network(social.logoUrl, width: 14),
                     horizontalMargin4,
-                    Text(social.name),
-                  ],
-                  horizontalMargin4,
-                  Expanded(
-                    child: Text(
-                      account.emailAddress,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: ClerkTextStyle.subtitle,
+                    if (account.isVerified) ...[
+                      Text(social.name),
+                      horizontalMargin4,
+                    ],
+                    Expanded(
+                      child: Text(
+                        account.emailAddress,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: ClerkTextStyle.subtitle,
+                      ),
                     ),
-                  ),
-                ],
+                    if (account.isVerified == false) //
+                      _RowLabel(
+                        label: translator.translate(
+                          account.verification.status.name.toUpperCase(),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onAddNew,

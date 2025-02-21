@@ -1,27 +1,69 @@
 /// Container for errors encountered during Clerk auth(entication|orization)
 ///
-class AuthError extends Error {
+class AuthError implements Exception {
   /// Construct an [AuthError]
-  AuthError({this.code, required this.message, this.substitutions});
+  const AuthError({
+    required this.code,
+    required this.message,
+    this.argument,
+  });
 
-  /// An error [code], likely to be an http status code
-  final int? code;
+  /// Error code
+  final AuthErrorCode? code;
 
   /// The associated [message]
   final String message;
 
-  /// A possible [substitution] within the message
-  final List<dynamic>? substitutions;
+  /// Any arguments
+  final String? argument;
 
   @override
   String toString() {
-    if (substitutions case List<dynamic> subs when subs.isNotEmpty) {
-      String msg = message.replaceFirst('###', subs.first);
-      for (int i = 1; i < subs.length; ++i) {
-        msg = msg.replaceFirst('#${i + 1}#', subs[i].toString());
-      }
-      return msg;
+    if (argument case String argument) {
+      return message.replaceFirst('{arg}', argument);
     }
     return message;
   }
+}
+
+/// Code to enable consuming apps to identify the error
+enum AuthErrorCode {
+  /// Server error response
+  serverErrorResponse,
+
+  /// Error during sign-up flow
+  signUpFlowError,
+
+  /// Invalid Password
+  invalidPassword,
+
+  /// Type Invalid
+  typeInvalid,
+
+  /// No stage for status
+  noStageForStatus,
+
+  /// No session token retrieved
+  noSessionTokenRetrieved,
+
+  /// No strategy associated with type,
+  noAssociatedStrategy,
+
+  /// Password and password confirmation must match
+  passwordMatchError,
+
+  /// JWT poorly formatted
+  jwtPoorlyFormatted,
+
+  /// Awaited user action not completed in required timeframe
+  actionNotTimely,
+
+  /// No session found for user
+  noSessionFoundForUser,
+
+  /// Unsupported strategy for first factor
+  noSuchFirstFactorStrategy,
+
+  /// Unsupported strategy for second factor
+  noSuchSecondFactorStrategy,
 }

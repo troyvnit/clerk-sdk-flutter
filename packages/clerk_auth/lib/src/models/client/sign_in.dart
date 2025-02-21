@@ -94,7 +94,19 @@ class SignIn {
     for (final factor in factors) {
       if (factor.strategy == strategy) return factor;
     }
-    throw AuthError(
-        message: 'Strategy $strategy unsupported for $stage factor');
+    switch (stage) {
+      case Stage.first:
+        throw AuthError(
+          message: 'Strategy {arg} unsupported for first factor',
+          argument: strategy.toString(),
+          code: AuthErrorCode.noSuchFirstFactorStrategy,
+        );
+      case Stage.second:
+        throw AuthError(
+          message: 'Strategy {arg} unsupported for second factor',
+          argument: strategy.toString(),
+          code: AuthErrorCode.noSuchSecondFactorStrategy,
+        );
+    }
   }
 }

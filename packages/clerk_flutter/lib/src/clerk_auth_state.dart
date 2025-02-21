@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:clerk_flutter/src/utils/localization_extensions.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -20,9 +21,9 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   ClerkAuthState._({
     required super.publishableKey,
     required super.persistor,
-    required this.translator,
     super.pollMode,
     super.httpService,
+    super.localesLookup,
     Widget? loading,
   }) : _loadingOverlay = OverlayEntry(
           builder: (context) => loading ?? defaultLoadingWidget,
@@ -32,8 +33,8 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   static Future<ClerkAuthState> create({
     required String publishableKey,
     clerk.Persistor? persistor,
-    ClerkTranslator translator = const DefaultClerkTranslator(),
     clerk.HttpService httpService = const clerk.DefaultHttpService(),
+    clerk.ClerkLocalesLookup localesLookup = clerk.Auth.defaultLocalesList,
     clerk.SessionTokenPollMode pollMode = clerk.SessionTokenPollMode.lazy,
     Widget? loading,
   }) async {
@@ -43,17 +44,14 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
           await clerk.DefaultPersistor.create(
             storageDirectory: await getApplicationDocumentsDirectory(),
           ),
-      translator: translator,
       pollMode: pollMode,
       loading: loading,
       httpService: httpService,
+      localesLookup: localesLookup,
     );
     await provider.initialize();
     return provider;
   }
-
-  /// The [ClerkTranslator] for auth UI
-  final ClerkTranslator translator;
 
   /// The [clerk.AuthError] stream
   late final errorStream = _errors.stream;
@@ -95,10 +93,12 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
           useSafeArea: false,
           useRootNavigator: true,
           routeSettings: const RouteSettings(name: _kSsoRouteName),
-          builder: (context) => _SsoWebViewOverlay(
-            url: url,
-            onError: (error) => _onError(error, onError),
-          ),
+          builder: (BuildContext context) {
+            return _SsoWebViewOverlay(
+              url: url,
+              onError: (error) => _onError(error, onError),
+            );
+          },
         );
         if (responseUrl == clerk.ClerkConstants.oauthRedirect) {
           await refreshClient();
@@ -207,15 +207,17 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
       env.user.passwordSettings.meetsRequiredCriteria(password!);
 
   /// Checks the password according to the criteria required by the `env`
-  String? checkPassword(String? password, String? confirmation) {
+  String? checkPassword(
+    String? password,
+    String? confirmation,
+    ClerkSdkLocalizations localizations,
+  ) {
     if (password?.isNotEmpty != true) {
-      return translator.translate('A password must be supplied');
+      return localizations.passwordMustBeSupplied;
     }
 
     if (password != confirmation) {
-      return translator.translate(
-        'Password and password confirmation must match',
-      );
+      return localizations.passwordAndPasswordConfirmationMustMatch;
     }
 
     if (password case String password when password.isNotEmpty) {
@@ -225,47 +227,41 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
       if (criteria.meetsLengthCriteria(password) == false) {
         if (criteria.maxLength > 0) {
           missing.add(
-            translator.translate(
-              'a length of between ### and #2#',
-              substitutions: [criteria.minLength, criteria.maxLength],
+            localizations.aLengthOfBetweenMINAndMAX(
+              criteria.minLength,
+              criteria.maxLength,
             ),
           );
         } else {
           missing.add(
-            translator.translate(
-              'a length of ### or greater',
-              substitution: criteria.minLength,
-            ),
+            localizations.aLengthOfMINOrGreater(criteria.minLength),
           );
         }
       }
 
       if (criteria.meetsLowerCaseCriteria(password) == false) {
-        missing.add(translator.translate('a LOWERCASE letter'));
+        missing.add(localizations.aLowercaseLetter);
       }
 
       if (criteria.meetsUpperCaseCriteria(password) == false) {
-        missing.add(translator.translate('an UPPERCASE letter'));
+        missing.add(localizations.anUppercaseLetter);
       }
 
       if (criteria.meetsNumberCriteria(password) == false) {
-        missing.add(translator.translate('a NUMBER'));
+        missing.add(localizations.aNumber);
       }
 
       if (criteria.meetsSpecialCharCriteria(password) == false) {
         missing.add(
-          translator.translate(
-            'a SPECIAL CHARACTER (###)',
-            substitution: criteria.allowedSpecialCharacters,
-          ),
+          localizations.aSpecialCharacter(criteria.allowedSpecialCharacters),
         );
       }
 
       if (missing.isNotEmpty) {
-        return translator.alternatives(
+        return StringExt.alternatives(
           missing,
-          connector: translator.translate('and'),
-          prefix: translator.translate('Password requires'),
+          connector: localizations.and,
+          prefix: localizations.passwordRequires,
         );
       }
     }
@@ -274,9 +270,7 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   }
 
   /// Add an [clerk.AuthError] for [message] to the [errorStream]
-  void addError(String message) {
-    _errors.add(clerk.AuthError(message: message));
-  }
+  void addError(clerk.AuthError error) => _errors.add(error);
 }
 
 class _SsoWebViewOverlay extends StatefulWidget {
@@ -295,11 +289,12 @@ class _SsoWebViewOverlay extends StatefulWidget {
 
 class _SsoWebViewOverlayState extends State<_SsoWebViewOverlay> {
   late final WebViewController controller;
-  var _title = Future<String?>.value('Loading…');
+  Future<String?>? _title;
 
   @override
   void initState() {
     super.initState();
+
     controller = WebViewController()
       ..setUserAgent(
         'Clerk Flutter SDK v${clerk.ClerkConstants.flutterSdkVersion}',
@@ -310,7 +305,10 @@ class _SsoWebViewOverlayState extends State<_SsoWebViewOverlay> {
         NavigationDelegate(
           onPageFinished: (_) => _updateTitle(),
           onWebResourceError: (e) => widget.onError(
-            clerk.AuthError(message: e.toString()),
+            clerk.AuthError(
+              code: clerk.AuthErrorCode.serverErrorResponse,
+              message: e.toString(),
+            ),
           ),
           onNavigationRequest: (NavigationRequest request) async {
             try {
@@ -333,6 +331,14 @@ class _SsoWebViewOverlayState extends State<_SsoWebViewOverlay> {
     controller.loadRequest(Uri.parse(widget.url));
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _title ??= Future<String?>.value(
+      ClerkAuth.localizationsOf(context).loading,
+    );
+  }
+
   void _updateTitle() {
     setState(() {
       _title = controller.getTitle();
@@ -345,7 +351,7 @@ class _SsoWebViewOverlayState extends State<_SsoWebViewOverlay> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: FutureBuilder(
-          future: _title,
+          future: _title!,
           builder: (context, snapshot) {
             return Text(snapshot.data ?? '');
           },

@@ -14,31 +14,49 @@ class ClerkAuth extends StatefulWidget {
     this.publishableKey,
     this.pollMode = clerk.SessionTokenPollMode.lazy,
     this.authState,
-    this.translator = const DefaultClerkTranslator(),
+    this.localizations = ClerkSdkLocalizations.delegate,
     this.persistor,
     this.loading,
     this.httpService,
     required this.child,
-  }) : assert(
-          (publishableKey is String) != (authState is ClerkAuthState),
-          'Either [publishableKey] or an [authState] instance must '
-          'be provided, but not both',
-        );
+  });
+
+  /// Constructor to use when using [MaterialApp] for your project.
+  static TransitionBuilder materialAppBuilder({
+    required String? publishableKey,
+    clerk.SessionTokenPollMode? pollMode,
+    LocalizationsDelegate<ClerkSdkLocalizations>? localizations,
+    clerk.Persistor? persistor,
+    Widget? loading,
+    clerk.HttpService? httpService,
+  }) {
+    return (BuildContext context, Widget? child) {
+      return ClerkAuth(
+        publishableKey: publishableKey,
+        pollMode: pollMode ?? clerk.SessionTokenPollMode.lazy,
+        localizations: localizations ?? ClerkSdkLocalizations.delegate,
+        persistor: persistor,
+        loading: loading,
+        httpService: httpService,
+        child: ClerkErrorListener(child: child!),
+      );
+    };
+  }
 
   /// Clerk publishable key from dashboard
   final String? publishableKey;
 
+  /// Poll mode: should we regularly poll for session token?
+  final clerk.SessionTokenPollMode pollMode;
+
   /// auth instance from elsewhere
   final ClerkAuthState? authState;
 
+  /// Injectable translations for strings
+  final LocalizationsDelegate<ClerkSdkLocalizations> localizations;
+
   /// Persistence service for caching tokens
   final clerk.Persistor? persistor;
-
-  /// Injectable translations for strings
-  final ClerkTranslator translator;
-
-  /// Poll mode: should we regularly poll for session token?
-  final clerk.SessionTokenPollMode pollMode;
 
   /// Loading widget
   final Widget? loading;
@@ -78,8 +96,8 @@ class ClerkAuth extends StatefulWidget {
   }
 
   /// Get the [ClerkTranslator]
-  static ClerkTranslator translatorOf(BuildContext context) =>
-      of(context, listen: false).translator;
+  static ClerkSdkLocalizations localizationsOf(BuildContext context) =>
+      ClerkSdkLocalizations.of(context)!;
 
   /// Get the [clerk.DisplayConfig]
   static clerk.DisplayConfig displayConfigOf(BuildContext context) =>
@@ -113,9 +131,11 @@ class _ClerkAuthState extends State<ClerkAuth> with ClerkTelemetryStateMixin {
       ClerkAuthState.create(
         publishableKey: widget.publishableKey!,
         persistor: widget.persistor,
-        translator: widget.translator,
         loading: widget.loading,
         pollMode: widget.pollMode,
+        localesLookup: () {
+          return [Localizations.localeOf(context).toLanguageTag()];
+        },
       ).then((authState) {
         if (mounted) {
           setState(() => _clerkAuthState = authState);
@@ -133,7 +153,7 @@ class _ClerkAuthState extends State<ClerkAuth> with ClerkTelemetryStateMixin {
   @override
   Widget build(BuildContext context) {
     if (effectiveAuthState case ClerkAuthState authState) {
-      return ListenableBuilder(
+      final child = ListenableBuilder(
         listenable: authState,
         builder: (BuildContext context, Widget? child) {
           return _ClerkAuthData(
@@ -142,8 +162,32 @@ class _ClerkAuthState extends State<ClerkAuth> with ClerkTelemetryStateMixin {
           );
         },
       );
-    }
 
+      // Return localized child
+
+      final localizations =
+          context.findAncestorWidgetOfExactType<Localizations>();
+      // If we dont have parent Localizations, inject default English
+      if (localizations == null) {
+        return Localizations(
+          locale: View.of(context).platformDispatcher.locale,
+          delegates: [widget.localizations],
+          child: child,
+        );
+      }
+      // If [MaterialApp] does not contain [ClerkSdkLocalizations]
+      else if (Localizations.of(context, ClerkSdkLocalizations) == null) {
+        return Localizations.override(
+          context: context,
+          delegates: [widget.localizations],
+          child: child,
+        );
+      }
+      // [MaterialApp] contains overridden [ClerkSdkLocalizations]
+      else {
+        return child;
+      }
+    }
     return widget.loading ?? emptyWidget;
   }
 }

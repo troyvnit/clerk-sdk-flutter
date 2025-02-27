@@ -45,6 +45,8 @@ class ClerkUserButton extends StatefulWidget {
 
 class _ClerkUserButtonState extends State<ClerkUserButton>
     with ClerkTelemetryStateMixin {
+  ClerkAuthState? _authState;
+  ClerkSdkLocalizations? _localizations;
   final _sessions = <clerk.Session>[];
 
   @override
@@ -60,29 +62,29 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
   }
 
   List<ClerkUserAction> _defaultSessionActions() {
-    final localizations = ClerkAuth.localizationsOf(context);
+    _localizations ??= ClerkAuth.localizationsOf(context);
     return [
       ClerkUserAction(
         asset: ClerkAssets.gearIcon,
-        label: localizations.profile,
+        label: _localizations!.profile,
         callback: _manageAccount,
       ),
       ClerkUserAction(
         asset: ClerkAssets.signOutIcon,
-        label: localizations.signOut,
+        label: _localizations!.signOut,
         callback: _signOut,
       ),
     ];
   }
 
   List<ClerkUserAction> _defaultAdditionalActions() {
-    final authState = ClerkAuth.of(context);
-    final localizations = ClerkAuth.localizationsOf(context);
+    _authState ??= ClerkAuth.of(context);
+    _localizations ??= ClerkAuth.localizationsOf(context);
     return [
-      if (authState.env.config.singleSessionMode == false)
+      if (_authState!.env.config.singleSessionMode == false)
         ClerkUserAction(
           asset: ClerkAssets.addIcon,
-          label: localizations.addAccount,
+          label: _localizations!.addAccount,
           callback: _addAccount,
         ),
     ];

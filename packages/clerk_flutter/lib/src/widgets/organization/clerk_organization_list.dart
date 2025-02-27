@@ -39,6 +39,8 @@ class ClerkOrganizationList extends StatefulWidget {
 
 class _ClerkOrganizationListState extends State<ClerkOrganizationList>
     with ClerkTelemetryStateMixin {
+  ClerkAuthState? _authState;
+  ClerkSdkLocalizations? _localizations;
   late clerk.User _user = widget.initialUser;
   clerk.User? _nextUser;
 
@@ -53,13 +55,13 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
   }
 
   List<ClerkUserAction> _defaultActions() {
-    final authState = ClerkAuth.of(context);
-    final localizations = ClerkAuth.localizationsOf(context);
+    _authState ??= ClerkAuth.of(context);
+    _localizations ??= ClerkAuth.localizationsOf(context);
     return [
-      if (authState.user?.createOrganizationEnabled == true) //
+      if (_authState!.user?.createOrganizationEnabled == true) //
         ClerkUserAction(
           asset: ClerkAssets.addIcon,
-          label: localizations.createOrganization,
+          label: _localizations!.createOrganization,
           callback: _createOrganization,
         ),
     ];

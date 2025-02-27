@@ -10,10 +10,6 @@ import 'package:clerk_auth/src/clerk_constants.dart';
 import 'package:clerk_auth/src/models/api/api_response.dart';
 import 'package:clerk_auth/src/models/models.dart';
 
-export 'auth_error.dart';
-export 'http_service.dart';
-export 'persistor.dart';
-
 /// [Auth] provides more abstracted access to the Clerk API
 ///
 /// Requires a [publishableKey] found in the Clerk dashboard
@@ -74,6 +70,14 @@ class Auth {
   late final Timer _clientTimer;
 
   static const _codeLength = 6;
+
+  final _errors = StreamController<AuthError>.broadcast();
+
+  /// Stream of errors reported by the SDK of type [AuthError]
+  Stream<AuthError> get errorStream => _errors.stream;
+
+  /// Adds [error] to [errorStream]
+  void addError(AuthError error) => _errors.add(error);
 
   /// The [Environment] object
   ///
@@ -157,10 +161,11 @@ class Auth {
 
   ApiResponse _housekeeping(ApiResponse resp) {
     if (resp.isError) {
-      throw AuthError(
-        code: AuthErrorCode.serverErrorResponse,
-        message: '{arg}: ${resp.errorMessage}',
-        argument: resp.status.toString(),
+      addError(
+        AuthError(
+          code: AuthErrorCode.serverErrorResponse,
+          message: resp.errorMessage,
+        ),
       );
     } else if (resp.client case Client client) {
       this.client = client;

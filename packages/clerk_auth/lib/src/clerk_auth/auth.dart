@@ -419,7 +419,7 @@ class Auth {
                 signUp.unverifiedFields.isNotEmpty:
           for (final field in signUp.unverifiedFields) {
             await _api
-                .prepareSignUp(signUp, strategy: Strategy.forObject(field))
+                .prepareSignUp(signUp, strategy: Strategy.forField(field))
                 .then(_housekeeping);
           }
 

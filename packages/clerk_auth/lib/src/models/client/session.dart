@@ -1,6 +1,7 @@
 import 'package:clerk_auth/src/models/client/session_token.dart';
 import 'package:clerk_auth/src/models/client/user.dart';
 import 'package:clerk_auth/src/models/client/user_public.dart';
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:clerk_auth/src/models/status.dart';
 import 'package:clerk_auth/src/utils/json_serialization_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -11,7 +12,7 @@ part 'session.g.dart';
 /// [Session] Clerk object
 @immutable
 @JsonSerializable()
-class Session {
+class Session with InformativeToStringMixin {
   /// Constructor
   const Session({
     required this.id,
@@ -59,5 +60,6 @@ class Session {
   static Session fromJson(Map<String, dynamic> json) => _$SessionFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$SessionToJson(this);
 }

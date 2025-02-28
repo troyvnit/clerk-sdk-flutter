@@ -1,4 +1,5 @@
 import 'package:clerk_auth/src/models/client/verification.dart';
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:clerk_auth/src/utils/json_serialization_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -8,7 +9,7 @@ part 'external_account.g.dart';
 /// [ExternalAccount] Clerk object
 @immutable
 @JsonSerializable()
-class ExternalAccount {
+class ExternalAccount with InformativeToStringMixin {
   /// Constructor
   const ExternalAccount({
     required this.id,
@@ -89,5 +90,6 @@ class ExternalAccount {
       _$ExternalAccountFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$ExternalAccountToJson(this);
 }

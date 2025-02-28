@@ -1,5 +1,6 @@
 import 'package:clerk_auth/src/models/client/organization.dart';
 import 'package:clerk_auth/src/models/client/user_public.dart';
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:clerk_auth/src/utils/json_serialization_helpers.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -9,7 +10,7 @@ part 'organization_membership.g.dart';
 /// [OrganizationMembership] Clerk object
 @immutable
 @JsonSerializable()
-class OrganizationMembership {
+class OrganizationMembership with InformativeToStringMixin {
   /// Constructor
   const OrganizationMembership({
     required this.id,
@@ -49,5 +50,6 @@ class OrganizationMembership {
       _$OrganizationMembershipFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$OrganizationMembershipToJson(this);
 }

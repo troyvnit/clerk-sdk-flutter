@@ -50,5 +50,6 @@ class PhoneNumber extends UserIdentifyingData {
       _$PhoneNumberFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$PhoneNumberToJson(this);
 }

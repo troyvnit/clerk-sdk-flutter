@@ -40,12 +40,12 @@ class Field {
   /// the [name] of the [Field]
   final String name;
 
-  /// toString
-  @override
-  String toString() => name;
-
   /// toJson
   String toJson() => name;
+
+  /// toJson
+  @override
+  String toString() => name;
 
   /// A display title for this attribute
   String get title => name.replaceAll('_', ' ');

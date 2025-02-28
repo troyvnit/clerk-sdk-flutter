@@ -41,5 +41,6 @@ class Email extends UserIdentifyingData {
   static Email fromJson(Map<String, dynamic> json) => _$EmailFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$EmailToJson(this);
 }

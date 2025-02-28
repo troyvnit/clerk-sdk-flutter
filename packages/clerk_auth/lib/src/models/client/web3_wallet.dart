@@ -38,5 +38,6 @@ class Web3Wallet extends UserIdentifyingData {
       _$Web3WalletFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$Web3WalletToJson(this);
 }

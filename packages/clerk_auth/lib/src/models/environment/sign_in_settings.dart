@@ -1,3 +1,4 @@
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -8,7 +9,7 @@ part 'sign_in_settings.g.dart';
 /// [SignInSettings] Clerk object
 @immutable
 @JsonSerializable()
-class SignInSettings {
+class SignInSettings with InformativeToStringMixin {
   /// Constructor
   const SignInSettings({
     this.secondFactorRequired = false,
@@ -26,6 +27,7 @@ class SignInSettings {
       _$SignInSettingsFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$SignInSettingsToJson(this);
 }
 

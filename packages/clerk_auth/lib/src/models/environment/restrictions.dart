@@ -1,3 +1,4 @@
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -6,7 +7,7 @@ part 'restrictions.g.dart';
 /// [Restrictions] Clerk object
 @immutable
 @JsonSerializable()
-class Restrictions {
+class Restrictions with InformativeToStringMixin {
   /// Constructor
   const Restrictions({
     this.allowlistEnabled = false,
@@ -44,6 +45,7 @@ class Restrictions {
       _$RestrictionsFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$RestrictionsToJson(this);
 }
 

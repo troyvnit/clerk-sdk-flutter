@@ -6,6 +6,7 @@ import 'package:clerk_auth/src/models/client/passkey.dart';
 import 'package:clerk_auth/src/models/client/phone_number.dart';
 import 'package:clerk_auth/src/models/client/user_identifying_data.dart';
 import 'package:clerk_auth/src/models/client/web3_wallet.dart';
+import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:clerk_auth/src/utils/extensions.dart';
 import 'package:clerk_auth/src/utils/json_serialization_helpers.dart';
 import 'package:collection/collection.dart';
@@ -17,7 +18,7 @@ part 'user.g.dart';
 /// [User] Clerk object
 @immutable
 @JsonSerializable()
-class User {
+class User with InformativeToStringMixin {
   /// Constructor
   const User({
     required this.id,
@@ -166,6 +167,7 @@ class User {
   static User fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   /// toJson
+  @override
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   static const _kCurrentOrganization = r'$current-organization$';
@@ -333,15 +335,5 @@ class User {
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       deleteSelfEnabled: deleteSelfEnabled ?? this.deleteSelfEnabled,
     );
-  }
-
-  @override
-  String toString() {
-    return '${describeIdentity()}{'
-        'id: $id, '
-        'username: $username, '
-        'name: $name, '
-        'email: $email'
-        '}';
   }
 }

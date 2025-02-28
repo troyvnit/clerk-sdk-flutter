@@ -28,6 +28,8 @@ extension ClerkAuthErrorExtension on clerk.AuthError {
         return localizations.noSuchFirstFactorStrategy(argument.toString());
       case clerk.AuthErrorCode.noSuchSecondFactorStrategy:
         return localizations.noSuchSecondFactorStrategy(argument.toString());
+      case clerk.AuthErrorCode.signInError:
+        return localizations.signInError(argument.toString());
       default:
         return toString();
     }
@@ -94,7 +96,15 @@ extension ClerkUserAttributeLocalization on clerk.UserAttribute {
       clerk.UserAttribute.emailAddress => localizations.emailAddress,
       clerk.UserAttribute.phoneNumber => localizations.phoneNumber,
       clerk.UserAttribute.username => localizations.username,
-      _ => name,
+      clerk.UserAttribute.firstName => localizations.firstName,
+      clerk.UserAttribute.lastName => localizations.lastName,
+      clerk.UserAttribute.password => localizations.password,
+      clerk.UserAttribute.passwordConfirmation =>
+        localizations.passwordConfirmation,
+      clerk.UserAttribute.web3Wallet => localizations.web3Wallet,
+      clerk.UserAttribute.authenticatorApp => localizations.authenticatorApp,
+      clerk.UserAttribute.backupCode => localizations.backupCode,
+      clerk.UserAttribute.passkey => localizations.passkey,
     };
   }
 }

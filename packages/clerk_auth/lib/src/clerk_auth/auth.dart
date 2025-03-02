@@ -26,29 +26,35 @@ class Auth {
   /// Create an [Auth] object using appropriate Clerk credentials
   Auth({
     required this.config,
-    Persistor persistor = Persistor.none,
-    HttpService httpService = const DefaultHttpService(),
-  })  : telemetry = Telemetry(
-          config: config,
-          persistor: persistor,
-          httpService: httpService,
-        ),
-        _api = Api(
-          config: config,
-          persistor: persistor,
-          httpService: httpService,
-        );
+    required Persistor persistor,
+    HttpService? httpService,
+  }) {
+    this.httpService = httpService ?? DefaultHttpService();
+    telemetry = Telemetry(
+      config: config,
+      persistor: persistor,
+      httpService: this.httpService,
+    );
+    _api = Api(
+      config: config,
+      persistor: persistor,
+      httpService: this.httpService,
+    );
+  }
 
   /// Use 'English' as the default locale
   static List<String> defaultLocalesLookup() => <String>['en'];
 
-  /// The service to send telemetry to the back end
-  final Telemetry telemetry;
-
   /// The configuration object
   final AuthConfig config;
 
-  final Api _api;
+  /// The [HttpService] used to communicate with the backend.
+  late final HttpService httpService;
+
+  /// The service to send telemetry to the back end
+  late final Telemetry telemetry;
+
+  late final Api _api;
   Timer? _clientTimer;
 
   static const _codeLength = 6;
@@ -106,6 +112,7 @@ class Auth {
   /// object is made
   ///
   Future<void> initialize() async {
+    await httpService.initialise();
     await _api.initialize();
     final [client, env] = await Future.wait([
       _api.createClient(),
@@ -131,8 +138,9 @@ class Auth {
   ///
   void terminate() {
     _clientTimer?.cancel();
-    telemetry.terminate();
     _api.terminate();
+    telemetry.terminate();
+    httpService.terminate();
   }
 
   /// Refresh the current [Client]

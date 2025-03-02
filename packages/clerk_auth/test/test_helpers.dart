@@ -38,6 +38,12 @@ class TestHttpService implements HttpService {
   final _expectations = <String, List<Response>>{};
 
   @override
+  Future<void> initialise() async {}
+
+  @override
+  void terminate() {}
+
+  @override
   Future<Response> send(
     HttpMethod method,
     Uri uri, {
@@ -130,6 +136,12 @@ const noneHttpService = NoneHttpService();
 
 class NoneHttpService implements HttpService {
   const NoneHttpService();
+
+  @override
+  Future<void> initialise() async {}
+
+  @override
+  void terminate() {}
 
   @override
   Future<Response> send(

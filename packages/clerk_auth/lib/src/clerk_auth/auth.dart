@@ -1,16 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clerk_auth/clerk_auth.dart';
 import 'package:clerk_auth/src/clerk_api/api.dart';
-import 'package:clerk_auth/src/clerk_api/telemetry.dart';
-import 'package:clerk_auth/src/clerk_auth/auth_config.dart';
-import 'package:clerk_auth/src/clerk_auth/auth_error.dart';
-import 'package:clerk_auth/src/clerk_auth/http_service.dart';
-import 'package:clerk_auth/src/clerk_auth/persistor.dart';
-import 'package:clerk_auth/src/clerk_constants.dart';
 import 'package:clerk_auth/src/models/api/api_response.dart';
-import 'package:clerk_auth/src/models/models.dart';
-import 'package:clerk_auth/src/utils/extensions.dart';
 
 /// [Auth] provides more abstracted access to the Clerk API.
 ///
@@ -207,12 +200,13 @@ class Auth {
 
   /// Prepare for sign in via an oAuth provider
   ///
-  Future<void> oauthSignIn({required Strategy strategy}) async {
+  Future<void> oauthSignIn({
+    required Strategy strategy,
+    required Uri? redirect,
+  }) async {
+    final redirectUrl = redirect?.toString() ?? ClerkConstants.oauthRedirect;
     await _api
-        .createSignIn(
-          strategy: strategy,
-          redirectUrl: ClerkConstants.oauthRedirect,
-        )
+        .createSignIn(strategy: strategy, redirectUrl: redirectUrl)
         .then(_housekeeping);
     if (client.signIn case SignIn signIn) {
       await _api
@@ -220,7 +214,7 @@ class Auth {
             signIn,
             stage: Stage.first,
             strategy: strategy,
-            redirectUrl: ClerkConstants.oauthRedirect,
+            redirectUrl: redirectUrl,
           )
           .then(_housekeeping);
     }
@@ -229,12 +223,13 @@ class Auth {
 
   /// Prepare to connect an account via an oAuth provider
   ///
-  Future<void> oauthConnect({required Strategy strategy}) async {
+  Future<void> oauthConnect({
+    required Strategy strategy,
+    required Uri? redirect,
+  }) async {
+    final redirectUrl = redirect?.toString() ?? ClerkConstants.oauthRedirect;
     await _api
-        .addExternalAccount(
-          strategy: strategy,
-          redirectUrl: ClerkConstants.oauthRedirect,
-        )
+        .addExternalAccount(strategy: strategy, redirectUrl: redirectUrl)
         .then(_housekeeping);
     update();
   }

@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 ///
 typedef ClerkSdkLocalizationsCollection = Map<String, ClerkSdkLocalizations>;
 
+/// A function that generates a redirect url for a given strategy
+///
+typedef ClerkRedirectUriGenerator = Uri? Function(clerk.Strategy);
+
 /// An extended [clerk.AuthConfig] to allow the addition of:
 ///
 /// [localizations] for l10n needs
@@ -27,16 +31,21 @@ class ClerkAuthConfig extends clerk.AuthConfig {
     ClerkSdkLocalizationsCollection? localizations,
     ClerkSdkLocalizations? fallbackLocalization,
     this.loading = defaultLoadingWidget,
+    this.redirectionGenerator,
   })  : localizations = localizations ?? {'en': _englishLocalizations},
         fallbackLocalization = fallbackLocalization ?? _englishLocalizations;
 
   static final _englishLocalizations = ClerkSdkLocalizationsEn();
 
-  /// [localizations] for translation within the UI
+  /// [ClerkSdkLocalizationsCollection] for translation within the UI
   final ClerkSdkLocalizationsCollection localizations;
 
-  /// [fallbackLocalization] for when a locale cannot be found
+  /// [ClerkSdkLocalizations] for when a locale cannot be found
   final ClerkSdkLocalizations fallbackLocalization;
+
+  /// A function to generate a [Uri] for deep link redirection
+  /// back into the host app following oauth authentication
+  final ClerkRedirectUriGenerator? redirectionGenerator;
 
   /// The [Widget] to display while loading data, override with null
   /// to disable the loading overlay or use your own widget.

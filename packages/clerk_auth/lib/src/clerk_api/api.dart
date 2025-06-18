@@ -434,6 +434,23 @@ class Api with Logging {
     );
   }
 
+  /// Send a token and code supplied by an oAuth provider to the back end
+  ///
+  Future<ApiResponse> oauthTokenSignIn(
+    Strategy strategy, {
+    String? token,
+    String? code,
+  }) async {
+    return await _fetchApiResponse(
+      '/client/sign_ins',
+      params: {
+        'strategy': strategy,
+        'token': token,
+        'code': code,
+      },
+    );
+  }
+
   /// Send a token received from an oAuth provider to the back end
   ///
   Future<ApiResponse> sendOauthToken(

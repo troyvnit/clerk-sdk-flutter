@@ -6,6 +6,7 @@ repository: https://github.com/clerk/clerk-sdk-flutter/tree/main/packages/clerk_
 issue_tracker: https://github.com/clerk/clerk-sdk-flutter/labels/clerk_flutter
 topics:
   - authentication
+publish_to: none
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -16,7 +17,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  clerk_auth: ^0.0.9-beta
+  clerk_auth:
+    path: ../clerk_auth
   collection: ^1.17.1
   email_validator: ^3.0.0
   flutter_svg: ^2.0.10+1

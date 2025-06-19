@@ -75,4 +75,7 @@ enum AuthErrorCode {
 
   /// Unsupported Sign-in attempt
   signInError,
+
+  /// Password reset error
+  passwordResetStrategyError,
 }

@@ -256,6 +256,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Create organization'**
   String get createOrganization;
 
+  /// No description provided for @didntReceiveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive the code?'**
+  String get didntReceiveCode;
+
   /// No description provided for @domainName.
   ///
   /// In en, this message translates to:
@@ -327,6 +333,12 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'first name'**
   String get firstName;
+
+  /// No description provided for @forgottenPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgotten password?'**
+  String get forgottenPassword;
 
   /// No description provided for @generalDetails.
   ///
@@ -574,6 +586,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Please choose an account to connect'**
   String get pleaseChooseAnAccountToConnect;
 
+  /// No description provided for @pleaseEnterYourIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your identifier'**
+  String get pleaseEnterYourIdentifier;
+
   /// No description provided for @primary.
   ///
   /// In en, this message translates to:
@@ -598,6 +616,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Recommend size 1:1, up to 5MB.'**
   String get recommendSize;
 
+  /// No description provided for @requestPasswordResetCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a password reset code'**
+  String get requestPasswordResetCode;
+
   /// No description provided for @requiredField.
   ///
   /// In en, this message translates to:
@@ -609,6 +633,18 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'Resend'**
   String get resend;
+
+  /// No description provided for @resetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That password reset attempt failed. A new code has been sent.'**
+  String get resetFailed;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password and sign in'**
+  String get resetPassword;
 
   /// No description provided for @selectAccount.
   ///
@@ -688,6 +724,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Slug URL'**
   String get slugUrl;
 
+  /// No description provided for @switchTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to'**
+  String get switchTo;
+
   /// No description provided for @transferable.
   ///
   /// In en, this message translates to:
@@ -699,6 +741,12 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'Type \'{type}\' is invalid'**
   String typeTypeInvalid(String type);
+
+  /// No description provided for @unsupportedPasswordResetStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported password reset strategy: {arg}'**
+  String unsupportedPasswordResetStrategy(String arg);
 
   /// No description provided for @unverified.
   ///

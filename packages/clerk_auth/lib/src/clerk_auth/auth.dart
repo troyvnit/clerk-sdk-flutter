@@ -250,6 +250,26 @@ class Auth {
     update();
   }
 
+  /// Initiate a password reset
+  Future<void> initiatePasswordReset({
+    required String identifier,
+    required Strategy strategy,
+  }) async {
+    if (strategy.isPasswordResetter) {
+      await _api
+          .createSignIn(identifier: identifier, strategy: strategy)
+          .then(_housekeeping);
+    } else {
+      addError(
+        AuthError(
+          code: AuthErrorCode.passwordResetStrategyError,
+          message: 'Unsupported password reset strategy: {arg}',
+          argument: strategy.toString(),
+        ),
+      );
+    }
+  }
+
   /// Progressively attempt sign in
   ///
   /// Can be repeatedly called with updated parameters
@@ -303,6 +323,21 @@ class Auth {
       case SignIn signIn when strategy.isOauth && token is String:
         await _api
             .sendOauthToken(signIn, strategy: strategy, token: token)
+            .then(_housekeeping);
+
+      case SignIn signIn
+          when strategy.requiresCode &&
+              code is String &&
+              strategy.requiresPassword &&
+              password is String:
+        await _api
+            .attemptSignIn(
+              signIn,
+              stage: Stage.first,
+              strategy: strategy,
+              password: password,
+              code: code,
+            )
             .then(_housekeeping);
 
       case SignIn signIn

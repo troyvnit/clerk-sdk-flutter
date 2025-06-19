@@ -29,6 +29,8 @@ extension ClerkAuthErrorExtension on clerk.AuthError {
         localizations.noSuchSecondFactorStrategy(argument.toString()),
       clerk.AuthErrorCode.signInError =>
         localizations.signInError(argument.toString()),
+      clerk.AuthErrorCode.passwordResetStrategyError =>
+        localizations.unsupportedPasswordResetStrategy(argument.toString()),
       _ => toString(),
     };
   }
@@ -178,4 +180,9 @@ extension StringExt on String {
 
     return buf.toString();
   }
+
+  /// Return a version of this string with the first
+  /// character capitalised
+  ///
+  String get capitalized => this[0].toUpperCase() + substring(1);
 }

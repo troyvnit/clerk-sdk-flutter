@@ -152,6 +152,9 @@ class Strategy {
   /// is unknown?
   bool get isUnknown => this == unknown;
 
+  /// is known?
+  bool get isKnown => isUnknown == false;
+
   /// is oauth?
   bool get isOauth => const [_oauthToken, _oauthCustom, _oauth].contains(name);
 

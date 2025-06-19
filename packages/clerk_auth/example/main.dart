@@ -6,11 +6,15 @@ import 'package:clerk_auth/clerk_auth.dart';
 
 Future<void> main() async {
   final auth = Auth(
-    config: const AuthConfig(
+    config: AuthConfig(
       publishableKey: '<YOUR-PUBLISHABLE-KEY>',
-    ),
-    persistor: await DefaultPersistor.create(
-      storageDirectory: Directory.current,
+      persistor: DefaultPersistor(directoryGetter: () => Directory.current),
+
+      // To enable running of the example in e.g. Flutter environments where
+      // [Directory.current] causes problems, implement a bespoke [Persistor]
+      // for your environment, or replace the above line with...
+      //
+      // persistor: Persistor.none,
     ),
   );
 

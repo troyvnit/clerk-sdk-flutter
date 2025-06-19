@@ -40,15 +40,15 @@ abstract interface class HttpService {
 
   /// Initialises this instance of the http service
   ///
-  /// It is possible that [initialise] will be called
+  /// It is possible that [initialize] will be called
   /// multiple times, and must be prepared for that to happen
-  Future<void> initialise();
+  Future<void> initialize() async {}
 
   /// Terminates this instance of the http service
   ///
   /// It is possible that [terminate] will be called
   /// multiple times, and must be prepared for that to happen
-  void terminate();
+  void terminate() {}
 
   /// [send] data to the back end, and receive a [Response]
   ///
@@ -75,19 +75,15 @@ abstract interface class HttpService {
 ///
 class DefaultHttpService extends HttpService {
   /// Constructor
-  DefaultHttpService();
+  const DefaultHttpService();
 
-  http.Client? _client;
+  static final _clients = <DefaultHttpService, http.Client>{};
 
-  @override
-  Future<void> initialise() async {
-    _client ??= http.Client();
-  }
+  http.Client get _client => _clients[this] ??= http.Client();
 
   @override
   void terminate() {
-    _client?.close();
-    _client = null;
+    _clients.remove(this)?.close();
   }
 
   @override
@@ -112,7 +108,7 @@ class DefaultHttpService extends HttpService {
       request.body = body;
     }
 
-    final streamedResponse = await _client!.send(request);
+    final streamedResponse = await _client.send(request);
     return http.Response.fromStream(streamedResponse);
   }
 
@@ -135,7 +131,7 @@ class DefaultHttpService extends HttpService {
     );
     request.files.add(multipartFile);
 
-    final streamedResponse = await _client!.send(request);
+    final streamedResponse = await _client.send(request);
     return http.Response.fromStream(streamedResponse);
   }
 }

@@ -129,11 +129,11 @@ class _EditableProfileDataState extends State<EditableProfileData> {
           child: isEditing
               ? TextFormField(
                   controller: _controller,
-                  style: ClerkTextStyle.inputLabel,
+                  style: ClerkTextStyle.inputText,
                   autofocus: true,
                   decoration: const InputDecoration(
                     isCollapsed: true,
-                    border: outlineInputBorder,
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
                     contentPadding: horizontalPadding8,
                   ),
                   onFieldSubmitted: _update,
@@ -142,7 +142,7 @@ class _EditableProfileDataState extends State<EditableProfileData> {
                   widget.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: ClerkTextStyle.inputLabel,
+                  style: ClerkTextStyle.inputText,
                 ),
         ),
         if (widget.editable) ...[

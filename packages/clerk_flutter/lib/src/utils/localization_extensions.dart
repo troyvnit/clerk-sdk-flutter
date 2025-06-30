@@ -92,10 +92,30 @@ extension ClerkStatusLocalization on clerk.Status {
 ///
 extension ClerkStrategyLocalization on clerk.Strategy {
   /// Allow localization of an [clerk.Strategy]
-  String localizedMessage(ClerkSdkLocalizations localizations) {
+  String localizedMessage(
+    ClerkSdkLocalizations localizations, {
+    bool concise = false,
+  }) {
+    if (concise) {
+      return switch (this) {
+        clerk.Strategy.resetPasswordEmailCode ||
+        clerk.Strategy.emailAddress =>
+          localizations.emailAddressConcise,
+        clerk.Strategy.resetPasswordPhoneCode ||
+        clerk.Strategy.phoneNumber =>
+          localizations.phoneNumberConcise,
+        clerk.Strategy.username => localizations.username,
+        _ => toString(),
+      };
+    }
+
     return switch (this) {
-      clerk.Strategy.emailAddress => localizations.emailAddress,
-      clerk.Strategy.phoneNumber => localizations.phoneNumber,
+      clerk.Strategy.resetPasswordEmailCode ||
+      clerk.Strategy.emailAddress =>
+        localizations.emailAddress,
+      clerk.Strategy.resetPasswordPhoneCode ||
+      clerk.Strategy.phoneNumber =>
+        localizations.phoneNumber,
       clerk.Strategy.username => localizations.username,
       _ => toString(),
     };

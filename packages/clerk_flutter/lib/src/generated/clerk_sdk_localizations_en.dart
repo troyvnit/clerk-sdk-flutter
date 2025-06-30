@@ -115,6 +115,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get emailAddress => 'email address';
 
   @override
+  String get emailAddressConcise => 'email';
+
+  @override
   String get enrollment => 'Enrollment';
 
   @override
@@ -205,6 +208,12 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get needsSecondFactor => 'needs second factor';
 
   @override
+  String get newPassword => 'New password';
+
+  @override
+  String get newPasswordConfirmation => 'Confirm new password';
+
+  @override
   String noAssociatedCodeRetrievalMethod(String arg) {
     return 'No code retrieval method associated with $arg';
   }
@@ -290,6 +299,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get phoneNumber => 'phone number';
 
   @override
+  String get phoneNumberConcise => 'phone';
+
+  @override
   String get pleaseChooseAnAccountToConnect =>
       'Please choose an account to connect';
 
@@ -309,9 +321,6 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get recommendSize => 'Recommend size 1:1, up to 5MB.';
 
   @override
-  String get requestPasswordResetCode => 'Request a password reset code';
-
-  @override
   String get requiredField => '(required)';
 
   @override
@@ -327,6 +336,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   @override
   String get selectAccount =>
       'Select the account with which you wish to continue';
+
+  @override
+  String get sendMeTheCode => 'Send me the reset code';
 
   @override
   String get signIn => 'Sign in';

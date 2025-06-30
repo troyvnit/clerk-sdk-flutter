@@ -1,16 +1,18 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
-import 'package:clerk_flutter/src/utils/localization_extensions.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_code_input.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_identifier_input.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_panel_header.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_text_form_field.dart';
 import 'package:clerk_flutter/src/widgets/ui/closeable.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 
 enum _ResetFlowState {
   unstarted,
+  started,
   awaitingCode,
   awaitingReset;
 
@@ -46,20 +48,36 @@ class ClerkForgottenPasswordPanel extends StatefulWidget {
 
 class _ClerkForgottenPasswordPanelState
     extends State<ClerkForgottenPasswordPanel> {
+  final _identifierType = ValueNotifier(clerk.IdentifierType.emailAddress);
+
   _ResetFlowState _flowState = _ResetFlowState.unstarted;
+
   bool _obscured = true;
   String _code = '';
   String _identifier = '';
   String _password = '';
   String _confirmation = '';
 
+  clerk.Strategy get _strategy => _identifierType.value.isPhoneNumber //
+      ? clerk.Strategy.resetPasswordPhoneCode
+      : clerk.Strategy.resetPasswordEmailCode;
+
   Future<void> _initiatePasswordReset(ClerkAuthState authState) async {
-    setState(() => _flowState = _ResetFlowState.awaitingCode);
-    _code = '';
+    setState(() {
+      _flowState = _ResetFlowState.started;
+      _code = '';
+    });
+
     await authState.initiatePasswordReset(
-      identifier: _identifier,
-      strategy: clerk.Strategy.resetPasswordEmailCode,
+      identifier: _identifierType.value.sanitize(_identifier),
+      strategy: _strategy,
     );
+
+    final newFlowState =
+        authState.signIn?.status == clerk.Status.needsFirstFactor
+            ? _ResetFlowState.awaitingCode
+            : _ResetFlowState.unstarted;
+    setState(() => _flowState = newFlowState);
   }
 
   Future<bool> _setCode(String code) async {
@@ -87,7 +105,7 @@ class _ClerkForgottenPasswordPanelState
       final code = _code;
       setState(() => _flowState = _ResetFlowState.awaitingReset);
       await authState.attemptSignIn(
-        strategy: clerk.Strategy.resetPasswordEmailCode,
+        strategy: _strategy,
         identifier: _identifier,
         password: _password,
         code: code,
@@ -112,8 +130,12 @@ class _ClerkForgottenPasswordPanelState
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
     final l10ns = ClerkAuth.localizationsOf(context);
+    final factors = authState.env.config.firstFactors
+        .where((f) => f.isPasswordResetter)
+        .toList(growable: false);
 
     return AlertDialog(
+      scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -124,25 +146,34 @@ class _ClerkForgottenPasswordPanelState
           Closeable(
             closed: _flowState.isUnstarted == false,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ClerkTextFormField(
-                  key: const Key('email'),
-                  label: l10ns.emailAddress.capitalized,
-                  onChanged: (identifier) => _identifier = identifier,
-                  onSubmit: (_) => _initiatePasswordReset(authState),
+                ValueListenableBuilder(
+                  valueListenable: _identifierType,
+                  builder: (BuildContext context, _, __) {
+                    return ClerkIdentifierInput(
+                      strategies: factors,
+                      identifierType: _identifierType,
+                      onChanged: (identifier) => _identifier = identifier,
+                      onSubmit: (_) => _initiatePasswordReset(authState),
+                    );
+                  },
                 ),
                 verticalMargin8,
                 _ActionButton(
                   onPressed: () => _initiatePasswordReset(authState),
-                  label: l10ns.requestPasswordResetCode,
+                  label: l10ns.sendMeTheCode,
                   isProcessing: _flowState.isAwaitingReset,
                 ),
               ],
             ),
           ),
           Closeable(
-            closed: _flowState.isUnstarted,
+            closed: _flowState.isAwaitingCode == false,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 ClerkCodeInput(
                   key: const Key('code'),
@@ -150,22 +181,30 @@ class _ClerkForgottenPasswordPanelState
                   subtitle: l10ns.enterCodeSentTo(_identifier),
                   onSubmit: _setCode,
                 ),
-                verticalMargin8,
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ClerkMaterialButton(
-                    label: Text(l10ns.didntReceiveCode),
-                    style: ClerkMaterialButtonStyle.light,
-                    onPressed: _restartFlow,
+                Closeable(
+                  closed: _code.length == 6,
+                  child: Column(
+                    children: [
+                      verticalMargin8,
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _ActionButton(
+                          label: l10ns.didntReceiveCode,
+                          onPressed: _restartFlow,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Closeable(
                   closed: _code.length != 6,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       verticalMargin16,
                       ClerkTextFormField(
-                        label: l10ns.password.capitalized,
+                        label: l10ns.newPassword,
                         obscureText: _obscured,
                         onObscure: _toggleObscurePassword,
                         onChanged: (password) => _password = password,
@@ -173,7 +212,7 @@ class _ClerkForgottenPasswordPanelState
                       ),
                       verticalMargin8,
                       ClerkTextFormField(
-                        label: l10ns.passwordConfirmation.capitalized,
+                        label: l10ns.newPasswordConfirmation,
                         obscureText: _obscured,
                         onObscure: _toggleObscurePassword,
                         onChanged: (conf) => _confirmation = conf,
@@ -202,7 +241,7 @@ class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.onPressed,
     required this.label,
-    required this.isProcessing,
+    this.isProcessing = false,
   });
 
   final VoidCallback onPressed;
@@ -226,7 +265,10 @@ class _ActionButton extends StatelessWidget {
       onPressed: onPressed,
       label: Padding(
         padding: horizontalPadding8,
-        child: Text(label),
+        child: Text(
+          label,
+          style: ClerkTextStyle.buttonSubtitle.copyWith(fontSize: 11),
+        ),
       ),
     );
   }

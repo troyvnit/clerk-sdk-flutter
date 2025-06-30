@@ -15,11 +15,13 @@ class ClerkTextFormField extends StatelessWidget {
     this.obscureText = false,
     this.autofocus = false,
     this.isMissing = false,
+    this.focusNode,
     this.onChanged,
     this.onSubmit,
     this.initial,
     this.onObscure,
     this.validator,
+    this.trailing,
   });
 
   /// Report changes back to calling widget
@@ -43,6 +45,9 @@ class ClerkTextFormField extends StatelessWidget {
   /// Do we need to mark this field as required?
   final bool isMissing;
 
+  /// An optional focus node
+  final FocusNode? focusNode;
+
   /// function to change obscurity
   final VoidCallback? onObscure;
 
@@ -53,34 +58,32 @@ class ClerkTextFormField extends StatelessWidget {
   /// initial value
   final String? initial;
 
+  /// A widget for the end of the label
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       // crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        InputLabel(label: label, isRequired: isMissing, isOptional: isOptional),
+        InputLabel(
+          label: label,
+          isRequired: isMissing,
+          isOptional: isOptional,
+          trailing: trailing,
+        ),
         verticalMargin4,
-        SizedBox(
-          height: 32.0,
-          child: DecoratedBox(
-            decoration: inputBoxBorderDecoration,
-            position: DecorationPosition.foreground,
-            child: Material(
-              color: Colors.transparent,
-              shape: inputBoxBorder,
-              child: _TextField(
-                optional: isOptional,
-                obscureText: obscureText,
-                onChanged: onChanged,
-                onSubmit: onSubmit,
-                initial: initial,
-                onObscure: onObscure,
-                validator: validator,
-                autofocus: autofocus,
-              ),
-            ),
-          ),
+        _TextField(
+          optional: isOptional,
+          obscureText: obscureText,
+          onChanged: onChanged,
+          onSubmit: onSubmit,
+          initial: initial,
+          onObscure: onObscure,
+          validator: validator,
+          autofocus: autofocus,
+          focusNode: focusNode,
         ),
       ],
     );
@@ -97,6 +100,7 @@ class _TextField extends StatefulWidget {
     required this.onObscure,
     required this.validator,
     required this.autofocus,
+    this.focusNode,
   });
 
   final ValueChanged<String>? onChanged;
@@ -104,6 +108,7 @@ class _TextField extends StatefulWidget {
   final bool optional;
   final bool obscureText;
   final bool autofocus;
+  final FocusNode? focusNode;
   final VoidCallback? onObscure;
   final bool Function(String?)? validator;
   final String? initial;
@@ -120,7 +125,8 @@ class _TextFieldState extends State<_TextField> {
     return TextFormField(
       initialValue: widget.initial,
       autofocus: widget.autofocus,
-      style: ClerkTextStyle.inputLabel.copyWith(
+      focusNode: widget.focusNode,
+      style: ClerkTextStyle.inputText.copyWith(
         color: _isValid ? ClerkColors.charcoalGrey : ClerkColors.incarnadine,
       ),
       onChanged: widget.onChanged,
@@ -138,11 +144,13 @@ class _TextFieldState extends State<_TextField> {
       },
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
+        isCollapsed: true,
         border: outlineInputBorder,
         enabledBorder: outlineInputBorder,
         focusedBorder: outlineInputBorder,
-        contentPadding: horizontalPadding8,
+        contentPadding: allPadding8,
         errorStyle: const TextStyle(fontSize: 0),
+        suffixIconConstraints: const BoxConstraints(maxHeight: 16),
         suffixIcon: _obscureTextIcon(),
       ),
     );
@@ -150,12 +158,15 @@ class _TextFieldState extends State<_TextField> {
 
   Widget? _obscureTextIcon() {
     if (widget.onObscure case VoidCallback onObscure) {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onObscure,
-        child: Icon(
-          widget.obscureText ? Icons.visibility : Icons.visibility_off,
-          size: 16,
+      return Padding(
+        padding: rightPadding8,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onObscure,
+          child: Icon(
+            widget.obscureText ? Icons.visibility : Icons.visibility_off,
+            size: 16,
+          ),
         ),
       );
     }

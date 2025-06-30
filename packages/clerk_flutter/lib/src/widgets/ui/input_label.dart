@@ -11,8 +11,9 @@ class InputLabel extends StatelessWidget {
   const InputLabel({
     super.key,
     required this.label,
-    required this.isRequired,
-    required this.isOptional,
+    this.isRequired = false,
+    this.isOptional = false,
+    this.trailing,
   });
 
   /// The [label]
@@ -24,20 +25,23 @@ class InputLabel extends StatelessWidget {
   /// Add `optional` to the row?
   final bool isOptional;
 
+  /// A widget for the end of the label
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
     final localizations = ClerkAuth.localizationsOf(context);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         if (label case String label) //
-          Expanded(
-            child: Text(
-              label,
-              textAlign: TextAlign.start,
-              maxLines: 2,
-              style: ClerkTextStyle.inputLabel.copyWith(
-                color: isRequired ? ClerkColors.incarnadine : null,
-              ),
+          Text(
+            label,
+            textAlign: TextAlign.start,
+            maxLines: 2,
+            style: ClerkTextStyle.inputBoxLabel.copyWith(
+              color: isRequired ? ClerkColors.incarnadine : null,
             ),
           ),
         if (isOptional) //
@@ -47,6 +51,8 @@ class InputLabel extends StatelessWidget {
             localizations.requiredField,
             color: ClerkColors.incarnadine,
           ),
+        if (trailing case Widget trailing) //
+          trailing,
       ],
     );
   }
@@ -70,7 +76,7 @@ class _LabelModifier extends StatelessWidget {
         label,
         textAlign: TextAlign.end,
         maxLines: 1,
-        style: ClerkTextStyle.inputLabel.copyWith(
+        style: ClerkTextStyle.inputText.copyWith(
           color: color,
           fontSize: 12.0,
         ),

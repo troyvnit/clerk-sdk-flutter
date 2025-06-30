@@ -312,6 +312,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get primary => 'PRIMARY';
 
   @override
+  String get problemsConnecting => 'We are having problems connecting';
+
+  @override
   String get profile => 'Profile';
 
   @override

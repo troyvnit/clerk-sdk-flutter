@@ -1,7 +1,9 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/generated/clerk_sdk_localizations_en.dart';
+import 'package:clerk_flutter/src/utils/clerk_file_cache.dart';
 import 'package:clerk_flutter/src/utils/clerk_sdk_flags.dart';
+import 'package:clerk_flutter/src/utils/default_caching_persistor.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart'
     show defaultLoadingWidget;
 import 'package:flutter/material.dart';
@@ -31,14 +33,17 @@ class ClerkAuthConfig extends clerk.AuthConfig {
     super.telemetryPeriod,
     super.clientRefreshPeriod,
     super.httpService,
+    super.httpConnectionTimeout,
     this.loading = defaultLoadingWidget,
     this.redirectionGenerator,
+    ClerkFileCache? fileCache,
     ClerkSdkLocalizationsCollection? localizations,
     ClerkSdkLocalizations? fallbackLocalization,
     clerk.Persistor? persistor,
     ClerkSdkFlags flags = const ClerkSdkFlags(),
   })  : localizations = localizations ?? {'en': _englishLocalizations},
         fallbackLocalization = fallbackLocalization ?? _englishLocalizations,
+        fileCache = fileCache ?? _defaultPersistor,
         super(flags: flags, persistor: persistor ?? _defaultPersistor);
 
   static final _englishLocalizations = ClerkSdkLocalizationsEn();
@@ -69,11 +74,29 @@ class ClerkAuthConfig extends clerk.AuthConfig {
         fallbackLocalization;
   }
 
+  /// An object that will provide access to files from a remote [Uri]
+  final ClerkFileCache fileCache;
+
+  @override
+  Future<void> initialize() async {
+    await super.initialize();
+    await fileCache.initialize();
+  }
+
+  @override
+  void terminate() {
+    fileCache.terminate();
+    super.terminate();
+  }
+
   @override
   clerk.LocalesLookup get localesLookup {
     return () => {...localizations.keys, 'en'}.toList(growable: false);
   }
 
+  static DefaultCachingPersistor? _defaultPersistorInstance;
+
   static get _defaultPersistor =>
-      clerk.DefaultPersistor(directoryGetter: getApplicationDocumentsDirectory);
+      _defaultPersistorInstance ??= DefaultCachingPersistor(
+          getCacheDirectory: getApplicationDocumentsDirectory);
 }

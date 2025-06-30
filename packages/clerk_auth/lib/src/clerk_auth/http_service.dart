@@ -50,6 +50,10 @@ abstract interface class HttpService {
   /// multiple times, and must be prepared for that to happen
   void terminate() {}
 
+  /// Check that connectivity to an endpoint is available
+  ///
+  Future<bool> ping(Uri uri, {required Duration timeout});
+
   /// [send] data to the back end, and receive a [Response]
   ///
   Future<http.Response> send(
@@ -84,6 +88,16 @@ class DefaultHttpService extends HttpService {
   @override
   void terminate() {
     _clients.remove(this)?.close();
+  }
+
+  @override
+  Future<bool> ping(Uri uri, {required Duration timeout}) async {
+    try {
+      final result = await _client.head(uri).timeout(timeout);
+      return result.statusCode == 200;
+    } on Exception {
+      return false;
+    }
   }
 
   @override

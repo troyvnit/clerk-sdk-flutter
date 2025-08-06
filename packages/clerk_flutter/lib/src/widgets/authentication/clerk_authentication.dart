@@ -1,5 +1,8 @@
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
+import 'package:clerk_flutter/src/widgets/authentication/clerk_sign_in_panel.dart';
+import 'package:clerk_flutter/src/widgets/authentication/clerk_sign_up_panel.dart';
+import 'package:clerk_flutter/src/widgets/authentication/clerk_sso_panel.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_panel_header.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_vertical_card.dart';
 import 'package:clerk_flutter/src/widgets/ui/closeable.dart';

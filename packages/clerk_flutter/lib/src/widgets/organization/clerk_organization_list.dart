@@ -6,6 +6,8 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/assets.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
 import 'package:clerk_flutter/src/utils/localization_extensions.dart';
+import 'package:clerk_flutter/src/widgets/organization/clerk_organization_profile.dart';
+import 'package:clerk_flutter/src/widgets/organization/create_organization_panel.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_action_row.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_cached_image.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';

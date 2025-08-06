@@ -15,6 +15,7 @@ import 'package:clerk_flutter/src/widgets/ui/platform_styled_dialog.dart';
 import 'package:clerk_flutter/src/widgets/ui/style/colors.dart';
 import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:clerk_flutter/src/widgets/user/add_account_panel.dart';
+import 'package:clerk_flutter/src/widgets/user/clerk_user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:phone_input/phone_input_package.dart';
 

@@ -2,7 +2,6 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/generated/clerk_sdk_localizations_en.dart';
 import 'package:clerk_flutter/src/utils/clerk_file_cache.dart';
-import 'package:clerk_flutter/src/utils/clerk_sdk_flags.dart';
 import 'package:clerk_flutter/src/utils/clerk_sdk_grammar.dart';
 import 'package:clerk_flutter/src/utils/default_caching_persistor.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart'
@@ -56,12 +55,14 @@ class ClerkAuthConfig extends clerk.AuthConfig {
         super(flags: flags, persistor: persistor ?? _defaultPersistor);
 
   static ClerkSdkLocalizations? _englishLocalizationsInstance;
+  static ClerkSdkGrammar? _englishGrammarInstance;
   static DefaultCachingPersistor? _defaultPersistorInstance;
-
-  static get _englishGrammar => const ClerkSdkGrammarEn();
 
   static get _englishLocalizations =>
       _englishLocalizationsInstance ??= ClerkSdkLocalizationsEn();
+
+  static get _englishGrammar =>
+      _englishGrammarInstance ??= const ClerkSdkGrammarEn();
 
   static get _defaultPersistor =>
       _defaultPersistorInstance ??= DefaultCachingPersistor(

@@ -307,6 +307,33 @@ class Auth {
     }
   }
 
+  /// Progressively create sign in
+  ///
+  /// Can be repeatedly called with updated parameters
+  /// until the user is signed in.
+  ///
+  Future<void> createSignIn({
+    required Strategy strategy,
+    String? identifier,
+    String? password,
+    String? code,
+    String? token,
+    String? redirectUrl,
+    String? ticket,
+  }) async {
+    await _api
+        .createSignIn(
+          strategy: strategy,
+          identifier: identifier,
+          password: password,
+          redirectUrl: redirectUrl,
+          ticket: ticket,
+        )
+        .then(_housekeeping);
+
+    update();
+  }
+
   /// Progressively attempt sign in
   ///
   /// Can be repeatedly called with updated parameters
@@ -319,7 +346,6 @@ class Auth {
     String? code,
     String? token,
     String? redirectUrl,
-    String? ticket,
   }) async {
     // oAuthToken
     if (strategy.isOauthToken && (token is String || code is String)) {
@@ -414,16 +440,6 @@ class Auth {
               strategy: Strategy.password,
               password: password,
             )
-            .then(_housekeeping);
-
-      case SignIn signIn when strategy.isTicket && ticket is String:
-        await _api
-            .attemptSignIn(signIn,
-                stage: Stage.first,
-                strategy: strategy,
-                password: password,
-                code: code,
-                ticket: ticket)
             .then(_housekeeping);
 
       case SignIn signIn

@@ -172,9 +172,6 @@ class Strategy {
   bool get isPasswordResetter =>
       const [resetPasswordEmailCode, resetPasswordPhoneCode].contains(this);
 
-  /// is oauth token?
-  bool get isTicket => name == ticket.name;
-
   /// requires password?
   bool get requiresPassword => const [
         password,
@@ -197,9 +194,6 @@ class Strategy {
   /// requires redirect?
   bool get requiresRedirect =>
       name == _oauth || const [emailLink, saml].contains(this);
-
-  /// requires ticket?
-  bool get requiresTicket => [ticket].contains(this);
 
   /// For a given [name] return the [Strategy] it identifies.
   /// Create one if necessary and possible

@@ -300,12 +300,12 @@ class Api with Logging {
   /// then sign in will be attempted, and a [Session] created on the [Client] if
   /// successful
   ///
-  Future<ApiResponse> createSignIn({
-    Strategy? strategy,
-    String? identifier,
-    String? password,
-    String? redirectUrl,
-  }) async {
+  Future<ApiResponse> createSignIn(
+      {Strategy? strategy,
+      String? identifier,
+      String? password,
+      String? redirectUrl,
+      String? ticket}) async {
     return await _fetchApiResponse(
       '/client/sign_ins',
       params: {
@@ -313,6 +313,7 @@ class Api with Logging {
         'identifier': identifier,
         'password': password,
         'redirect_url': redirectUrl,
+        'ticket': ticket
       },
     );
   }
@@ -377,7 +378,6 @@ class Api with Logging {
     String? code,
     String? password,
     String? redirectUrl,
-    String? ticket,
   }) async {
     assert(
       strategy.requiresRedirect == false || redirectUrl is String,
@@ -391,10 +391,6 @@ class Api with Logging {
       strategy.requiresCode == false || code is String,
       '`code` required for strategy $strategy',
     );
-    assert(
-      strategy.requiresTicket == false || ticket is String,
-      '`ticket` required for strategy $strategy',
-    );
 
     return await _fetchApiResponse(
       '/client/sign_ins/${signIn.id}/attempt_${stage}_factor',
@@ -403,7 +399,6 @@ class Api with Logging {
         'code': code,
         'password': password,
         'redirect_url': redirectUrl,
-        'ticket': ticket
       },
     );
   }

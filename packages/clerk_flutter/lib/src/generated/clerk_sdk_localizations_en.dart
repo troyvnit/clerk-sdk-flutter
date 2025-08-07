@@ -77,6 +77,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String get cannotDeleteSelf => 'You are not authorized to delete your user';
+
+  @override
   String clickOnTheLinkThatSBeenSentToAndThenCheckBackHere(String identifier) {
     return 'Click on the link that‘s been sent to $identifier and then check back here';
   }
@@ -97,6 +100,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get createOrganization => 'Create organization';
 
   @override
+  String get didntReceiveCode => 'Didn\'t receive the code?';
+
+  @override
   String get domainName => 'Domain name';
 
   @override
@@ -107,6 +113,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get emailAddress => 'email address';
+
+  @override
+  String get emailAddressConcise => 'email';
 
   @override
   String get enrollment => 'Enrollment';
@@ -135,6 +144,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get firstName => 'first name';
+
+  @override
+  String get forgottenPassword => 'Forgotten password?';
 
   @override
   String get generalDetails => 'General details';
@@ -194,6 +206,12 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get needsSecondFactor => 'needs second factor';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get newPasswordConfirmation => 'Confirm new password';
 
   @override
   String noAssociatedCodeRetrievalMethod(String arg) {
@@ -281,11 +299,20 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get phoneNumber => 'phone number';
 
   @override
+  String get phoneNumberConcise => 'phone';
+
+  @override
   String get pleaseChooseAnAccountToConnect =>
       'Please choose an account to connect';
 
   @override
+  String get pleaseEnterYourIdentifier => 'Please enter your identifier';
+
+  @override
   String get primary => 'PRIMARY';
+
+  @override
+  String get problemsConnecting => 'We are having problems connecting';
 
   @override
   String get profile => 'Profile';
@@ -303,8 +330,18 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get resend => 'Resend';
 
   @override
+  String get resetFailed =>
+      'That password reset attempt failed. A new code has been sent.';
+
+  @override
+  String get resetPassword => 'Reset password and sign in';
+
+  @override
   String get selectAccount =>
       'Select the account with which you wish to continue';
+
+  @override
+  String get sendMeTheCode => 'Send me the reset code';
 
   @override
   String get signIn => 'Sign in';
@@ -354,11 +391,19 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get slugUrl => 'Slug URL';
 
   @override
+  String get switchTo => 'Switch to';
+
+  @override
   String get transferable => 'transferable';
 
   @override
   String typeTypeInvalid(String type) {
     return 'Type \'$type\' is invalid';
+  }
+
+  @override
+  String unsupportedPasswordResetStrategy(String arg) {
+    return 'Unsupported password reset strategy: $arg';
   }
 
   @override

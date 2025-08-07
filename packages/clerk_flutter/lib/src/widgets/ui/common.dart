@@ -25,17 +25,14 @@ const emptyWidgetWide = SizedBox(width: double.infinity);
 
 const spacer = Spacer();
 
-const outlineInputBorder = OutlineInputBorder(
-  borderSide: BorderSide.none,
-);
+const inputBorderSide = BorderSide(color: ClerkColors.dawnPink, width: 1.0);
 
-const inputBoxBorderDecoration = ShapeDecoration(
-  color: ClerkColors.white,
-  shape: RoundedRectangleBorder(
-    side: BorderSide(color: ClerkColors.dawnPink, width: 0.5),
-    borderRadius: borderRadius4,
-  ),
-);
+const outlineInputBorder = OutlineInputBorder(borderSide: inputBorderSide);
+
+const inputBoxBorder =
+    RoundedRectangleBorder(side: inputBorderSide, borderRadius: borderRadius4);
+
+const inputBoxBorderDecoration = ShapeDecoration(shape: inputBoxBorder);
 
 const firstColumnWidth = 215.0;
 const secondColumnWidth = 280.0;
@@ -44,7 +41,7 @@ const divider =
     Divider(color: ClerkColors.dawnPink, thickness: 2.0, height: 2.0);
 
 const narrowDivider =
-    Divider(color: ClerkColors.dawnPink, thickness: 0, height: 1);
+    Divider(color: ClerkColors.dawnPink, thickness: 0.0, height: 1.0);
 
 // Margins
 

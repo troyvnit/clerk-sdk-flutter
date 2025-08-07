@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:clerk_flutter/src/utils/clerk_file_cache.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_overlay_host.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart';
@@ -27,6 +28,8 @@ class ClerkAuth extends StatefulWidget {
     super.key,
     required this.child,
     ClerkAuthConfig? config,
+    this.persistor,
+    this.httpService,
     this.authState,
     this.deepLinkStream,
   })  : assert(
@@ -61,6 +64,12 @@ class ClerkAuth extends StatefulWidget {
   /// SDK might be interested in
   final Stream<ClerkDeepLink?>? deepLinkStream;
 
+  /// An override for the default [clerk.Persistor]
+  final clerk.Persistor? persistor;
+
+  /// An override for the default [clerk.HttpService]
+  final clerk.HttpService? httpService;
+
   /// child widget tree
   final Widget child;
 
@@ -83,15 +92,6 @@ class ClerkAuth extends StatefulWidget {
   /// Get the most recent [clerk.Session] object
   static clerk.Session? sessionOf(BuildContext context) => of(context).session;
 
-  /// Get the [context]'s nearest [ClerkAuthState]
-  /// without rebuild on change
-  @Deprecated('Use .of() instead with listen = false')
-  static ClerkAuthState above(BuildContext context) {
-    final result = context.findAncestorWidgetOfExactType<_ClerkAuthData>();
-    assert(result != null, 'No `ClerkAuth` found in context');
-    return result!.authState;
-  }
-
   /// Get the [ClerkTranslator]
   static ClerkSdkLocalizations localizationsOf(BuildContext context) =>
       of(context, listen: false).localizationsOf(context);
@@ -103,6 +103,10 @@ class ClerkAuth extends StatefulWidget {
   /// get the stream of [clerk.AuthError]
   static Stream<clerk.AuthError> errorStreamOf(BuildContext context) =>
       of(context, listen: false).errorStream;
+
+  /// get the [ClerkFileCache] of the [ClerkAuthConfig]
+  static ClerkFileCache fileCacheOf(BuildContext context) =>
+      of(context, listen: false).config.fileCache;
 }
 
 class _ClerkAuthState extends State<ClerkAuth> with ClerkTelemetryStateMixin {

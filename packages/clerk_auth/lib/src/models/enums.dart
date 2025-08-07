@@ -69,9 +69,6 @@ enum UserAttribute {
   /// passkey
   passkey;
 
-  /// is password?
-  bool get isPassword => this == password || this == passwordConfirmation;
-
   @override
   String toString() => _$UserAttributeEnumMap[this]!;
 
@@ -153,14 +150,20 @@ enum IdentifierType {
     return '${name}s';
   }
 
-  static final _phoneRE = RegExp(r'[^0-9+]');
+  static final _phoneRE = RegExp(r'[^0-9]');
+
+  /// is phone number?
+  bool get isPhoneNumber => this == phoneNumber;
+
+  /// is email address?
+  bool get isEmailAddress => this == emailAddress;
 
   /// Sanitize an [identifier] according to this type's rules
   ///
   String sanitize(String identifier) {
     return switch (this) {
-      phoneNumber => identifier.replaceAll(_phoneRE, ''),
-      _ => identifier,
+      phoneNumber => '+${identifier.trim().replaceAll(_phoneRE, '')}',
+      _ => identifier.trim(),
     };
   }
 }

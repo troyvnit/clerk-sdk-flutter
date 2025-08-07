@@ -10,23 +10,28 @@ extension ClerkAuthErrorExtension on clerk.AuthError {
   /// Allow localization of an [clerk.AuthError]
   String localizedMessage(ClerkSdkLocalizations localizations) {
     return switch (code) {
-      clerk.AuthErrorCode.noStageForStatus =>
-        localizations.noStageForStatus(argument.toString()),
-      clerk.AuthErrorCode.noSessionTokenRetrieved =>
-        localizations.noSessionTokenRetrieved,
-      clerk.AuthErrorCode.noAssociatedStrategy =>
-        localizations.noAssociatedStrategy(argument.toString()),
-      clerk.AuthErrorCode.passwordMatchError =>
-        localizations.passwordAndPasswordConfirmationMustMatch,
+      clerk.AuthErrorCode.actionNotTimely => localizations.actionNotTimely,
+      clerk.AuthErrorCode.cannotDeleteSelf => localizations.cannotDeleteSelf,
       clerk.AuthErrorCode.jwtPoorlyFormatted =>
         localizations.jwtPoorlyFormatted(argument.toString()),
-      clerk.AuthErrorCode.actionNotTimely => localizations.actionNotTimely,
+      clerk.AuthErrorCode.noAssociatedStrategy =>
+        localizations.noAssociatedStrategy(argument.toString()),
       clerk.AuthErrorCode.noSessionFoundForUser =>
         localizations.noSessionFoundForUser(argument.toString()),
+      clerk.AuthErrorCode.noSessionTokenRetrieved =>
+        localizations.noSessionTokenRetrieved,
+      clerk.AuthErrorCode.noStageForStatus =>
+        localizations.noStageForStatus(argument.toString()),
       clerk.AuthErrorCode.noSuchFirstFactorStrategy =>
         localizations.noSuchFirstFactorStrategy(argument.toString()),
       clerk.AuthErrorCode.noSuchSecondFactorStrategy =>
         localizations.noSuchSecondFactorStrategy(argument.toString()),
+      clerk.AuthErrorCode.passwordMatchError =>
+        localizations.passwordAndPasswordConfirmationMustMatch,
+      clerk.AuthErrorCode.passwordResetStrategyError =>
+        localizations.unsupportedPasswordResetStrategy(argument.toString()),
+      clerk.AuthErrorCode.problemsConnecting =>
+        localizations.problemsConnecting,
       clerk.AuthErrorCode.signInError =>
         localizations.signInError(argument.toString()),
       _ => toString(),
@@ -89,10 +94,30 @@ extension ClerkStatusLocalization on clerk.Status {
 ///
 extension ClerkStrategyLocalization on clerk.Strategy {
   /// Allow localization of an [clerk.Strategy]
-  String localizedMessage(ClerkSdkLocalizations localizations) {
+  String localizedMessage(
+    ClerkSdkLocalizations localizations, {
+    bool concise = false,
+  }) {
+    if (concise) {
+      return switch (this) {
+        clerk.Strategy.resetPasswordEmailCode ||
+        clerk.Strategy.emailAddress =>
+          localizations.emailAddressConcise,
+        clerk.Strategy.resetPasswordPhoneCode ||
+        clerk.Strategy.phoneNumber =>
+          localizations.phoneNumberConcise,
+        clerk.Strategy.username => localizations.username,
+        _ => toString(),
+      };
+    }
+
     return switch (this) {
-      clerk.Strategy.emailAddress => localizations.emailAddress,
-      clerk.Strategy.phoneNumber => localizations.phoneNumber,
+      clerk.Strategy.resetPasswordEmailCode ||
+      clerk.Strategy.emailAddress =>
+        localizations.emailAddress,
+      clerk.Strategy.resetPasswordPhoneCode ||
+      clerk.Strategy.phoneNumber =>
+        localizations.phoneNumber,
       clerk.Strategy.username => localizations.username,
       _ => toString(),
     };
@@ -132,50 +157,5 @@ extension ClerkUserAttributeLocalization on clerk.UserAttribute {
       clerk.UserAttribute.backupCode => localizations.backupCode,
       clerk.UserAttribute.passkey => localizations.passkey,
     };
-  }
-}
-
-/// An extension class for [String]
-///
-extension StringExt on String {
-  /// A method that takes a list of pre-translated [items] e.g.
-  /// \['first', 'second', 'third'\] and returns a textual representation
-  /// of its contents as alternatives e.g. "first, second or third"
-  ///
-  /// [connector] can be overridden, and a [prefix] can be prepended. Both
-  /// should already be translated as required.
-  ///
-  /// This method should be overridden for languages where this format does not
-  /// provide the correct representation for alternates
-  ///
-  static String alternatives(
-    List<String> items, {
-    required String connector,
-    String? prefix,
-  }) {
-    if (items.isEmpty) {
-      return '';
-    }
-
-    final buf = StringBuffer();
-
-    if (prefix case String prefix) {
-      buf.write(prefix);
-      buf.writeCharCode(0x20);
-    }
-
-    buf.write(items.first);
-
-    for (int i = 1; i < items.length - 1; i++) {
-      buf.write(', ');
-      buf.write(items[i]);
-    }
-
-    if (items.length > 1) {
-      buf.write(' $connector ');
-      buf.write(items.last);
-    }
-
-    return buf.toString();
   }
 }

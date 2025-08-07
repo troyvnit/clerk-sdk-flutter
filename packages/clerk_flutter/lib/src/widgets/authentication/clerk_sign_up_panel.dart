@@ -1,5 +1,6 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:clerk_flutter/src/utils/clerk_sdk_localization_ext.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
 import 'package:clerk_flutter/src/utils/localization_extensions.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_code_input.dart';
@@ -10,6 +11,8 @@ import 'package:clerk_flutter/src/widgets/ui/closeable.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart';
 import 'package:flutter/material.dart';
 import 'package:phone_input/phone_input_package.dart';
+
+typedef _ValueChanger = void Function(String value);
 
 /// The [ClerkSignUpPanel] renders a UI for signing up users.
 ///
@@ -22,9 +25,10 @@ import 'package:phone_input/phone_input_package.dart';
 @immutable
 class ClerkSignUpPanel extends StatefulWidget {
   /// Construct a new [ClerkSignUpPanel]
-  const ClerkSignUpPanel({super.key, required this.isActive});
+  const ClerkSignUpPanel({super.key, this.isActive = false});
 
   /// [true] if we are currently signing up
+  @Deprecated('no longer needed - will be removed')
   final bool isActive;
 
   @override
@@ -36,35 +40,33 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
   static final _phoneNumberRE = RegExp(r'[^0-9+]');
 
   final _values = <clerk.UserAttribute, String?>{};
-  bool _obscurePassword = true;
+  bool _isObscured = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    if (widget.isActive) {
-      final authState = ClerkAuth.of(context, listen: false);
-      final signUp = authState.signUp;
-      _values[clerk.UserAttribute.firstName] ??= signUp?.firstName;
-      _values[clerk.UserAttribute.lastName] ??= signUp?.lastName;
-      _values[clerk.UserAttribute.username] ??= signUp?.username;
-      _values[clerk.UserAttribute.emailAddress] ??= signUp?.emailAddress;
-      _values[clerk.UserAttribute.phoneNumber] ??= signUp?.phoneNumber is String
-          ? PhoneNumber.parse(signUp!.phoneNumber!).intlFormattedNsn
+    final authState = ClerkAuth.of(context, listen: false);
+    if (authState.signUp case clerk.SignUp signUp) {
+      _values[clerk.UserAttribute.firstName] ??= signUp.firstName;
+      _values[clerk.UserAttribute.lastName] ??= signUp.lastName;
+      _values[clerk.UserAttribute.username] ??= signUp.username;
+      _values[clerk.UserAttribute.emailAddress] ??= signUp.emailAddress;
+      _values[clerk.UserAttribute.phoneNumber] ??= signUp.phoneNumber is String
+          ? PhoneNumber.parse(signUp.phoneNumber!).intlFormattedNsn
           : null;
 
-      if (signUp?.missingFields case List<clerk.Field> missingFields
+      if (signUp.missingFields case List<clerk.Field> missingFields
           when missingFields.isNotEmpty) {
-        final localizations = authState.localizationsOf(context);
+        final l10ns = authState.localizationsOf(context);
         authState.addError(
           clerk.AuthError(
             code: clerk.AuthErrorCode.signUpFlowError,
-            message: StringExt.alternatives(
-              missingFields
-                  .map((f) => f.localizedMessage(localizations))
-                  .toList(),
-              prefix: localizations.youNeedToAdd,
-              connector: localizations.and,
+            message: l10ns.grammar.toLitany(
+              missingFields.map((f) => f.localizedMessage(l10ns)).toList(),
+              context: context,
+              note: l10ns.youNeedToAdd,
+              inclusive: true,
             ),
           ),
         );
@@ -80,15 +82,13 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
     clerk.Strategy? strategy,
   }) async {
     final authState = ClerkAuth.of(context);
-    final localizations = authState.localizationsOf(context);
     await authState.safelyCall(
       context,
       () async {
         final password = _valueOrNull(clerk.UserAttribute.password);
         final passwordConfirmation =
             _valueOrNull(clerk.UserAttribute.passwordConfirmation);
-        if (authState.checkPassword(
-                password, passwordConfirmation, localizations)
+        if (authState.checkPassword(password, passwordConfirmation, context)
             case String errorMessage) {
           authState.addError(clerk.AuthError(
             code: clerk.AuthErrorCode.invalidPassword,
@@ -113,21 +113,29 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
     );
   }
 
+  void _onObscure() => setState(() => _isObscured = !_isObscured);
+
+  _ValueChanger _change(clerk.UserAttribute attr) =>
+      (String value) => _values[attr] = value;
+
   @override
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
     final signUp = authState.signUp;
-    final missingFields = signUp?.missingFields ?? const [];
+    final hasMissingFields = signUp?.missingFields.isNotEmpty == true;
     final unverifiedFields = signUp?.unverifiedFields ?? const [];
     final hasPassword =
         _values[clerk.UserAttribute.password]?.isNotEmpty == true;
-    final localizations = authState.localizationsOf(context);
-    final attributes = [
-      ...authState.env.user.attributes.entries
-          .where((a) => a.value.isEnabled)
-          .map(_Attribute.fromMapEntry),
-      const _Attribute(clerk.UserAttribute.passwordConfirmation, true),
-    ]..sort((a, b) => a.index - b.index);
+    final l10ns = authState.localizationsOf(context);
+    final attributes = authState.env.user.attributes.entries
+        .where((a) => a.value.isEnabled)
+        .map(_Attribute.fromMapEntry)
+        .toList(growable: false)
+      ..sort((a, b) => a.index - b.index);
+
+    bool isMissing(clerk.UserAttribute attr) =>
+        signUp?.missing(attr.relatedField) == true;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -139,7 +147,7 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
           _CodeInputBox(
             attribute: attr,
             value: _values[attr] ?? '',
-            closed: missingFields.isNotEmpty ||
+            closed: hasMissingFields ||
                 hasPassword == false ||
                 signUp?.unverified(attr.relatedField) != true,
             onSubmit: (code) async {
@@ -154,42 +162,50 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
             ),
           ),
         Closeable(
-          closed: missingFields.isEmpty &&
+          closed: hasMissingFields == false &&
               hasPassword &&
               unverifiedFields.isNotEmpty,
           child: Column(
             children: [
-              for (final attribute in attributes)
-                Column(
-                  children: [
-                    if (attribute.isPhoneNumber) //
-                      ClerkPhoneNumberFormField(
-                        initial: _values[attribute.attr],
-                        label: attribute.title(localizations),
-                        isOptional: attribute.isOptional,
-                        isMissing:
-                            missingFields.contains(attribute.attr.relatedField),
-                        onChanged: (value) => _values[attribute.attr] = value,
-                      )
-                    else
-                      ClerkTextFormField(
-                        initial: _values[attribute.attr],
-                        label: attribute.title(localizations),
-                        isMissing:
-                            missingFields.contains(attribute.attr.relatedField),
-                        isOptional: attribute.isOptional,
-                        obscureText:
-                            attribute.needsObscuring && _obscurePassword,
-                        onObscure: attribute.needsObscuring
-                            ? () => setState(
-                                  () => _obscurePassword = !_obscurePassword,
-                                )
-                            : null,
-                        onChanged: (value) => _values[attribute.attr] = value,
-                      ),
-                    verticalMargin16,
-                  ],
-                ),
+              for (final attribute in attributes) ...[
+                if (attribute.isPhoneNumber) //
+                  ClerkPhoneNumberFormField(
+                    initial: _values[clerk.UserAttribute.phoneNumber],
+                    label: attribute.title(l10ns),
+                    isMissing: isMissing(clerk.UserAttribute.phoneNumber),
+                    isOptional: attribute.isOptional,
+                    onChanged: _change(clerk.UserAttribute.phoneNumber),
+                  )
+                else if (attribute.isPassword) ...[
+                  ClerkTextFormField(
+                    initial: _values[clerk.UserAttribute.password],
+                    label: attribute.title(l10ns),
+                    isMissing: isMissing(clerk.UserAttribute.password),
+                    isOptional: attribute.isOptional,
+                    obscureText: _isObscured,
+                    onObscure: _onObscure,
+                    onChanged: _change(clerk.UserAttribute.password),
+                  ),
+                  verticalMargin16,
+                  ClerkTextFormField(
+                    initial: _values[clerk.UserAttribute.passwordConfirmation],
+                    label: attribute.title(l10ns),
+                    isOptional: attribute.isOptional,
+                    obscureText: _isObscured,
+                    onObscure: _onObscure,
+                    onChanged:
+                        _change(clerk.UserAttribute.passwordConfirmation),
+                  ),
+                ] else
+                  ClerkTextFormField(
+                    initial: _values[attribute.attr],
+                    label: attribute.title(l10ns),
+                    isMissing: isMissing(attribute.attr),
+                    isOptional: attribute.isOptional,
+                    onChanged: _change(attribute.attr),
+                  ),
+                verticalMargin16,
+              ],
             ],
           ),
         ),
@@ -199,7 +215,7 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(child: Text(localizations.cont)),
+              Center(child: Text(l10ns.cont)),
               horizontalMargin4,
               const Icon(Icons.arrow_right_sharp),
             ],
@@ -305,12 +321,12 @@ class _Attribute {
 
   int get index => attr.index;
 
-  bool get needsObscuring => attr.isPassword;
-
   bool get isPhoneNumber => attr == clerk.UserAttribute.phoneNumber;
+
+  bool get isPassword => attr == clerk.UserAttribute.password;
 
   bool get isOptional => isRequired == false;
 
-  String title(ClerkSdkLocalizations localizations) =>
-      attr.localizedMessage(localizations).capitalized;
+  String title(ClerkSdkLocalizations l10ns) =>
+      l10ns.grammar.toSentence(attr.localizedMessage(l10ns));
 }

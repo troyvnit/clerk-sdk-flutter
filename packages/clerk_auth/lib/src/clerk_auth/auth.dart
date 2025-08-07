@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:clerk_auth/clerk_auth.dart';
@@ -17,26 +18,9 @@ import 'package:clerk_auth/src/models/api/api_response.dart';
 ///
 class Auth {
   /// Create an [Auth] object using appropriate Clerk credentials
-  Auth({
-    required this.config,
-    required Persistor persistor,
-    HttpService? httpService,
-  }) {
-    this.httpService = httpService ?? DefaultHttpService();
-    _errors = StreamController<AuthError>.broadcast();
-    _sessionTokenStreamController = StreamController<SessionToken>.broadcast();
-    telemetry = Telemetry(
-      config: config,
-      persistor: persistor,
-      httpService: this.httpService,
-    );
-    _api = Api(
-      config: config,
-      persistor: persistor,
-      httpService: this.httpService,
-      sessionTokenSink: _sessionTokenStreamController.sink,
-    );
-  }
+  Auth({required this.config})
+      : telemetry = Telemetry(config: config),
+        _api = Api(config: config);
 
   /// Use 'English' as the default locale
   static List<String> defaultLocalesLookup() => <String>['en'];
@@ -44,27 +28,28 @@ class Auth {
   /// The configuration object
   final AuthConfig config;
 
-  /// The [HttpService] used to communicate with the backend.
-  late final HttpService httpService;
-
   /// The service to send telemetry to the back end
   late final Telemetry telemetry;
 
   late final Api _api;
-  Timer? _clientTimer;
 
+  static const _initialisationTimeout = Duration(milliseconds: 1000);
+  static const _persistenceDelay = Duration(milliseconds: 500);
+  static const _kClientKey = '\$client';
+  static const _kEnvKey = '\$env';
   static const _codeLength = 6;
 
-  late final StreamController<AuthError> _errors;
+  Timer? _clientTimer;
+  Timer? _persistenceTimer;
+  Map<String, dynamic> _persistableData = {};
 
   /// Stream of errors reported by the SDK of type [AuthError]
   Stream<AuthError> get errorStream => _errors.stream;
-
-  late final StreamController<SessionToken> _sessionTokenStreamController;
+  final _errors = StreamController<AuthError>.broadcast();
 
   /// Stream of [SessionToken]s as they renew
-  Stream<SessionToken> get sessionTokenStream =>
-      _sessionTokenStreamController.stream;
+  Stream<SessionToken> get sessionTokenStream => _sessionTokens.stream;
+  final _sessionTokens = StreamController<SessionToken>.broadcast();
 
   /// Adds [error] to [errorStream]
   void addError(AuthError error) => _errors.add(error);
@@ -73,13 +58,31 @@ class Auth {
   ///
   /// configuration of the Clerk account - rarely changes
   ///
-  late Environment env;
+  Environment get env => _env;
+
+  set env(Environment env) {
+    _env = env;
+    _persistableData[_kEnvKey] = env;
+    _persistenceTimer?.cancel();
+    _persistenceTimer = Timer(_persistenceDelay, _persistData);
+  }
+
+  late Environment _env;
 
   /// The [Client] object
   ///
   /// The current state of authentication - changes frequently
   ///
-  late Client client;
+  Client get client => _client;
+
+  set client(Client client) {
+    _client = client;
+    _persistableData[_kClientKey] = client;
+    _persistenceTimer?.cancel();
+    _persistenceTimer = Timer(_persistenceDelay, _persistData);
+  }
+
+  late Client _client;
 
   /// The current [SignIn] object, or null
   SignIn? get signIn => client.signIn;
@@ -114,21 +117,43 @@ class Auth {
   /// object is made
   ///
   Future<void> initialize() async {
-    await httpService.initialise();
+    await config.initialize();
     await _api.initialize();
-    final [client, env] = await Future.wait([
-      _api.createClient(),
-      _api.environment(),
-    ]);
-    this.client = client as Client;
-    this.env = env as Environment;
+
+    try {
+      client = await _api.createClient().timeout(_initialisationTimeout);
+    } on Exception {
+      final clientData = await config.persistor.read<String>(_kClientKey);
+      if (clientData case String data) {
+        _client = Client.fromJson(jsonDecode(data));
+      } else {
+        _client = Client.empty;
+      }
+    }
+
+    try {
+      env = await _api.environment().timeout(_initialisationTimeout);
+    } on Exception {
+      final envData = await config.persistor.read<String>(_kEnvKey);
+      if (envData case String data) {
+        _env = Environment.fromJson(jsonDecode(data));
+      } else {
+        _env = Environment.empty;
+      }
+    }
+
     await telemetry.initialize(
-      instanceType: this.env.display.instanceEnvironmentType,
+      instanceType: env.display.instanceEnvironmentType,
     );
+
     if (config.clientRefreshPeriod.isNotZero) {
       _clientTimer = Timer.periodic(
         config.clientRefreshPeriod,
-        (_) => refreshClient(),
+        (_) async {
+          if (await _api.hasConnectivity()) {
+            await refreshClient();
+          }
+        },
       );
     }
   }
@@ -140,10 +165,35 @@ class Auth {
   ///
   void terminate() {
     _clientTimer?.cancel();
+    _persistenceTimer?.cancel();
     _api.terminate();
-    _sessionTokenStreamController.close();
+    _errors.close();
+    _sessionTokens.close();
     telemetry.terminate();
-    httpService.terminate();
+    config.terminate();
+  }
+
+  ApiResponse _housekeeping(ApiResponse resp) {
+    if (resp.isError) {
+      addError(AuthError(code: resp.authErrorCode, message: resp.errorMessage));
+    } else if (resp.client case Client client) {
+      this.client = client;
+    }
+    return resp;
+  }
+
+  Future<void> _persistData() async {
+    final data = _persistableData;
+    _persistableData = {};
+
+    if (_persistableData[_kClientKey] case Client client
+        when client.user != null) {
+      config.persistor.write(_kClientKey, jsonEncode(client));
+    }
+
+    if (data[_kEnvKey] case Environment env) {
+      config.persistor.write(_kEnvKey, jsonEncode(env));
+    }
   }
 
   /// Refresh the current [Client]
@@ -160,24 +210,11 @@ class Auth {
     update();
   }
 
-  ApiResponse _housekeeping(ApiResponse resp) {
-    if (resp.isError) {
-      addError(
-        AuthError(
-          code: AuthErrorCode.serverErrorResponse,
-          message: resp.errorMessage,
-        ),
-      );
-    } else if (resp.client case Client client) {
-      this.client = client;
-    }
-    return resp;
-  }
-
   /// Sign out of all [Session]s and delete the current [Client]
   ///
   Future<void> signOut() async {
     client = await _api.signOut();
+    await config.persistor.delete(_kClientKey);
     update();
   }
 
@@ -250,6 +287,26 @@ class Auth {
     update();
   }
 
+  /// Initiate a password reset
+  Future<void> initiatePasswordReset({
+    required String identifier,
+    required Strategy strategy,
+  }) async {
+    if (strategy.isPasswordResetter) {
+      await _api
+          .createSignIn(identifier: identifier, strategy: strategy)
+          .then(_housekeeping);
+    } else {
+      addError(
+        AuthError(
+          code: AuthErrorCode.passwordResetStrategyError,
+          message: 'Unsupported password reset strategy: {arg}',
+          argument: strategy.toString(),
+        ),
+      );
+    }
+  }
+
   /// Progressively attempt sign in
   ///
   /// Can be repeatedly called with updated parameters
@@ -303,6 +360,20 @@ class Auth {
       case SignIn signIn when strategy.isOauth && token is String:
         await _api
             .sendOauthToken(signIn, strategy: strategy, token: token)
+            .then(_housekeeping);
+
+      case SignIn signIn
+          when strategy.isPasswordResetter &&
+              code is String &&
+              password is String:
+        await _api
+            .attemptSignIn(
+              signIn,
+              stage: Stage.first,
+              strategy: strategy,
+              password: password,
+              code: code,
+            )
             .then(_housekeeping);
 
       case SignIn signIn
@@ -667,6 +738,23 @@ class Auth {
         }
         update();
       }
+    }
+  }
+
+  /// Delete the current [User]
+  ///
+  Future<void> deleteUser() async {
+    if (env.user.actions.deleteSelf) {
+      await _api.deleteUser();
+      client = await _api.currentClient();
+      update();
+    } else {
+      addError(
+        const AuthError(
+          code: AuthErrorCode.cannotDeleteSelf,
+          message: 'You are not authorized to delete your user',
+        ),
+      );
     }
   }
 

@@ -1,4 +1,7 @@
 import 'package:clerk_auth/src/clerk_auth/auth.dart';
+import 'package:clerk_auth/src/clerk_auth/http_service.dart';
+import 'package:clerk_auth/src/clerk_auth/persistor.dart';
+import 'package:clerk_auth/src/clerk_auth/sdk_flags.dart';
 import 'package:clerk_auth/src/models/enums.dart';
 import 'package:meta/meta.dart';
 
@@ -13,12 +16,16 @@ class AuthConfig {
   /// Construct an [AuthConfig]
   const AuthConfig({
     required this.publishableKey,
+    required this.persistor,
+    this.flags = const SdkFlags(),
     SessionTokenPollMode? sessionTokenPollMode,
     LocalesLookup? localesLookup,
     bool? isTestMode,
     String? telemetryEndpoint,
     Duration? telemetryPeriod,
     Duration? clientRefreshPeriod,
+    Duration? httpConnectionTimeout,
+    HttpService? httpService,
   })  : sessionTokenPollMode =
             sessionTokenPollMode ?? SessionTokenPollMode.lazy,
         localesLookup = localesLookup ?? Auth.defaultLocalesLookup,
@@ -28,10 +35,19 @@ class AuthConfig {
         telemetryPeriod =
             telemetryPeriod ?? const Duration(milliseconds: 29300),
         clientRefreshPeriod =
-            clientRefreshPeriod ?? const Duration(milliseconds: 9700);
+            clientRefreshPeriod ?? const Duration(milliseconds: 9700),
+        httpConnectionTimeout =
+            httpConnectionTimeout ?? const Duration(milliseconds: 500),
+        httpService = httpService ?? const DefaultHttpService();
 
   /// Key from the Clerk dashboard identifying the auth service account
   final String publishableKey;
+
+  /// The [Persistor] used for various state storage
+  final Persistor persistor;
+
+  /// Flags used to affect behaviour
+  final SdkFlags flags;
 
   /// the mode by which session tokens are polled from the back end
   final SessionTokenPollMode sessionTokenPollMode;
@@ -60,4 +76,24 @@ class AuthConfig {
   /// Set to [Duration.zero] to switch off client refresh polling
   ///
   final Duration clientRefreshPeriod;
+
+  /// The duration to wait for http connectivity to assert itself
+  /// before timing out in a connectivity test
+  ///
+  final Duration httpConnectionTimeout;
+
+  /// The [HttpService] used to communicate with the backend.
+  final HttpService httpService;
+
+  /// Initialise
+  Future<void> initialize() async {
+    await persistor.initialize();
+    await httpService.initialize();
+  }
+
+  /// Terminate
+  void terminate() {
+    httpService.terminate();
+    persistor.terminate();
+  }
 }

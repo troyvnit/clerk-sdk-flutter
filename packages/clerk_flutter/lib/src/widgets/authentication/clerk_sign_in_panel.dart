@@ -1,8 +1,9 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
-import 'package:clerk_flutter/src/utils/localization_extensions.dart';
+import 'package:clerk_flutter/src/widgets/authentication/clerk_forgotten_password_panel.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_code_input.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_identifier_input.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_text_form_field.dart';
 import 'package:clerk_flutter/src/widgets/ui/closeable.dart';
@@ -22,9 +23,10 @@ import 'package:flutter/material.dart';
 ///
 class ClerkSignInPanel extends StatefulWidget {
   /// Constructs a new [ClerkSignInPanel].
-  const ClerkSignInPanel({super.key, required this.isActive});
+  const ClerkSignInPanel({super.key, this.isActive = false});
 
   /// [true] if we are currently signing in
+  @Deprecated('no longer needed - will be removed')
   final bool isActive;
 
   @override
@@ -75,46 +77,55 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
     }
   }
 
+  Future<void> _openPasswordResetFlow(BuildContext context) async {
+    await ClerkForgottenPasswordPanel.show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
-    final localizations = authState.localizationsOf(context);
     final env = authState.env;
-    final identifiers = env.identificationStrategies
-        .map((s) => s.localizedMessage(localizations))
-        .toList(growable: false);
+    if (env.hasIdentificationStrategies == false) {
+      return emptyWidget;
+    }
+
+    final localizations = authState.localizationsOf(context);
     final factor = authState.client.signIn?.supportedFirstFactors
         .firstWhereOrNull((f) => f.strategy == _strategy);
     final safeIdentifier = factor?.safeIdentifier;
     final otherStrategies = env.otherStrategies.where(StrategyButton.supports);
-
-    if (identifiers.isEmpty) {
-      return emptyWidget;
-    }
+    final canResetPassword =
+        env.config.firstFactors.any((f) => f.isPasswordResetter);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(
-          padding: bottomPadding8,
-          child: ClerkTextFormField(
-            key: const Key('identifier'),
-            label: StringExt.alternatives(
-              identifiers,
-              connector: localizations.or,
-            ).capitalized,
-            onChanged: (text) {
-              if (text.isEmpty != _identifier.isEmpty) {
-                // only rebuild if we need the password box to animate
-                // i.e. when going from '' -> '<a character>' or vice versa
-                setState(() => _identifier = text);
-              } else {
-                _identifier = text;
-              }
-            },
-          ),
+        ClerkIdentifierInput(
+          strategies: env.identificationStrategies.toList(),
+          onChanged: (text) {
+            if (text.isEmpty != _identifier.isEmpty) {
+              // only rebuild if we need the password box to animate
+              // i.e. when going from '' -> '<a character>' or vice versa
+              setState(() => _identifier = text);
+            } else {
+              _identifier = text;
+            }
+          },
         ),
+        if (canResetPassword) //
+          Padding(
+            padding: topPadding8,
+            child: ClerkMaterialButton(
+              label: Padding(
+                padding: horizontalPadding8,
+                child: Text(localizations.forgottenPassword),
+              ),
+              style: ClerkMaterialButtonStyle.light,
+              onPressed: () => _openPasswordResetFlow(context),
+            ),
+          ),
+        verticalMargin8,
         Closeable(
           key: const Key('emailLinkMessage'),
           closed: _strategy != clerk.Strategy.emailLink,
@@ -123,7 +134,7 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
               _identifier,
             ),
             maxLines: 2,
-            style: ClerkTextStyle.inputLabel,
+            style: ClerkTextStyle.inputText,
           ),
         ),
         Closeable(

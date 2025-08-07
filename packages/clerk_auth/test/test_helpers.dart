@@ -38,10 +38,13 @@ class TestHttpService implements HttpService {
   final _expectations = <String, List<Response>>{};
 
   @override
-  Future<void> initialise() async {}
+  Future<void> initialize() async {}
 
   @override
   void terminate() {}
+
+  @override
+  Future<bool> ping(Uri _, {required Duration timeout}) => Future.value(true);
 
   @override
   Future<Response> send(
@@ -138,10 +141,13 @@ class NoneHttpService implements HttpService {
   const NoneHttpService();
 
   @override
-  Future<void> initialise() async {}
+  Future<void> initialize() async {}
 
   @override
   void terminate() {}
+
+  @override
+  Future<bool> ping(Uri uri, {required Duration timeout}) => Future.value(true);
 
   @override
   Future<Response> send(

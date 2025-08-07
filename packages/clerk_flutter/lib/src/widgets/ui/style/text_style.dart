@@ -49,12 +49,24 @@ class ClerkTextStyle {
 
   /// The Clerk-branded text style for subheadings in the user profile widget.
   static const subtitleDark = TextStyle(
-    fontSize: 14.0,
+    fontSize: 11.5,
+    color: ClerkColors.darkJungleGreen,
+  );
+
+  /// The Clerk-branded text style for clickable text.
+  static const clickable = TextStyle(
+    fontSize: 11.5,
+    color: ClerkColors.azure,
+  );
+
+  /// The Clerk-branded text style for input field labels.
+  static const inputBoxLabel = TextStyle(
+    fontSize: 11.5,
     color: ClerkColors.darkJungleGreen,
   );
 
   /// The Clerk-branded text style for input field labels.
-  static const inputLabel = TextStyle(
+  static const inputText = TextStyle(
     fontSize: 14.0,
     color: ClerkColors.darkJungleGreen,
     letterSpacing: 0.1,

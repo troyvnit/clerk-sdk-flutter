@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
-import 'package:clerk_flutter/src/utils/localization_extensions.dart';
+import 'package:clerk_flutter/src/utils/clerk_sdk_localization_ext.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_loading_overlay.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_overlay_host.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -20,35 +19,17 @@ typedef ClerkErrorCallback = void Function(clerk.AuthError);
 ///
 class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   /// Construct a [ClerkAuthState]
-  ClerkAuthState._(
-    this._config,
-    clerk.Persistor persistor,
-    clerk.HttpService? httpService,
-  )   : _loadingOverlay = ClerkLoadingOverlay(_config),
-        super(
-          config: _config,
-          persistor: persistor,
-          httpService: httpService,
-        );
+  ClerkAuthState._(this._config)
+      : _loadingOverlay = ClerkLoadingOverlay(_config),
+        super(config: _config);
 
   /// Create an [ClerkAuthState] object using appropriate Clerk credentials
   static Future<ClerkAuthState> create({
     required ClerkAuthConfig config,
-    clerk.Persistor? persistor,
-    clerk.HttpService? httpService,
   }) async {
-    final authState = ClerkAuthState._(
-      config,
-      persistor ?? await _defaultPersistor,
-      httpService,
-    );
+    final authState = ClerkAuthState._(config);
     await authState.initialize();
     return authState;
-  }
-
-  static Future<clerk.Persistor> get _defaultPersistor async {
-    final dir = await getApplicationDocumentsDirectory();
-    return await clerk.DefaultPersistor.create(storageDirectory: dir);
   }
 
   /// The [ClerkAuthConfig] object
@@ -76,13 +57,21 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
     dispose();
   }
 
+  @override
+  Future<void> signOut() async {
+    if (config.flags.clearCookiesOnSignOut) {
+      await WebViewCookieManager().clearCookies();
+    }
+    await super.signOut();
+  }
+
   /// Performs SSO account connection according to the [strategy]
   Future<void> ssoConnect(
     BuildContext context,
     clerk.Strategy strategy, {
     ClerkErrorCallback? onError,
   }) async {
-    final redirect = config.redirectionGenerator?.call(strategy);
+    final redirect = config.redirectionGenerator?.call(context, strategy);
     await safelyCall(
       context,
       () => oauthConnect(strategy: strategy, redirect: redirect),
@@ -135,7 +124,7 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
     clerk.Strategy strategy, {
     ClerkErrorCallback? onError,
   }) async {
-    final redirect = config.redirectionGenerator?.call(strategy);
+    final redirect = config.redirectionGenerator?.call(context, strategy);
     await safelyCall(
       context,
       () => oauthSignIn(strategy: strategy, redirect: redirect),
@@ -190,7 +179,7 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
     final token = uri.queryParameters[_kRotatingTokenNonce];
     if (token case String token) {
       final strategy = switch (link.strategy) {
-        clerk.Strategy strategy when strategy.isUnknown == false => strategy,
+        clerk.Strategy strategy when strategy.isKnown => strategy,
         _ => clerk.Strategy.fromJson(uri.pathSegments.last),
       };
       if (strategy.isUnknown) {
@@ -242,14 +231,16 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   String? checkPassword(
     String? password,
     String? confirmation,
-    ClerkSdkLocalizations localizations,
+    BuildContext context,
   ) {
+    final l10ns = ClerkAuth.localizationsOf(context);
+
     if (password?.isNotEmpty != true) {
-      return localizations.passwordMustBeSupplied;
+      return l10ns.passwordMustBeSupplied;
     }
 
     if (password != confirmation) {
-      return localizations.passwordAndPasswordConfirmationMustMatch;
+      return l10ns.passwordAndPasswordConfirmationMustMatch;
     }
 
     if (password case String password when password.isNotEmpty) {
@@ -259,41 +250,42 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
       if (criteria.meetsLengthCriteria(password) == false) {
         if (criteria.maxLength > 0) {
           missing.add(
-            localizations.aLengthOfBetweenMINAndMAX(
+            l10ns.aLengthOfBetweenMINAndMAX(
               criteria.minLength,
               criteria.maxLength,
             ),
           );
         } else {
           missing.add(
-            localizations.aLengthOfMINOrGreater(criteria.minLength),
+            l10ns.aLengthOfMINOrGreater(criteria.minLength),
           );
         }
       }
 
       if (criteria.meetsLowerCaseCriteria(password) == false) {
-        missing.add(localizations.aLowercaseLetter);
+        missing.add(l10ns.aLowercaseLetter);
       }
 
       if (criteria.meetsUpperCaseCriteria(password) == false) {
-        missing.add(localizations.anUppercaseLetter);
+        missing.add(l10ns.anUppercaseLetter);
       }
 
       if (criteria.meetsNumberCriteria(password) == false) {
-        missing.add(localizations.aNumber);
+        missing.add(l10ns.aNumber);
       }
 
       if (criteria.meetsSpecialCharCriteria(password) == false) {
         missing.add(
-          localizations.aSpecialCharacter(criteria.allowedSpecialCharacters),
+          l10ns.aSpecialCharacter(criteria.allowedSpecialCharacters),
         );
       }
 
       if (missing.isNotEmpty) {
-        return StringExt.alternatives(
+        return l10ns.grammar.toLitany(
           missing,
-          connector: localizations.and,
-          prefix: localizations.passwordRequires,
+          context: context,
+          inclusive: true,
+          note: l10ns.passwordRequires,
         );
       }
     }

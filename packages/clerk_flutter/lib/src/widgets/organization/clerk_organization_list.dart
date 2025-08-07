@@ -6,7 +6,10 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/assets.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
 import 'package:clerk_flutter/src/utils/localization_extensions.dart';
+import 'package:clerk_flutter/src/widgets/organization/clerk_organization_profile.dart';
+import 'package:clerk_flutter/src/widgets/organization/create_organization_panel.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_action_row.dart';
+import 'package:clerk_flutter/src/widgets/ui/clerk_cached_image.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_page.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_panel_header.dart';
@@ -281,7 +284,7 @@ class _OrganizationRow extends StatelessWidget {
                 child: organization.imageUrl?.isNotEmpty == true
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(6),
-                        child: Image.network(
+                        child: ClerkCachedImage(
                           organization.imageUrl!,
                           fit: BoxFit.cover,
                         ),
@@ -354,11 +357,13 @@ class _Organization {
   ) =>
       _Organization(
         id: invitation.id,
-        orgId: invitation.orgId,
-        name: invitation.name,
+        orgId: invitation.organizationData.id,
+        name: invitation.organizationData.name,
         roleName:
             '${invitation.roleName} (${invitation.status.localizedMessage(localizations)})',
-        imageUrl: invitation.hasImage ? invitation.imageUrl : null,
+        imageUrl: invitation.organizationData.hasImage
+            ? invitation.organizationData.imageUrl
+            : null,
         status: invitation.status,
       );
 

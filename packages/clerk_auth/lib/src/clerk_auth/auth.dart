@@ -319,6 +319,7 @@ class Auth {
     String? code,
     String? token,
     String? redirectUrl,
+    String? ticket,
   }) async {
     // oAuthToken
     if (strategy.isOauthToken && (token is String || code is String)) {
@@ -413,6 +414,16 @@ class Auth {
               strategy: Strategy.password,
               password: password,
             )
+            .then(_housekeeping);
+
+      case SignIn signIn when strategy.isTicket && ticket is String:
+        await _api
+            .attemptSignIn(signIn,
+                stage: Stage.first,
+                strategy: strategy,
+                password: password,
+                code: code,
+                ticket: ticket)
             .then(_housekeeping);
 
       case SignIn signIn

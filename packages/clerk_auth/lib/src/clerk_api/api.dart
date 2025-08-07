@@ -377,6 +377,7 @@ class Api with Logging {
     String? code,
     String? password,
     String? redirectUrl,
+    String? ticket,
   }) async {
     assert(
       strategy.requiresRedirect == false || redirectUrl is String,
@@ -390,6 +391,10 @@ class Api with Logging {
       strategy.requiresCode == false || code is String,
       '`code` required for strategy $strategy',
     );
+    assert(
+      strategy.requiresTicket == false || ticket is String,
+      '`ticket` required for strategy $strategy',
+    );
 
     return await _fetchApiResponse(
       '/client/sign_ins/${signIn.id}/attempt_${stage}_factor',
@@ -398,6 +403,7 @@ class Api with Logging {
         'code': code,
         'password': password,
         'redirect_url': redirectUrl,
+        'ticket': ticket
       },
     );
   }

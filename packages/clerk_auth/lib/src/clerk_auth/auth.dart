@@ -313,7 +313,7 @@ class Auth {
   /// until the user is signed in.
   ///
   Future<void> createSignIn({
-    required Strategy strategy,
+    Strategy? strategy,
     String? identifier,
     String? password,
     String? code,

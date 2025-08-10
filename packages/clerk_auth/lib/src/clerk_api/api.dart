@@ -403,6 +403,22 @@ class Api with Logging {
     );
   }
 
+  /// Reset password according to the [SignIn].
+  ///
+  /// Certain strategies require specific parameters - for more details
+  /// see https://clerk.com/docs/reference/frontend-api/tag/Sign-Ins
+  ///
+  Future<ApiResponse> resetPassword(SignIn signIn,
+      {required String password, required bool signOutOfOtherSessions}) async {
+    return await _fetchApiResponse(
+      '/client/sign_ins/${signIn.id}/reset_password',
+      params: {
+        'password': password,
+        'sign_out_of_other_sessions': signOutOfOtherSessions
+      },
+    );
+  }
+
   // oAuth
 
   /// Connect an [ExternalAccount]

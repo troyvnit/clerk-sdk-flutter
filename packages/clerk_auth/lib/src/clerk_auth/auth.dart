@@ -307,6 +307,27 @@ class Auth {
     }
   }
 
+  /// Reset password
+  Future<void> resetPassword({
+    required String password,
+    required bool signOutOfOtherSessions,
+  }) async {
+    if (client.signIn != null) {
+      await _api
+          .resetPassword(client.signIn!,
+              password: password,
+              signOutOfOtherSessions: signOutOfOtherSessions)
+          .then(_housekeeping);
+    } else {
+      addError(
+        const AuthError(
+          code: AuthErrorCode.signInError,
+          message: 'Client\'s Sign-in is mising.',
+        ),
+      );
+    }
+  }
+
   /// Progressively create sign in
   ///
   /// Can be repeatedly called with updated parameters
@@ -389,10 +410,7 @@ class Auth {
             .sendOauthToken(signIn, strategy: strategy, token: token)
             .then(_housekeeping);
 
-      case SignIn signIn
-          when strategy.isPasswordResetter &&
-              code is String &&
-              password is String:
+      case SignIn signIn when strategy.isPasswordResetter && code is String:
         await _api
             .attemptSignIn(
               signIn,

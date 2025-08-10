@@ -173,11 +173,7 @@ class Strategy {
       const [resetPasswordEmailCode, resetPasswordPhoneCode].contains(this);
 
   /// requires password?
-  bool get requiresPassword => const [
-        password,
-        resetPasswordEmailCode,
-        resetPasswordPhoneCode
-      ].contains(this);
+  bool get requiresPassword => const [password].contains(this);
 
   /// requires code?
   bool get requiresCode => const [

@@ -42,6 +42,15 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
   final _values = <clerk.UserAttribute, String?>{};
   bool _isObscured = true;
 
+  static const _signUpAttributes = [
+    clerk.UserAttribute.username,
+    clerk.UserAttribute.emailAddress,
+    clerk.UserAttribute.phoneNumber,
+    clerk.UserAttribute.firstName,
+    clerk.UserAttribute.lastName,
+    clerk.UserAttribute.password,
+  ];
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -127,11 +136,12 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
     final hasPassword =
         _values[clerk.UserAttribute.password]?.isNotEmpty == true;
     final l10ns = authState.localizationsOf(context);
-    final attributes = authState.env.user.attributes.entries
-        .where((a) => a.value.isEnabled)
-        .map(_Attribute.fromMapEntry)
-        .toList(growable: false)
-      ..sort((a, b) => a.index - b.index);
+    final attributes = [
+      for (final attr in _signUpAttributes) //
+        if (authState.env.user.attributes[attr]
+            case clerk.UserAttributeData data when data.isEnabled) //
+          _Attribute(attr, data),
+    ];
 
     bool isMissing(clerk.UserAttribute attr) =>
         signUp?.missing(attr.relatedField) == true;
@@ -189,7 +199,7 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
                   verticalMargin16,
                   ClerkTextFormField(
                     initial: _values[clerk.UserAttribute.passwordConfirmation],
-                    label: attribute.title(l10ns),
+                    label: l10ns.grammar.toSentence(l10ns.passwordConfirmation),
                     isOptional: attribute.isOptional,
                     obscureText: _isObscured,
                     onObscure: _onObscure,
@@ -308,24 +318,17 @@ class _CodeInputBoxState extends State<_CodeInputBox> {
 }
 
 class _Attribute {
-  const _Attribute(this.attr, this.isRequired);
-
-  factory _Attribute.fromMapEntry(
-    MapEntry<clerk.UserAttribute, clerk.UserAttributeData> entry,
-  ) =>
-      _Attribute(entry.key, entry.value.isRequired);
+  const _Attribute(this.attr, this.data);
 
   final clerk.UserAttribute attr;
 
-  final bool isRequired;
-
-  int get index => attr.index;
+  final clerk.UserAttributeData data;
 
   bool get isPhoneNumber => attr == clerk.UserAttribute.phoneNumber;
 
   bool get isPassword => attr == clerk.UserAttribute.password;
 
-  bool get isOptional => isRequired == false;
+  bool get isOptional => data.isRequired == false;
 
   String title(ClerkSdkLocalizations l10ns) =>
       l10ns.grammar.toSentence(attr.localizedMessage(l10ns));

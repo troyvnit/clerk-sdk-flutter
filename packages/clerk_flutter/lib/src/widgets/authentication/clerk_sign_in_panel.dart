@@ -23,11 +23,7 @@ import 'package:flutter/material.dart';
 ///
 class ClerkSignInPanel extends StatefulWidget {
   /// Constructs a new [ClerkSignInPanel].
-  const ClerkSignInPanel({super.key, this.isActive = false});
-
-  /// [true] if we are currently signing in
-  @Deprecated('no longer needed - will be removed')
-  final bool isActive;
+  const ClerkSignInPanel({super.key});
 
   @override
   State<ClerkSignInPanel> createState() => _ClerkSignInPanelState();

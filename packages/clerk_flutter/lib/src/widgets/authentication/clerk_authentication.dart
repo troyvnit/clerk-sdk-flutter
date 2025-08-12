@@ -76,11 +76,11 @@ class _ClerkAuthenticationState extends State<ClerkAuthentication>
                         ),
                       Closeable(
                         closed: _state.isSigningIn == false,
-                        child: ClerkSignInPanel(isActive: _state.isSigningIn),
+                        child: const ClerkSignInPanel(),
                       ),
                       Closeable(
                         closed: _state.isSigningUp == false,
-                        child: ClerkSignUpPanel(isActive: _state.isSigningUp),
+                        child: const ClerkSignUpPanel(),
                       ),
                     ],
                   ],

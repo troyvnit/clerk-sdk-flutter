@@ -9,8 +9,10 @@ import 'package:clerk_flutter/src/widgets/ui/clerk_phone_number_form_field.dart'
 import 'package:clerk_flutter/src/widgets/ui/clerk_text_form_field.dart';
 import 'package:clerk_flutter/src/widgets/ui/closeable.dart';
 import 'package:clerk_flutter/src/widgets/ui/common.dart';
+import 'package:clerk_flutter/src/widgets/ui/style/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:phone_input/phone_input_package.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 typedef _ValueChanger = void Function(String value);
 
@@ -25,11 +27,7 @@ typedef _ValueChanger = void Function(String value);
 @immutable
 class ClerkSignUpPanel extends StatefulWidget {
   /// Construct a new [ClerkSignUpPanel]
-  const ClerkSignUpPanel({super.key, this.isActive = false});
-
-  /// [true] if we are currently signing up
-  @Deprecated('no longer needed - will be removed')
-  final bool isActive;
+  const ClerkSignUpPanel({super.key});
 
   @override
   State<ClerkSignUpPanel> createState() => _ClerkSignUpPanelState();
@@ -41,6 +39,8 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
 
   final _values = <clerk.UserAttribute, String?>{};
   bool _isObscured = true;
+  bool _needsLegalAcceptance = true;
+  bool _hasLegalAcceptance = false;
 
   static const _signUpAttributes = [
     clerk.UserAttribute.username,
@@ -56,6 +56,9 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
     super.didChangeDependencies();
 
     final authState = ClerkAuth.of(context, listen: false);
+
+    _needsLegalAcceptance = authState.env.user.signUp.legalConsentEnabled;
+
     if (authState.signUp case clerk.SignUp signUp) {
       _values[clerk.UserAttribute.firstName] ??= signUp.firstName;
       _values[clerk.UserAttribute.lastName] ??= signUp.lastName;
@@ -84,7 +87,7 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
   }
 
   String? _valueOrNull(clerk.UserAttribute attr) =>
-      _values[attr]?.orNullIfEmpty;
+      _values[attr]?.trim().orNullIfEmpty;
 
   Future<void> _continue({
     String? code,
@@ -116,6 +119,8 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
             password: password,
             passwordConfirmation: passwordConfirmation,
             code: code,
+            legalAccepted:
+                _needsLegalAcceptance && _hasLegalAcceptance ? true : null,
           );
         }
       },
@@ -124,12 +129,23 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
 
   void _onObscure() => setState(() => _isObscured = !_isObscured);
 
+  void _acceptTerms() => setState(() => _hasLegalAcceptance = true);
+
   _ValueChanger _change(clerk.UserAttribute attr) =>
       (String value) => _values[attr] = value;
+
+  Widget _link(String label, String url) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => launchUrlString(url),
+      child: Text(label, style: ClerkTextStyle.clickable),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
+    final env = authState.env;
     final signUp = authState.signUp;
     final hasMissingFields = signUp?.missingFields.isNotEmpty == true;
     final unverifiedFields = signUp?.unverifiedFields ?? const [];
@@ -219,18 +235,48 @@ class _ClerkSignUpPanelState extends State<ClerkSignUpPanel>
             ],
           ),
         ),
-        ClerkMaterialButton(
-          onPressed: _continue,
-          label: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(child: Text(l10ns.cont)),
-              horizontalMargin4,
-              const Icon(Icons.arrow_right_sharp),
-            ],
+        Closeable(
+          closed: _needsLegalAcceptance && _hasLegalAcceptance == false,
+          child: ClerkMaterialButton(
+            onPressed: _continue,
+            label: Row(
+              children: [
+                horizontalMargin16,
+                Expanded(child: Center(child: Text(l10ns.cont))),
+                const SizedBox(
+                  width: 16,
+                  child: Icon(Icons.arrow_right_sharp),
+                ),
+              ],
+            ),
           ),
         ),
+        if (_needsLegalAcceptance) //
+          Closeable(
+            closed: _hasLegalAcceptance,
+            child: Padding(
+              padding: topPadding4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClerkMaterialButton(
+                    onPressed: _acceptTerms,
+                    label: Text(l10ns.acceptTerms),
+                  ),
+                  verticalMargin4,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (env.display.termsUrl case String termsUrl)
+                        _link(l10ns.termsAndConditions, termsUrl),
+                      if (env.display.privacyPolicyUrl case String privacyUrl)
+                        _link(l10ns.privacyPolicy, privacyUrl),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         verticalMargin32,
       ],
     );

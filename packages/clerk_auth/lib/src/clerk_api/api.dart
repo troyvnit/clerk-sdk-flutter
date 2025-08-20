@@ -264,11 +264,13 @@ class Api with Logging {
   Future<ApiResponse> prepareSignUp(
     SignUp signUp, {
     required Strategy strategy,
+    String? redirectUrl,
   }) async {
     return await _fetchApiResponse(
       '/client/sign_ups/${signUp.id}/prepare_verification',
       params: {
         'strategy': strategy,
+        'redirect_url': redirectUrl,
       },
     );
   }

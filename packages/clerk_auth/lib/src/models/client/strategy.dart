@@ -3,8 +3,6 @@ import 'package:clerk_auth/src/models/enums.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import 'field.dart';
-
 /// [Strategy] Clerk object
 ///
 /// A [Strategy] has a [name]. The various oAuth strategies ('oauth',
@@ -25,6 +23,7 @@ class Strategy {
   /// provider
   final String? provider;
 
+  static const _oauthTokenGoogleName = 'google_one_tap';
   static const _oauthToken = 'oauth_token';
   static const _oauthCustom = 'oauth_custom';
   static const _oauth = 'oauth';
@@ -49,12 +48,8 @@ class Strategy {
   /// oauth token apple strategy
   static const oauthTokenApple = Strategy(name: _oauthToken, provider: 'apple');
 
-  /// oauth token google strategy
-  static const oauthTokenGoogle =
-      Strategy(name: _oauthToken, provider: 'google');
-
-  /// google one tap strategy
-  static const googleOneTap = Strategy(name: 'google_one_tap');
+  /// google authentication token strategy (google one tap)
+  static const oauthTokenGoogle = Strategy(name: _oauthTokenGoogleName);
 
   /// the collected oauth strategies
   static final oauthStrategies = {
@@ -64,7 +59,6 @@ class Strategy {
     oauthFacebook.toString(): oauthFacebook,
     oauthTokenApple.toString(): oauthTokenApple,
     oauthTokenGoogle.toString(): oauthTokenGoogle,
-    googleOneTap.toString(): googleOneTap,
   };
 
   // verification strategies
@@ -108,6 +102,10 @@ class Strategy {
   /// web3 coinbase signature strategy
   static const web3CoinbaseSignature =
       Strategy(name: 'web3_coinbase_signature');
+
+  /// web3 okx wallet signature strategy
+  static const web3OkxWalletSignature =
+      Strategy(name: 'web3_okx_wallet_signature');
 
   /// the collected verification strategies
   static final verificationStrategies = {
@@ -155,11 +153,15 @@ class Strategy {
   /// is known?
   bool get isKnown => isUnknown == false;
 
-  /// is oauth?
-  bool get isOauth => const [_oauthToken, _oauthCustom, _oauth].contains(name);
+  /// is some variety of oauth?
+  bool get isOauth => name == _oauth || isOauthCustom || isOauthToken;
+
+  /// is oauth custom?
+  bool get isOauthCustom => name == _oauthCustom;
 
   /// is oauth token?
-  bool get isOauthToken => name == _oauthToken;
+  bool get isOauthToken =>
+      const [_oauthToken, _oauthTokenGoogleName].contains(name);
 
   /// is other strategy?
   bool get isOtherStrategy => isOauth == false && requiresPassword == false;
@@ -184,8 +186,14 @@ class Strategy {
       ].contains(this);
 
   /// requires signature?
-  bool get requiresSignature =>
-      const [web3MetamaskSignature, web3CoinbaseSignature].contains(this);
+  bool get requiresSignature => const [
+        web3MetamaskSignature,
+        web3CoinbaseSignature,
+        web3OkxWalletSignature
+      ].contains(this);
+
+  /// required verification?
+  bool get requiresVerification => requiresCode || requiresSignature;
 
   /// requires redirect?
   bool get requiresRedirect =>
@@ -224,21 +232,6 @@ class Strategy {
     }
 
     return null;
-  }
-
-  /// For a given [Field], return an appropriate [Strategy], or
-  /// throw an error
-  ///
-  static Strategy forField(Field field) {
-    return switch (field) {
-      Field.phoneNumber => Strategy.phoneCode,
-      Field.emailAddress => Strategy.emailCode,
-      _ => throw AuthError(
-          message: 'No strategy associated with {arg}',
-          argument: field.name,
-          code: AuthErrorCode.noAssociatedStrategy,
-        ),
-    };
   }
 
   /// For a given [UserAttribute], return an appropriate [Strategy], or

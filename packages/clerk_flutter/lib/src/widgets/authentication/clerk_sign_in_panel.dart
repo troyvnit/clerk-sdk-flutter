@@ -23,11 +23,7 @@ import 'package:flutter/material.dart';
 ///
 class ClerkSignInPanel extends StatefulWidget {
   /// Constructs a new [ClerkSignInPanel].
-  const ClerkSignInPanel({super.key, this.isActive = false});
-
-  /// [true] if we are currently signing in
-  @Deprecated('no longer needed - will be removed')
-  final bool isActive;
+  const ClerkSignInPanel({super.key});
 
   @override
   State<ClerkSignInPanel> createState() => _ClerkSignInPanelState();
@@ -39,6 +35,7 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
   String _identifier = '';
   String _password = '';
   String _code = '';
+  bool _isObscured = true;
 
   bool get _hasIdent => _identifier.isNotEmpty;
 
@@ -64,6 +61,10 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
         });
       }
 
+      final redirectUri = strategy == clerk.Strategy.emailLink
+          ? authState.emailVerificationRedirectUri(context)
+          : null;
+
       await authState.safelyCall(
         context,
         () => authState.attemptSignIn(
@@ -71,6 +72,7 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
           identifier: _identifier,
           password: _password.orNullIfEmpty,
           code: newCode.orNullIfEmpty,
+          redirectUrl: redirectUri?.toString(),
         ),
         onError: _onError,
       );
@@ -81,11 +83,13 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
     await ClerkForgottenPasswordPanel.show(context);
   }
 
+  void _onObscure() => setState(() => _isObscured = !_isObscured);
+
   @override
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
     final env = authState.env;
-    if (env.hasIdentificationStrategies == false) {
+    if (authState.isNotAvailable || env.hasIdentificationStrategies == false) {
       return emptyWidget;
     }
 
@@ -93,7 +97,8 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
     final factor = authState.client.signIn?.supportedFirstFactors
         .firstWhereOrNull((f) => f.strategy == _strategy);
     final safeIdentifier = factor?.safeIdentifier;
-    final otherStrategies = env.otherStrategies.where(StrategyButton.supports);
+    final otherStrategies =
+        env.config.firstFactors.where(StrategyButton.supports);
     final canResetPassword =
         env.config.firstFactors.any((f) => f.isPasswordResetter);
 
@@ -163,7 +168,8 @@ class _ClerkSignInPanelState extends State<ClerkSignInPanel>
                   padding: verticalPadding8,
                   child: ClerkTextFormField(
                     label: localizations.password,
-                    obscureText: true,
+                    obscureText: _isObscured,
+                    onObscure: _onObscure,
                     onChanged: (password) => _password = password,
                     onSubmit: (_) =>
                         _continue(authState, strategy: clerk.Strategy.password),

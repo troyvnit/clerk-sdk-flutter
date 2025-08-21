@@ -18,8 +18,8 @@ for your users to sign up, sign in, and manage their profile from your Flutter c
 
 ## Requirements
 
-* Flutter >= 3.10.0
-* Dart >= 3.0.0
+* Flutter >= 3.27.4
+* Dart >= 3.6.2
 
 ## In Development
 
@@ -29,6 +29,10 @@ for your users to sign up, sign in, and manage their profile from your Flutter c
 
 To use this package you will need to go to your [Clerk Dashboard](https://dashboard.clerk.com/)
 create an application and copy the public and publishable API keys into your project.
+
+The bundled example app requires one, possibly two, variables to be set up in your environment:
+- `publishable_key`: your Clerk publishable key, usually starting `pk_`
+- `google_client_id`: the ID of your GCP web project, if you are using Google token oauth
 
 ```dart
 /// Example App

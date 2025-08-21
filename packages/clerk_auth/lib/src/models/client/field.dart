@@ -1,3 +1,4 @@
+import 'package:clerk_auth/clerk_auth.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -25,10 +26,14 @@ class Field {
   /// username
   static const username = Field._('username');
 
+  /// password
+  static const password = Field._('password');
+
   static final _values = <String, Field>{
     phoneNumber.name: phoneNumber,
     emailAddress.name: emailAddress,
     username.name: username,
+    password.name: password,
   };
 
   /// The [values] of the Fields
@@ -49,4 +54,13 @@ class Field {
 
   /// A display title for this attribute
   String get title => name.replaceAll('_', ' ');
+
+  /// return the appropriate [Field] for a [UserAttribute]
+  static Field? forUserAttribute(UserAttribute attribute) {
+    return switch (attribute) {
+      UserAttribute.phoneNumber => phoneNumber,
+      UserAttribute.emailAddress => emailAddress,
+      _ => null,
+    };
+  }
 }

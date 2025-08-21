@@ -18,9 +18,7 @@ import 'package:clerk_auth/src/models/api/api_response.dart';
 ///
 class Auth {
   /// Create an [Auth] object using appropriate Clerk credentials
-  Auth({required this.config})
-      : telemetry = Telemetry(config: config),
-        _api = Api(config: config);
+  Auth({required this.config});
 
   /// Use 'English' as the default locale
   static List<String> defaultLocalesLookup() => <String>['en'];
@@ -35,12 +33,14 @@ class Auth {
 
   static const _initialisationTimeout = Duration(milliseconds: 1000);
   static const _persistenceDelay = Duration(milliseconds: 500);
+  static const _refetchDelay = Duration(seconds: 10);
   static const _kClientKey = '\$client';
   static const _kEnvKey = '\$env';
   static const _codeLength = 6;
 
   Timer? _clientTimer;
   Timer? _persistenceTimer;
+  Timer? _refetchTimer;
   Map<String, dynamic> _persistableData = {};
 
   /// Stream of errors reported by the SDK of type [AuthError]
@@ -53,6 +53,9 @@ class Auth {
 
   /// Adds [error] to [errorStream]
   void addError(AuthError error) => _errors.add(error);
+
+  /// Are we not yet initialised?
+  bool get isNotAvailable => env.isEmpty;
 
   /// The [Environment] object
   ///
@@ -67,7 +70,7 @@ class Auth {
     _persistenceTimer = Timer(_persistenceDelay, _persistData);
   }
 
-  late Environment _env;
+  Environment _env = Environment.empty;
 
   /// The [Client] object
   ///
@@ -82,7 +85,7 @@ class Auth {
     _persistenceTimer = Timer(_persistenceDelay, _persistData);
   }
 
-  late Client _client;
+  Client _client = Client.empty;
 
   /// The current [SignIn] object, or null
   SignIn? get signIn => client.signIn;
@@ -118,28 +121,32 @@ class Auth {
   ///
   Future<void> initialize() async {
     await config.initialize();
+    telemetry = Telemetry(config: config);
+    _api = Api(config: config, sessionTokenSink: _sessionTokens.sink);
     await _api.initialize();
 
-    try {
-      client = await _api.createClient().timeout(_initialisationTimeout);
-    } on Exception {
+    final (client, env) = await _fetchClientAndEnv();
+
+    if (client.isEmpty) {
       final clientData = await config.persistor.read<String>(_kClientKey);
       if (clientData case String data) {
         _client = Client.fromJson(jsonDecode(data));
-      } else {
-        _client = Client.empty;
       }
+    } else {
+      this.client = client;
     }
 
-    try {
-      env = await _api.environment().timeout(_initialisationTimeout);
-    } on Exception {
+    if (env.isEmpty) {
       final envData = await config.persistor.read<String>(_kEnvKey);
       if (envData case String data) {
         _env = Environment.fromJson(jsonDecode(data));
-      } else {
-        _env = Environment.empty;
       }
+    } else {
+      this.env = env;
+    }
+
+    if (_client.isEmpty || _env.isEmpty) {
+      _refetchTimer = Timer.periodic(_refetchDelay, _retryFetchClientAndEnv);
     }
 
     await telemetry.initialize(
@@ -166,11 +173,37 @@ class Auth {
   void terminate() {
     _clientTimer?.cancel();
     _persistenceTimer?.cancel();
+    _refetchTimer?.cancel();
     _api.terminate();
     _errors.close();
     _sessionTokens.close();
     telemetry.terminate();
     config.terminate();
+  }
+
+  Future<void> _retryFetchClientAndEnv(_) async {
+    final (client, env) = await _fetchClientAndEnv();
+    if (client.isNotEmpty && env.isNotEmpty) {
+      this.client = client;
+      this.env = env;
+      _refetchTimer?.cancel();
+      _refetchTimer = null;
+      update();
+    }
+  }
+
+  Future<(Client, Environment)> _fetchClientAndEnv() async {
+    try {
+      final [client, env] = await Future.wait([
+        _api.createClient().timeout(_initialisationTimeout),
+        _api.environment().timeout(_initialisationTimeout),
+      ]);
+      return (client as Client, env as Environment);
+    } on Exception {
+      // either get both or neither (shouldn't initialise with different
+      // timestamped versions anyway)
+      return (Client.empty, Environment.empty);
+    }
   }
 
   ApiResponse _housekeeping(ApiResponse resp) {
@@ -368,22 +401,17 @@ class Auth {
     String? token,
     String? redirectUrl,
   }) async {
-    // oAuthToken
-    if (strategy.isOauthToken && (token is String || code is String)) {
-      await _api
-          .oauthTokenSignIn(strategy, token: token, code: code)
-          .then(_housekeeping);
+    if (strategy.isOauthToken) {
+      if (token?.isNotEmpty == true || code?.isNotEmpty == true) {
+        await _api
+            .createSignIn(strategy: strategy, token: token, code: code)
+            .then(_housekeeping);
+        update();
+      }
       return;
     }
 
-    // google one tap
-    if (strategy == Strategy.googleOneTap && token is String) {
-      await _api
-          .oauthTokenSignIn(Strategy.googleOneTap, token: token)
-          .then(_housekeeping);
-      return;
-    }
-
+    // Ensure we have a signIn object
     if (client.signIn == null) {
       // if password and identifier been presented, we can immediately attempt
       // a sign in;  if null they will be ignored
@@ -516,9 +544,13 @@ class Auth {
     String? password,
     String? passwordConfirmation,
     String? code,
-    String? token,
     String? signature,
+    String? redirectUrl,
+    bool? legalAccepted,
   }) async {
+    final hasVerificationCredential = code is String || signature is String;
+    final initialSignUp = client.signUp;
+
     if (password != passwordConfirmation) {
       throw const AuthError(
         message: "Password and password confirmation must match",
@@ -526,54 +558,62 @@ class Auth {
       );
     }
 
-    switch (client.signUp) {
-      case null:
-        await _api
-            .createSignUp(
-              strategy: strategy,
-              firstName: firstName,
-              lastName: lastName,
-              username: username,
-              emailAddress: emailAddress,
-              phoneNumber: phoneNumber,
-              password: password,
-              code: code,
-              token: token,
-            )
-            .then(_housekeeping);
-
-      case SignUp signUp when signUp.missingFields.isNotEmpty:
-        await _api
-            .updateSignUp(
-              signUp,
-              strategy: strategy,
-              firstName: firstName,
-              lastName: lastName,
-              username: username,
-              emailAddress: emailAddress,
-              phoneNumber: phoneNumber,
-              password: password,
-              code: code,
-              token: token,
-            )
-            .then(_housekeeping);
+    if (initialSignUp is! SignUp) {
+      await _api
+          .createSignUp(
+            strategy: strategy,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            legalAccepted: legalAccepted,
+          )
+          .then(_housekeeping);
     }
+
+    final hasCreatedSignUp =
+        initialSignUp is! SignUp && client.signUp is SignUp;
 
     if (client.user is! User) {
       switch (client.signUp) {
-        case SignUp signUp when strategy.requiresCode && code is String:
+        case SignUp signUp
+            when strategy.requiresVerification && hasVerificationCredential:
           await _api
-              .attemptSignUp(signUp, strategy: strategy, code: code)
+              .attemptSignUp(
+                signUp,
+                strategy: strategy,
+                code: code,
+                signature: signature,
+              )
               .then(_housekeeping);
 
         case SignUp signUp
             when signUp.status == Status.missingRequirements &&
                 signUp.missingFields.isEmpty &&
                 signUp.unverifiedFields.isNotEmpty:
-          for (final field in signUp.unverifiedFields) {
+          if (env.supportsPhoneCode && signUp.unverified(Field.phoneNumber)) {
             await _api
-                .prepareSignUp(signUp, strategy: Strategy.forField(field))
+                .prepareSignUp(signUp, strategy: Strategy.phoneCode)
                 .then(_housekeeping);
+          }
+
+          if (signUp.unverified(Field.emailAddress)) {
+            if (env.supportsEmailCode) {
+              await _api
+                  .prepareSignUp(signUp, strategy: Strategy.emailCode)
+                  .then(_housekeeping);
+            }
+            if (env.supportsEmailLink && redirectUrl is String) {
+              await _api
+                  .prepareSignUp(
+                    signUp,
+                    strategy: Strategy.emailLink,
+                    redirectUrl: redirectUrl,
+                  )
+                  .then(_housekeeping);
+            }
           }
 
         case SignUp signUp
@@ -582,11 +622,36 @@ class Auth {
           await _api
               .prepareSignUp(signUp, strategy: strategy)
               .then(_housekeeping);
-          await _api
-              .attemptSignUp(signUp,
-                  strategy: strategy, code: code, signature: signature)
-              .then(_housekeeping);
+          if (code is String || signature is String) {
+            await _api
+                .attemptSignUp(
+                  client.signUp!,
+                  strategy: strategy,
+                  code: code,
+                  signature: signature,
+                )
+                .then(_housekeeping);
+          }
       }
+    }
+
+    if (client.signUp case SignUp signUp
+        when hasCreatedSignUp == false && client.user is! User) {
+      // if we still don't have a user, but didn't create a SignUp object this time round,
+      // now is the time to update the preexisting SignUp object, in case of changes
+      await _api
+          .updateSignUp(
+            signUp,
+            strategy: strategy,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            legalAccepted: legalAccepted,
+          )
+          .then(_housekeeping);
     }
 
     update();

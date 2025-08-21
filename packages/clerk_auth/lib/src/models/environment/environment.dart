@@ -1,8 +1,4 @@
-import 'package:clerk_auth/src/models/client/strategy.dart';
-import 'package:clerk_auth/src/models/environment/config.dart';
-import 'package:clerk_auth/src/models/environment/display_config.dart';
-import 'package:clerk_auth/src/models/environment/organization_settings.dart';
-import 'package:clerk_auth/src/models/environment/user_settings.dart';
+import 'package:clerk_auth/clerk_auth.dart';
 import 'package:clerk_auth/src/models/informative_to_string_mixin.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -44,6 +40,9 @@ class Environment with InformativeToStringMixin {
   /// isEmpty?
   bool get isEmpty => this == empty;
 
+  /// is not empty?
+  bool get isNotEmpty => isEmpty == false;
+
   /// empty [Environment]
   static const empty = Environment();
 
@@ -55,8 +54,13 @@ class Environment with InformativeToStringMixin {
   List<Strategy> get strategies => config.identificationStrategies;
 
   /// [Iterable] of non-oauth and non-phone identification strategies
-  Iterable<Strategy> get identificationStrategies =>
-      strategies.where((i) => i.isOauth == false);
+  Iterable<Strategy> get identificationStrategies => strategies.where(
+        (i) => const [
+          Strategy.emailAddress,
+          Strategy.username,
+          Strategy.phoneNumber
+        ].contains(i),
+      );
 
   /// Do we have identification strategies?
   bool get hasIdentificationStrategies => identificationStrategies.isNotEmpty;
@@ -66,6 +70,21 @@ class Environment with InformativeToStringMixin {
 
   /// Do we have oauth strategies?
   bool get hasOauthStrategies => oauthStrategies.isNotEmpty;
+
+  bool _supports(UserAttribute attr, Strategy strategy) =>
+      user.attributes[attr]?.verifications.contains(strategy) == true;
+
+  /// Can we verify email verification with [Strategy.emailCode]?
+  bool get supportsEmailCode =>
+      _supports(UserAttribute.emailAddress, Strategy.emailCode);
+
+  /// Can we verify email verification with [Strategy.emailLink]?
+  bool get supportsEmailLink =>
+      _supports(UserAttribute.emailAddress, Strategy.emailLink);
+
+  /// Can we verify phone verification with [Strategy.phoneCode]?
+  bool get supportsPhoneCode =>
+      _supports(UserAttribute.phoneNumber, Strategy.phoneCode);
 
   /// [Iterable] of other strategies
   /// i.e. strategies that are neither oauth nor password-based

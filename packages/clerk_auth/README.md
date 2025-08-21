@@ -18,7 +18,7 @@ for your users to sign up, sign in, and manage their profile from your Dart code
 
 ## Requirements
 
-* Dart >= 3.0.0
+* Dart >= 3.6.2
 
 ## Example Usage
 
@@ -35,9 +35,21 @@ Future<void> main() async {
     config: const AuthConfig(
       publishableKey: '<YOUR-PUBLISHABLE-KEY>',
     ),
-    persistor: await DefaultPersistor.create(
-      storageDirectory: Directory.current,
+    persistor: DefaultPersistor(
+      getCacheDirectory: () => Directory.current,
     ),
+    // To enable running of the example in e.g. Flutter environments where
+    // [Directory.current] causes problems, use the `clerk_flutter` package and
+    // use:
+    // persistor: DefaultCachingPersistor(
+    //   getCacheDirectory: getApplicationDocumentsDirectory,
+    // )
+    // Which will use the correct directory for the platform your Flutter app
+    // is running on. You can also implement a bespoke [Persistor] specific
+    // to your applications storage mechanism,
+    //
+    // or replace the above line with...
+    // persistor: Persistor.none,
   );
 
   await auth.initialize();

@@ -127,6 +127,10 @@ class _ClerkForgottenPasswordPanelState
   @override
   Widget build(BuildContext context) {
     final authState = ClerkAuth.of(context);
+    if (authState.isNotAvailable) {
+      return emptyWidget;
+    }
+
     final l10ns = ClerkAuth.localizationsOf(context);
     final factors = authState.env.config.firstFactors
         .where((f) => f.isPasswordResetter)
@@ -171,7 +175,7 @@ class _ClerkForgottenPasswordPanelState
                 ClerkCodeInput(
                   key: const Key('code'),
                   code: _code,
-                  subtitle: l10ns.enterCodeSentTo(_identifier),
+                  subtitle: l10ns.enterTheCodeSentTo(_identifier),
                   onSubmit: _setCode,
                 ),
                 Closeable(

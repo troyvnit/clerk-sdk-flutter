@@ -16,20 +16,20 @@ import 'package:http/http.dart' as http;
 
 export 'package:clerk_auth/src/models/enums.dart' show SessionTokenPollMode;
 
+typedef _JsonObject = Map<String, dynamic>;
+
 /// [Api] manages communication with the Clerk frontend API
 ///
 class Api with Logging {
   /// Create an [Api] object
   ///
-  Api({
-    required this.config,
-    this.sessionTokenSink,
-  })  : _tokenCache = TokenCache(
-          persistor: config.persistor,
-          publishableKey: config.publishableKey,
-        ),
-        _domain = _deriveDomainFrom(config.publishableKey),
-        _testMode = config.isTestMode;
+  Api({required this.config, this.sessionTokenSink})
+    : _tokenCache = TokenCache(
+        persistor: config.persistor,
+        publishableKey: config.publishableKey,
+      ),
+      _domain = _deriveDomainFrom(config.publishableKey),
+      _testMode = config.isTestMode;
 
   /// The config used to initialize this api instance.
   final AuthConfig config;
@@ -50,6 +50,7 @@ class Api with Logging {
   static const _kClerkSessionId = '_clerk_session_id';
   static const _kClientKey = 'client';
   static const _kErrorsKey = 'errors';
+  static const _kMetaKey = 'meta';
   static const _kIsNative = '_is_native';
   static const _kJwtKey = 'jwt';
   static const _kOrganizationId = 'organization_id';
@@ -92,7 +93,7 @@ class Api with Logging {
   Future<Environment> environment() async {
     final resp = await _fetch(path: '/environment', method: HttpMethod.get);
     if (resp.statusCode == HttpStatus.ok) {
-      final body = json.decode(resp.body) as Map<String, dynamic>;
+      final body = json.decode(resp.body) as _JsonObject;
       final env = Environment.fromJson(body);
 
       _testMode = env.config.testMode && config.isTestMode;
@@ -110,8 +111,10 @@ class Api with Logging {
       headers: _headers(method: method),
     );
     if (resp.statusCode == HttpStatus.ok) {
-      final body = json.decode(resp.body) as Map<String, dynamic>;
-      return Client.fromJson(body[_kResponseKey]);
+      final body = json.decode(resp.body) as _JsonObject;
+      final client = Client.fromJson(body[_kResponseKey]);
+      _tokenCache.updateFrom(resp, client);
+      return client;
     }
     return Client.empty;
   }
@@ -120,7 +123,7 @@ class Api with Logging {
   Future<Client> createClient() async {
     if (_tokenCache.hasClientToken) {
       final client = await currentClient();
-      if (client.isEmpty == false) return client;
+      if (client.isNotEmpty) return client;
     }
 
     return await _fetchClient(method: HttpMethod.post);
@@ -195,6 +198,7 @@ class Api with Logging {
     String? web3Wallet,
     String? code,
     String? token,
+    bool? legalAccepted,
     Map<String, dynamic>? metadata,
   }) async {
     return await _fetchApiResponse(
@@ -210,8 +214,9 @@ class Api with Logging {
         'web3_wallet': web3Wallet,
         'code': code,
         'token': token,
-        if (metadata is Map) //
-          'unsafe_metadata': json.encode(metadata!),
+        'legal_accepted': legalAccepted,
+        if (metadata case Map<String, dynamic> metadata) //
+          'unsafe_metadata': json.encode(metadata),
       },
     );
   }
@@ -230,6 +235,7 @@ class Api with Logging {
     String? web3Wallet,
     String? code,
     String? token,
+    bool? legalAccepted,
     Map<String, dynamic>? metadata,
   }) async {
     return await _fetchApiResponse(
@@ -246,8 +252,9 @@ class Api with Logging {
         'web3_wallet': web3Wallet,
         'code': code,
         'token': token,
-        if (metadata is Map) //
-          'unsafe_metadata': json.encode(metadata!),
+        'legal_accepted': legalAccepted,
+        if (metadata case Map<String, dynamic> metadata) //
+          'unsafe_metadata': json.encode(metadata),
       },
     );
   }
@@ -257,12 +264,11 @@ class Api with Logging {
   Future<ApiResponse> prepareSignUp(
     SignUp signUp, {
     required Strategy strategy,
+    String? redirectUrl,
   }) async {
     return await _fetchApiResponse(
       '/client/sign_ups/${signUp.id}/prepare_verification',
-      params: {
-        'strategy': strategy,
-      },
+      params: {'strategy': strategy, 'redirect_url': redirectUrl},
     );
   }
 
@@ -285,10 +291,7 @@ class Api with Logging {
 
     return await _fetchApiResponse(
       '/client/sign_ups/${signUp.id}/attempt_verification',
-      params: {
-        'strategy': strategy,
-        'code': code,
-      },
+      params: {'strategy': strategy, 'code': code},
     );
   }
 
@@ -300,20 +303,25 @@ class Api with Logging {
   /// then sign in will be attempted, and a [Session] created on the [Client] if
   /// successful
   ///
-  Future<ApiResponse> createSignIn(
-      {Strategy? strategy,
-      String? identifier,
-      String? password,
-      String? redirectUrl,
-      String? ticket}) async {
+  Future<ApiResponse> createSignIn({
+    Strategy? strategy,
+    String? identifier,
+    String? password,
+    String? token,
+    String? code,
+    String? redirectUrl,
+    String? ticket,
+  }) async {
     return await _fetchApiResponse(
       '/client/sign_ins',
       params: {
         'strategy': strategy,
         'identifier': identifier,
         'password': password,
+        'token': token,
+        'code': code,
         'redirect_url': redirectUrl,
-        'ticket': ticket
+        'ticket': ticket,
       },
     );
   }
@@ -327,10 +335,7 @@ class Api with Logging {
     final resp = await _fetchApiResponse(
       '/me/external_accounts',
       withSession: true,
-      params: {
-        'strategy': strategy,
-        'redirect_url': redirectUrl,
-      },
+      params: {'strategy': strategy, 'redirect_url': redirectUrl},
     );
     return resp;
   }
@@ -408,13 +413,16 @@ class Api with Logging {
   /// Certain strategies require specific parameters - for more details
   /// see https://clerk.com/docs/reference/frontend-api/tag/Sign-Ins
   ///
-  Future<ApiResponse> resetPassword(SignIn signIn,
-      {required String password, required bool signOutOfOtherSessions}) async {
+  Future<ApiResponse> resetPassword(
+    SignIn signIn, {
+    required String password,
+    required bool signOutOfOtherSessions,
+  }) async {
     return await _fetchApiResponse(
       '/client/sign_ins/${signIn.id}/reset_password',
       params: {
         'password': password,
-        'sign_out_of_other_sessions': signOutOfOtherSessions
+        'sign_out_of_other_sessions': signOutOfOtherSessions,
       },
     );
   }
@@ -430,10 +438,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/me/external_accounts',
       withSession: true,
-      params: {
-        'strategy': strategy,
-        'redirect_url': redirectUrl,
-      },
+      params: {'strategy': strategy, 'redirect_url': redirectUrl},
     );
   }
 
@@ -458,23 +463,6 @@ class Api with Logging {
     );
   }
 
-  /// Send a token and code supplied by an oAuth provider to the back end
-  ///
-  Future<ApiResponse> oauthTokenSignIn(
-    Strategy strategy, {
-    String? token,
-    String? code,
-  }) async {
-    return await _fetchApiResponse(
-      '/client/sign_ins',
-      params: {
-        'strategy': strategy,
-        'token': token,
-        'code': code,
-      },
-    );
-  }
-
   /// Send a token received from an oAuth provider to the back end
   ///
   Future<ApiResponse> sendOauthToken(
@@ -485,10 +473,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/client/sign_ins/${signIn.id}',
       method: HttpMethod.get,
-      params: {
-        'strategy': strategy,
-        'rotating_token_nonce': token,
-      },
+      params: {'strategy': strategy, 'rotating_token_nonce': token},
     );
   }
 
@@ -521,8 +506,9 @@ class Api with Logging {
         'primary_email_address_id': user.primaryEmailAddressId,
         'primary_phone_number_id': user.primaryPhoneNumberId,
         'primary_web3_wallet_id': user.primaryWeb3WalletId,
-        'unsafe_metadata':
-            user.hasMetadata ? json.encode(user.unsafeMetadata) : null,
+        'unsafe_metadata': user.hasMetadata
+            ? json.encode(user.unsafeMetadata)
+            : null,
       },
     );
   }
@@ -569,9 +555,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/me/remove_password',
       withSession: true,
-      params: {
-        'current_password': currentPassword,
-      },
+      params: {'current_password': currentPassword},
     );
   }
 
@@ -586,9 +570,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/me/${type.urlSegment}',
       withSession: true,
-      params: {
-        type.name: type.sanitize(identifier),
-      },
+      params: {type.name: type.sanitize(identifier)},
     );
   }
 
@@ -600,9 +582,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/me/${identifier.type.urlSegment}/${identifier.id}/prepare_verification',
       withSession: true,
-      params: {
-        'strategy': identifier.type.verificationStrategy,
-      },
+      params: {'strategy': identifier.type.verificationStrategy},
     );
   }
 
@@ -615,9 +595,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/me/${identifier.type.urlSegment}/${identifier.id}/attempt_verification',
       withSession: true,
-      params: {
-        'code': code,
-      },
+      params: {'code': code},
     );
   }
 
@@ -646,7 +624,7 @@ class Api with Logging {
       withSession: true,
       params: {
         'name': name,
-        _kClerkSessionId: session?.id, // An explict session ID, if supplied
+        _kClerkSessionId: session?.id, // An explicit session ID, if supplied
       },
     );
   }
@@ -661,10 +639,7 @@ class Api with Logging {
       '/me/organization_invitations',
       method: HttpMethod.get,
       withSession: true,
-      params: {
-        'offset': offset,
-        'limit': limit,
-      },
+      params: {'offset': offset, 'limit': limit},
     );
   }
 
@@ -679,10 +654,7 @@ class Api with Logging {
       '/organizations/${org.id}/domains',
       method: HttpMethod.get,
       withSession: true,
-      params: {
-        'offset': offset,
-        'limit': limit,
-      },
+      params: {'offset': offset, 'limit': limit},
     );
   }
 
@@ -699,16 +671,11 @@ class Api with Logging {
 
   /// Add a [Domain] to an [Organization]
   ///
-  Future<ApiResponse> createDomain(
-    Organization org,
-    String name,
-  ) async {
+  Future<ApiResponse> createDomain(Organization org, String name) async {
     return await _fetchApiResponse(
       '/organizations/${org.id}/domains',
       withSession: true,
-      params: {
-        'name': name,
-      },
+      params: {'name': name},
     );
   }
 
@@ -722,9 +689,7 @@ class Api with Logging {
     return await _fetchApiResponse(
       '/organizations/${org.id}/domains/$domainId/update_enrollment_mode',
       withSession: true,
-      params: {
-        'enrollment_mode': mode,
-      },
+      params: {'enrollment_mode': mode},
     );
   }
 
@@ -743,7 +708,7 @@ class Api with Logging {
       params: {
         'name': name,
         'slug': slug,
-        _kClerkSessionId: session?.id, // An explict session ID, if supplied
+        _kClerkSessionId: session?.id, // An explicit session ID, if supplied
       },
     );
   }
@@ -759,7 +724,7 @@ class Api with Logging {
       method: HttpMethod.delete,
       withSession: true,
       params: {
-        _kClerkSessionId: session?.id, // An explict session ID, if supplied
+        _kClerkSessionId: session?.id, // An explicit session ID, if supplied
       },
     );
   }
@@ -789,7 +754,7 @@ class Api with Logging {
       method: HttpMethod.delete,
       withSession: true,
       params: {
-        _kClerkSessionId: session?.id, // An explict session ID, if supplied
+        _kClerkSessionId: session?.id, // An explicit session ID, if supplied
       },
     );
   }
@@ -830,17 +795,18 @@ class Api with Logging {
       final resp = await _fetch(
         path: path,
         headers: _headers(),
-        params: {
+        nullableParams: {
           if (org case Organization org) //
             _kOrganizationId: org.externalId,
         },
-        nullableKeys: [_kOrganizationId],
       );
       if (resp.statusCode == HttpStatus.ok) {
-        final body = json.decode(resp.body) as Map<String, dynamic>;
+        final body = json.decode(resp.body) as _JsonObject;
         final token = body[_kJwtKey] as String;
-        final sessionToken =
-            _tokenCache.makeAndCacheSessionToken(token, templateName);
+        final sessionToken = _tokenCache.makeAndCacheSessionToken(
+          token,
+          templateName,
+        );
         sessionTokenSink?.add(sessionToken);
         return sessionToken;
       }
@@ -876,9 +842,7 @@ class Api with Logging {
       return _processResponse(resp);
     } catch (error, stacktrace) {
       logSevere('Error during fetch', error, stacktrace);
-      return ApiResponse.fatal(
-        error: ApiError(message: error.toString()),
-      );
+      return ApiResponse.fatal(error: ApiError(message: error.toString()));
     }
   }
 
@@ -886,7 +850,7 @@ class Api with Logging {
     String url, {
     HttpMethod method = HttpMethod.post,
     Map<String, String>? headers,
-    Map<String, dynamic>? params,
+    _JsonObject? params,
     bool withSession = false,
   }) async {
     try {
@@ -909,60 +873,72 @@ class Api with Logging {
       );
     } catch (error, stacktrace) {
       logSevere('Error during fetch', error, stacktrace);
-      return ApiResponse.fatal(
-        error: ApiError(message: error.toString()),
-      );
+      return ApiResponse.fatal(error: ApiError(message: error.toString()));
     }
   }
 
   ApiResponse _processResponse(http.Response resp) {
-    final body = json.decode(resp.body) as Map<String, dynamic>;
-    final errors = body[_kErrorsKey] != null
-        ? List<Map<String, dynamic>>.from(body[_kErrorsKey])
-            .map(ApiError.fromJson)
-            .toList()
-        : null;
-    final [clientData, responseData] = switch (body[_kClientKey]) {
-      Map<String, dynamic> client when client.isNotEmpty => [
-          client,
-          body[_kResponseKey],
-        ],
-      _ => [body[_kResponseKey], null],
-    };
-    if (clientData case Map<String, dynamic> clientJson) {
-      final client = Client.fromJson(clientJson);
+    final body = json.decode(resp.body) as _JsonObject;
+    final errors = _extractErrors(body[_kErrorsKey]);
+    final (clientData, responseData) = _extractClientAndResponse(body);
+    if (clientData is _JsonObject) {
+      final client = Client.fromJson(clientData);
       _tokenCache.updateFrom(resp, client);
       return ApiResponse(
         client: client,
         status: resp.statusCode,
         errors: errors,
-        response: switch (responseData) {
-          Map<String, dynamic> response => response,
-          _ => null,
-        },
+        response: responseData,
       );
     } else {
-      logSevere(body);
-      return ApiResponse(
-        status: resp.statusCode,
-        errors: errors,
-      );
+      return ApiResponse(status: resp.statusCode, errors: errors);
     }
+  }
+
+  (_JsonObject?, _JsonObject?) _extractClientAndResponse(_JsonObject body) {
+    final response = switch (body[_kResponseKey]) {
+      _JsonObject response when response.isNotEmpty => response,
+      _ => null,
+    };
+
+    switch (body[_kClientKey] ?? body[_kMetaKey]?[_kClientKey]) {
+      case _JsonObject client when client.isNotEmpty:
+        return (client, response);
+      default:
+        return (response, null);
+    }
+  }
+
+  List<ApiError>? _extractErrors(List<dynamic>? data) {
+    if (data == null) {
+      return null;
+    }
+
+    logSevere(data);
+    return List<_JsonObject>.from(
+      data,
+    ).map(ApiError.fromJson).toList(growable: false);
   }
 
   Future<http.Response> _fetch({
     required String path,
     HttpMethod method = HttpMethod.post,
     Map<String, String>? headers,
-    Map<String, dynamic>? params,
+    _JsonObject? params,
+    _JsonObject? nullableParams,
     bool withSession = false,
-    List<String>? nullableKeys,
   }) async {
-    final parsedParams = {...?params}..removeWhere(
-        (key, value) => value == null && nullableKeys?.contains(key) != true,
-      );
-    final queryParams =
-        _queryParams(method, withSession: withSession, params: parsedParams);
+    final parsedParams = {
+      for (final entry in (params ?? const {}).entries)
+        if (entry.value != null) //
+          entry.key: entry.value,
+      ...?nullableParams,
+    };
+    final queryParams = _queryParams(
+      method,
+      withSession: withSession,
+      params: parsedParams,
+    );
     final uri = _uri(path, params: queryParams);
 
     final resp = await config.httpService.send(
@@ -988,10 +964,10 @@ class Api with Logging {
     return resp;
   }
 
-  Map<String, dynamic> _queryParams(
+  _JsonObject _queryParams(
     HttpMethod method, {
     bool withSession = false,
-    Map<String, dynamic>? params,
+    _JsonObject? params,
   }) {
     final sessionId =
         params?.remove(_kClerkSessionId)?.toString() ?? _tokenCache.sessionId;
@@ -1005,7 +981,7 @@ class Api with Logging {
     };
   }
 
-  Uri _uri(String path, {Map<String, dynamic>? params}) {
+  Uri _uri(String path, {_JsonObject? params}) {
     return Uri(
       scheme: _scheme,
       host: _domain,

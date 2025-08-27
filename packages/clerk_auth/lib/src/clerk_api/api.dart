@@ -920,6 +920,13 @@ class Api with Logging {
     ).map(ApiError.fromJson).toList(growable: false);
   }
 
+  dynamic _ensureNotNullOrEmpty(dynamic param) {
+    if (param case String param) {
+      return param.trim().orNullIfEmpty;
+    }
+    return param;
+  }
+
   Future<http.Response> _fetch({
     required String path,
     HttpMethod method = HttpMethod.post,
@@ -929,9 +936,10 @@ class Api with Logging {
     bool withSession = false,
   }) async {
     final parsedParams = {
-      for (final entry in (params ?? const {}).entries)
-        if (entry.value != null) //
-          entry.key: entry.value,
+      if (params?.entries case final entries?) //
+        for (final MapEntry(:key, :value) in entries) //
+          if (_ensureNotNullOrEmpty(value) case final value?) //
+            key: value,
       ...?nullableParams,
     };
     final queryParams = _queryParams(
@@ -1000,7 +1008,7 @@ class Api with Logging {
       HttpHeaders.contentTypeHeader: method.isGet
           ? 'application/json'
           : 'application/x-www-form-urlencoded',
-      if (_tokenCache.clientToken.isNotEmpty) //
+      if (_tokenCache.hasClientToken) //
         HttpHeaders.authorizationHeader: _tokenCache.clientToken,
       _kClerkAPIVersion: ClerkConstants.clerkApiVersion,
       _kXFlutterSDKVersion: ClerkConstants.flutterSdkVersion,

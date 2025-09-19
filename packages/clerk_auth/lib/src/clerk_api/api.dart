@@ -503,23 +503,21 @@ class Api with Logging {
 
   /// Update details pertaining to the current [User]
   ///
-  Future<ApiResponse> updateUser(User user, Config config) async {
+  Future<ApiResponse> updateUser({
+    String? username,
+    String? firstName,
+    String? lastName,
+    Map<String, dynamic>? metadata,
+  }) async {
     return await _fetchApiResponse(
       '/me',
       method: HttpMethod.patch,
       withSession: true,
       params: {
-        if (config.allowsUsername) //
-          'username': user.username,
-        if (config.allowsFirstName) //
-          'first_name': user.firstName,
-        if (config.allowsLastName) //
-          'last_name': user.lastName,
-        'primary_email_address_id': user.primaryEmailAddressId,
-        'primary_phone_number_id': user.primaryPhoneNumberId,
-        'primary_web3_wallet_id': user.primaryWeb3WalletId,
-        'unsafe_metadata':
-            user.hasMetadata ? json.encode(user.unsafeMetadata) : null,
+        'username': username,
+        'first_name': firstName,
+        'last_name': lastName,
+        'unsafe_metadata': metadata != null ? json.encode(metadata) : null,
       },
     );
   }

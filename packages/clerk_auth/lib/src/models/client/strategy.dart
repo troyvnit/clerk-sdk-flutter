@@ -1,6 +1,5 @@
 import 'package:clerk_auth/src/clerk_auth/auth_error.dart';
 import 'package:clerk_auth/src/models/enums.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 /// [Strategy] Clerk object
@@ -9,7 +8,6 @@ import 'package:meta/meta.dart';
 /// 'oauth_token' and 'oauth_custom') also have a [provider]
 ///
 @immutable
-@JsonSerializable()
 class Strategy {
   /// Constructor for [Strategy]
   const Strategy({required this.name, this.provider});
@@ -206,8 +204,11 @@ class Strategy {
   /// required verification?
   bool get requiresVerification => requiresCode || requiresSignature;
 
+  /// is Enterprise SSO?
+  bool get isEnterpriseSSO => this == enterpriseSSO;
+
   /// is SSO?
-  bool get isSSO => name == _oauth || this == enterpriseSSO;
+  bool get isSSO => name == _oauth || isEnterpriseSSO;
 
   /// requires redirect?
   bool get requiresRedirect =>

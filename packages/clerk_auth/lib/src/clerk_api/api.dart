@@ -242,6 +242,7 @@ class Api with Logging {
     String? web3Wallet,
     String? code,
     String? token,
+    String? redirectUrl,
     bool? legalAccepted,
     Map<String, dynamic>? metadata,
   }) async {
@@ -260,6 +261,7 @@ class Api with Logging {
         'code': code,
         'token': token,
         'legal_accepted': legalAccepted,
+        'redirect_url': redirectUrl,
         if (metadata case Map<String, dynamic> metadata) //
           'unsafe_metadata': json.encode(metadata),
       },
@@ -454,9 +456,18 @@ class Api with Logging {
 
   /// After signing in via oauth, transfer the [SignUp] into an authenticated [User]
   ///
-  Future<ApiResponse> transfer() async {
+  Future<ApiResponse> transferSignUp() async {
     return await _fetchApiResponse(
       '/client/sign_ups',
+      params: {'transfer': true},
+    );
+  }
+
+  /// After signing in via oauth, transfer the [SignIn] into an authenticated [User]
+  ///
+  Future<ApiResponse> transferSignIn() async {
+    return await _fetchApiResponse(
+      '/client/sign_ins',
       params: {'transfer': true},
     );
   }
@@ -464,12 +475,12 @@ class Api with Logging {
   /// Send a token received from an oAuth provider to the back end
   ///
   Future<ApiResponse> sendOauthToken(
-    SignIn signIn, {
+    AuthObject authObject, {
     required Strategy strategy,
     required String token,
   }) async {
     return await _fetchApiResponse(
-      '/client/sign_ins/${signIn.id}',
+      '/client/${authObject.urlType}/${authObject.id}',
       method: HttpMethod.get,
       params: {
         'strategy': strategy,

@@ -27,7 +27,6 @@ class StrategyButton extends StatelessWidget {
     clerk.Strategy.emailLink: Icons.email_outlined,
     clerk.Strategy.emailCode: Icons.email_outlined,
     clerk.Strategy.phoneCode: Icons.phone_android_outlined,
-    clerk.Strategy.enterpriseSSO: Icons.safety_check_outlined,
   };
 
   static bool _supports(clerk.Strategy strategy) =>
@@ -82,7 +81,7 @@ class StrategyButton extends StatelessWidget {
             child: Text(
               _label(localizations),
               maxLines: 2,
-              style: ClerkTextStyle.buttonTitle.copyWith(height: 1.2),
+              style: ClerkTextStyle.subtitle,
             ),
           ),
         ],

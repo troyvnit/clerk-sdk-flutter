@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:clerk_flutter/src/assets.dart';
+import 'package:clerk_flutter/src/utils/clerk_sdk_localization_ext.dart';
 import 'package:clerk_flutter/src/utils/clerk_telemetry.dart';
+import 'package:clerk_flutter/src/widgets/organization/create_organization_panel.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_avatar.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_icon.dart';
 import 'package:clerk_flutter/src/widgets/ui/clerk_material_button.dart';
@@ -162,6 +165,34 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
     }
   }
 
+  Future<void> _createOrganization(
+    ClerkAuthState authState,
+    String name,
+    String slug,
+    File? logo,
+  ) async {
+    if (name.isNotEmpty) {
+      slug = slug.orNullIfEmpty ??
+          authState.localizationsOf(context).grammar.toSlug(name);
+      await authState.safelyCall(
+        context,
+        () async {
+          await authState.createOrganization(
+            name: name,
+            slug: slug,
+            logo: logo,
+          );
+          if (authState.user?.organizationMemberships
+              case List<clerk.OrganizationMembership> memberships
+              when memberships.isNotEmpty) {
+            final org = memberships.first.organization;
+            await authState.setActiveOrganization(org);
+          }
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClerkAuthBuilder(
@@ -177,45 +208,65 @@ class _ClerkUserButtonState extends State<ClerkUserButton>
         final additionalActions =
             widget.additionalActions ?? _defaultAdditionalActions();
 
+        final needsOrganization =
+            authState.env.organization.forceOrganizationSelection &&
+                authState.user!.hasOrganizations == false;
+
         return ClerkVerticalCard(
           topPortion: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final session in displaySessions)
-                _SessionRow(
-                  key: Key(session.id),
-                  session: session,
-                  closed: sessions.contains(session) == false,
-                  selected: session == authState.client.activeSession,
-                  showName: widget.showName,
-                  actions: sessionActions,
-                  onTap: () => authState.safelyCall(
-                    context,
-                    () => authState.activate(session),
+              if (authState.env.organization.forceOrganizationSelection) //
+                Closeable(
+                  closed: needsOrganization == false,
+                  child: CreateOrganizationPanel(
+                    onSubmit: (name, slug, logo) =>
+                        _createOrganization(authState, name, slug, logo),
                   ),
-                  onEnd: (closed) {
-                    if (closed) _sessions.remove(session);
-                  },
                 ),
-              for (final action in additionalActions)
-                Padding(
-                  padding: allPadding16,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => action.callback(context, authState),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        _Icon(action: action, size: 16),
-                        horizontalMargin32,
-                        Text(
-                          action.label,
-                          style: ClerkTextStyle.buttonTitleDark,
+              Closeable(
+                closed: needsOrganization,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final session in displaySessions)
+                      _SessionRow(
+                        key: Key(session.id),
+                        session: session,
+                        closed: sessions.contains(session) == false,
+                        selected: session == authState.client.activeSession,
+                        showName: widget.showName,
+                        actions: sessionActions,
+                        onTap: () => authState.safelyCall(
+                          context,
+                          () => authState.activate(session),
                         ),
-                      ],
-                    ),
-                  ),
+                        onEnd: (closed) {
+                          if (closed) _sessions.remove(session);
+                        },
+                      ),
+                    for (final action in additionalActions)
+                      Padding(
+                        padding: allPadding16,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => action.callback(context, authState),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              _Icon(action: action, size: 16),
+                              horizontalMargin32,
+                              Text(
+                                action.label,
+                                style: ClerkTextStyle.buttonTitleDark,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
           bottomPortion: Closeable(
@@ -334,17 +385,18 @@ class _SessionRow extends StatelessWidget {
                 closed: selected == false,
                 child: Padding(
                   padding: horizontalPadding12 + leftPadding48 + bottomPadding8,
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       for (final action in actions)
-                        Expanded(
-                          child: Padding(
-                            padding: horizontalPadding4,
-                            child: ClerkMaterialButton(
-                              onPressed: () =>
-                                  action.callback(context, authState),
-                              label: Row(
+                        Padding(
+                          padding: allPadding4,
+                          child: ClerkMaterialButton(
+                            onPressed: () =>
+                                action.callback(context, authState),
+                            label: Center(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
@@ -354,17 +406,15 @@ class _SessionRow extends StatelessWidget {
                                     padding: topPadding2,
                                     child: Text(
                                       action.label,
-                                      style: ClerkTextStyle.buttonTitleDark
-                                          .copyWith(fontSize: 8),
+                                      style: ClerkTextStyle.buttonTitleDark,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
                               ),
-                              style: ClerkMaterialButtonStyle.light,
-                              height: 16,
                             ),
+                            style: ClerkMaterialButtonStyle.light,
                           ),
                         ),
                     ],

@@ -8,6 +8,8 @@ import 'package:phone_input/phone_input_package.dart';
 
 extension PhoneNumberExtension on PhoneNumber {
   String get intlFormattedNsn => '(+$countryCode) ${getFormattedNsn()}';
+
+  String get intlNsn => '+$countryCode$nsn';
 }
 
 final defaultOrgLogo = SvgPicture.asset(
@@ -15,9 +17,14 @@ final defaultOrgLogo = SvgPicture.asset(
   package: 'clerk_flutter',
 );
 
-const defaultLoadingWidget = ColoredBox(
-  color: Colors.black26,
-  child: Center(child: CircularProgressIndicator()),
+const defaultLoadingWidget = Center(
+  child: SizedBox.square(
+    dimension: 32,
+    child: Padding(
+      padding: allPadding4,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    ),
+  ),
 );
 
 const emptyWidget = SizedBox();

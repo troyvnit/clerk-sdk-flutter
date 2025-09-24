@@ -1,10 +1,9 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:clerk_auth/src/models/enums.dart';
 import 'package:meta/meta.dart';
 
 /// Pseudo-enum representing fields
 ///
 @immutable
-@JsonSerializable()
 class Status {
   const Status._(this.name);
 
@@ -93,8 +92,20 @@ class Status {
   /// is expired?
   bool get isExpired => this == expired;
 
+  /// is unknown?
+  bool get isUnknown => this == unknown;
+
+  /// is transferable?
+  bool get isTransferable => this == transferable;
+
   /// needs factor?
   bool get needsFactor => this == needsFirstFactor || this == needsSecondFactor;
+
+  /// Do we need factors for this stage?
+  bool needsFactorFor(Stage stage) => switch (stage) {
+        Stage.first => this == needsFirstFactor,
+        Stage.second => this == needsSecondFactor,
+      };
 
   /// toString
   @override

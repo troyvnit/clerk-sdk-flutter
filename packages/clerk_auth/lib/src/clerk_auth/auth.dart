@@ -37,10 +37,12 @@ class Auth {
   static const _kClientKey = '\$client';
   static const _kEnvKey = '\$env';
   static const _codeLength = 6;
+  static const _defaultPollDelay = Duration(seconds: 53);
 
   Timer? _clientTimer;
   Timer? _persistenceTimer;
   Timer? _refetchTimer;
+  Timer? _pollTimer;
   Map<String, dynamic> _persistableData = {};
 
   /// Stream of errors reported by the SDK of type [AuthError]
@@ -99,14 +101,17 @@ class Auth {
   /// The current [User] object, or null
   User? get user => session?.user;
 
+  /// The current [Organization] object, or null
+  Organization? get organization => session?.organization;
+
   /// Are we currently signed in?
   bool get isSignedIn => user != null;
 
   /// Are we currently signing in?
-  bool get isSigningIn => signIn?.status.isActive == true;
+  bool get isSigningIn => signIn != null;
 
   /// Are we currently signing up?
-  bool get isSigningUp => signUp?.status.isActive == true;
+  bool get isSigningUp => signUp != null;
 
   /// A method to be overridden by extension classes to cope with
   /// updating their systems when things change (e.g. the clerk_flutter
@@ -122,7 +127,7 @@ class Auth {
   Future<void> initialize() async {
     await config.initialize();
     telemetry = Telemetry(config: config);
-    _api = Api(config: config, sessionTokenSink: _sessionTokens.sink);
+    _api = Api(config: config);
     await _api.initialize();
 
     final (client, env) = await _fetchClientAndEnv();
@@ -154,14 +159,15 @@ class Auth {
     );
 
     if (config.clientRefreshPeriod.isNotZero) {
-      _clientTimer = Timer.periodic(
-        config.clientRefreshPeriod,
-        (_) async {
-          if (await _api.hasConnectivity()) {
-            await refreshClient();
-          }
-        },
-      );
+      _clientTimer = Timer.periodic(config.clientRefreshPeriod, (_) async {
+        if (await _api.hasConnectivity()) {
+          await refreshClient();
+        }
+      });
+    }
+
+    if (config.sessionTokenPolling) {
+      await _pollForSessionToken();
     }
   }
 
@@ -171,6 +177,7 @@ class Auth {
   /// method, if that is mixed in e.g. in clerk_flutter
   ///
   void terminate() {
+    _pollTimer?.cancel();
     _clientTimer?.cancel();
     _persistenceTimer?.cancel();
     _refetchTimer?.cancel();
@@ -179,6 +186,31 @@ class Auth {
     _sessionTokens.close();
     telemetry.terminate();
     config.terminate();
+  }
+
+  Future<void> _pollForSessionToken() async {
+    _pollTimer?.cancel();
+
+    Duration delay = _defaultPollDelay;
+
+    try {
+      final sessionToken = await _api.updateSessionToken();
+      if (sessionToken case SessionToken token) {
+        _sessionTokens.add(token);
+        delay = token.expiry.difference(DateTime.timestamp());
+      }
+    } on AuthError catch (error) {
+      addError(error);
+    } catch (error) {
+      addError(
+        AuthError(
+          code: AuthErrorCode.noSessionTokenRetrieved,
+          message: error.toString(),
+        ),
+      );
+    } finally {
+      _pollTimer = Timer(delay, _pollForSessionToken);
+    }
   }
 
   Future<void> _retryFetchClientAndEnv(_) async {
@@ -208,7 +240,7 @@ class Auth {
 
   ApiResponse _housekeeping(ApiResponse resp) {
     if (resp.isError) {
-      addError(AuthError(code: resp.authErrorCode, message: resp.errorMessage));
+      addError(AuthError.from(resp.errorCollection));
     } else if (resp.client case Client client) {
       this.client = client;
     }
@@ -236,6 +268,13 @@ class Auth {
     update();
   }
 
+  /// Reset the current [Client]: clear any [SignUp] or [SignIn] object
+  ///
+  Future<void> resetClient() async {
+    client = await _api.resetClient();
+    update();
+  }
+
   /// Refresh the current [Environment]
   ///
   Future<void> refreshEnvironment() async {
@@ -254,8 +293,16 @@ class Auth {
   /// Transfer an oAuth authentication into a [User]
   ///
   Future<void> transfer() async {
-    await _api.transfer().then(_housekeeping);
-    update();
+    if (signIn?.verification?.status.isTransferable == true) {
+      await _api.transferSignUp().then(_housekeeping);
+      update();
+    } else {
+      final verifications = signUp?.verifications.values ?? const [];
+      if (verifications.any((v) => v.status.isTransferable)) {
+        await _api.transferSignIn().then(_housekeeping);
+        update();
+      }
+    }
   }
 
   /// Get the current [sessionToken] for an [Organization] , or the
@@ -268,13 +315,19 @@ class Auth {
     final org = env.organization.isEnabled
         ? organization ?? Organization.personal
         : null;
-    final token = await _api.sessionToken(org, templateName);
+    SessionToken? token = _api.sessionToken(org, templateName);
     if (token is! SessionToken) {
-      throw const AuthError(
-        message: 'No session token retrieved',
-        code: AuthErrorCode.noSessionTokenRetrieved,
-      );
+      token = await _api.updateSessionToken(org, templateName);
+      if (token is SessionToken) {
+        _sessionTokens.add(token);
+      } else {
+        throw const AuthError(
+          message: 'No session token retrieved',
+          code: AuthErrorCode.noSessionTokenRetrieved,
+        );
+      }
     }
+
     return token;
   }
 
@@ -283,12 +336,17 @@ class Auth {
   Future<void> oauthSignIn({
     required Strategy strategy,
     required Uri? redirect,
+    String? identifier,
   }) async {
     final redirectUrl = redirect?.toString() ?? ClerkConstants.oauthRedirect;
     await _api
-        .createSignIn(strategy: strategy, redirectUrl: redirectUrl)
+        .createSignIn(
+          strategy: strategy,
+          identifier: identifier,
+          redirectUrl: redirectUrl,
+        )
         .then(_housekeeping);
-    if (client.signIn case SignIn signIn) {
+    if (client.signIn case SignIn signIn when signIn.hasVerification == false) {
       await _api
           .prepareSignIn(
             signIn,
@@ -299,6 +357,20 @@ class Auth {
           .then(_housekeeping);
     }
     update();
+  }
+
+  /// Complete oAuth sign in by presenting the token
+  ///
+  Future<void> completeOAuthSignIn({
+    required Strategy strategy,
+    required String token,
+  }) async {
+    if (signIn ?? signUp case AuthObject authObject) {
+      await _api
+          .sendOauthToken(authObject, strategy: strategy, token: token)
+          .then(_housekeeping);
+      update();
+    }
   }
 
   /// Prepare to connect an account via an oAuth provider
@@ -347,9 +419,11 @@ class Auth {
   }) async {
     if (client.signIn != null) {
       await _api
-          .resetPassword(client.signIn!,
-              password: password,
-              signOutOfOtherSessions: signOutOfOtherSessions)
+          .resetPassword(
+            client.signIn!,
+            password: password,
+            signOutOfOtherSessions: signOutOfOtherSessions,
+          )
           .then(_housekeeping);
     } else {
       addError(
@@ -411,8 +485,10 @@ class Auth {
       return;
     }
 
-    // Ensure we have a signIn object
-    if (client.signIn == null) {
+    // Ensure we have a signIn object for the current identifier
+    if (client.signIn == null ||
+        (identifier?.orNullIfEmpty is String &&
+            identifier != client.signIn!.identifier)) {
       // if password and identifier been presented, we can immediately attempt
       // a sign in;  if null they will be ignored
       await _api
@@ -425,20 +501,15 @@ class Auth {
         // We have signed in - possibly when creating the [SignIn] above
         break;
 
-      case SignIn signIn
-          when signIn.status == Status.needsIdentifier && identifier is String:
-        // if a password has been presented, we can immediately attempt a
-        // sign in; if `password` is null it will be ignored
-        await _api
-            .createSignIn(identifier: identifier, password: password)
-            .then(_housekeeping);
-
-      case SignIn signIn when strategy.isOauth && token is String:
+      case SignIn signIn when strategy.isSSO && token is String:
         await _api
             .sendOauthToken(signIn, strategy: strategy, token: token)
             .then(_housekeeping);
 
-      case SignIn signIn when strategy.isPasswordResetter && code is String:
+      case SignIn signIn
+          when strategy.isPasswordResetter &&
+              code?.length == _codeLength &&
+              password is String:
         await _api
             .attemptSignIn(
               signIn,
@@ -463,26 +534,24 @@ class Auth {
         final signInCompleter = Completer<void>();
 
         unawaited(
-          _pollForCompletion().then(
-            (client) {
-              this.client = client;
-              signInCompleter.complete();
-              update();
-            },
-          ),
+          _pollForCompletion().then((client) {
+            this.client = client;
+            signInCompleter.complete();
+            update();
+          }),
         );
 
         update();
         return signInCompleter.future;
 
       case SignIn signIn
-          when signIn.status == Status.needsFirstFactor &&
-              strategy == Strategy.password &&
+          when signIn.status.needsFactor &&
+              strategy.isPassword &&
               password is String:
         await _api
             .attemptSignIn(
               signIn,
-              stage: Stage.first,
+              stage: Stage.forStatus(signIn.status),
               strategy: Strategy.password,
               password: password,
             )
@@ -500,30 +569,14 @@ class Auth {
             when signIn.verificationFor(stage) is Verification &&
                 code?.length == _codeLength) {
           await _api
-              .attemptSignIn(signIn,
-                  stage: stage, strategy: strategy, code: code)
+              .attemptSignIn(
+                signIn,
+                stage: stage,
+                strategy: strategy,
+                code: code,
+              )
               .then(_housekeeping);
         }
-
-      case SignIn signIn when signIn.status.needsFactor:
-        final stage = Stage.forStatus(signIn.status);
-        await _api
-            .prepareSignIn(signIn, stage: stage, strategy: strategy)
-            .then(_housekeeping);
-        await _api
-            .attemptSignIn(signIn, stage: stage, strategy: strategy, code: code)
-            .then(_housekeeping);
-
-      // No matching sign-in sequence, reset loading state
-      default:
-        final status = signIn?.status ?? Status.unknown;
-        addError(
-          AuthError(
-            code: AuthErrorCode.signInError,
-            message: 'Unsupported sign in attempt: {arg}',
-            argument: status.name,
-          ),
-        );
     }
 
     update();
@@ -549,7 +602,7 @@ class Auth {
     bool? legalAccepted,
   }) async {
     final hasVerificationCredential = code is String || signature is String;
-    final initialSignUp = client.signUp;
+    final hasInitialSignUp = client.signUp is SignUp;
 
     if (password != passwordConfirmation) {
       throw const AuthError(
@@ -558,7 +611,7 @@ class Auth {
       );
     }
 
-    if (initialSignUp is! SignUp) {
+    if (hasInitialSignUp == false) {
       await _api
           .createSignUp(
             strategy: strategy,
@@ -572,9 +625,6 @@ class Auth {
           )
           .then(_housekeeping);
     }
-
-    final hasCreatedSignUp =
-        initialSignUp is! SignUp && client.signUp is SignUp;
 
     if (client.user is! User) {
       switch (client.signUp) {
@@ -617,6 +667,16 @@ class Auth {
           }
 
         case SignUp signUp
+            when signUp.requiresEnterpriseSSOSignUp && redirectUrl is String:
+          await _api
+              .updateSignUp(
+                signUp,
+                strategy: strategy,
+                redirectUrl: redirectUrl,
+              )
+              .then(_housekeeping);
+
+        case SignUp signUp
             when signUp.status == Status.missingRequirements &&
                 signUp.missingFields.isEmpty:
           await _api
@@ -632,26 +692,24 @@ class Auth {
                 )
                 .then(_housekeeping);
           }
-      }
-    }
 
-    if (client.signUp case SignUp signUp
-        when hasCreatedSignUp == false && client.user is! User) {
-      // if we still don't have a user, but didn't create a SignUp object this time round,
-      // now is the time to update the preexisting SignUp object, in case of changes
-      await _api
-          .updateSignUp(
-            signUp,
-            strategy: strategy,
-            password: password,
-            firstName: firstName,
-            lastName: lastName,
-            username: username,
-            emailAddress: emailAddress,
-            phoneNumber: phoneNumber,
-            legalAccepted: legalAccepted,
-          )
-          .then(_housekeeping);
+        case SignUp signUp when hasInitialSignUp:
+          // if we didn't create a SignUp object earlier,  now is the time to
+          // update the preexisting SignUp object, in case of changes
+          await _api
+              .updateSignUp(
+                signUp,
+                strategy: strategy,
+                password: password,
+                firstName: firstName,
+                lastName: lastName,
+                username: username,
+                emailAddress: emailAddress,
+                phoneNumber: phoneNumber,
+                legalAccepted: legalAccepted,
+              )
+              .then(_housekeeping);
+      }
     }
 
     update();
@@ -663,6 +721,17 @@ class Auth {
   Future<void> signOutOf(Session session) async {
     await _api.signOutOf(session).then(_housekeeping);
     update();
+  }
+
+  /// Make an [Organization] active
+  ///
+  Future<void> setActiveOrganization(Organization organization) async {
+    if (session case Session session) {
+      await _api
+          .setActiveOrganization(session.id, organization.id)
+          .then(_housekeeping);
+      update();
+    }
   }
 
   /// Create a new [Organization]
@@ -772,9 +841,7 @@ class Auth {
       }
 
       final responseDomains = response.response?['data'] as List<dynamic>;
-      domains.addAll(
-        responseDomains.map(OrganizationDomain.fromJson),
-      );
+      domains.addAll(responseDomains.map(OrganizationDomain.fromJson));
 
       if (responseDomains.length < _page) {
         break;
@@ -802,8 +869,9 @@ class Auth {
     required String name,
     required EnrollmentMode mode,
   }) async {
-    final response =
-        await _api.createDomain(organization, name).then(_housekeeping);
+    final response = await _api
+        .createDomain(organization, name)
+        .then(_housekeeping);
     if (mode != EnrollmentMode.manualInvitation) {
       final domainId = response.response!['id'];
       await _api
@@ -828,20 +896,29 @@ class Auth {
     Map<String, dynamic>? metadata,
     File? avatar,
   }) async {
+    final config = env.config;
     if (user case User user) {
-      final needsUpdate = username != user.username ||
-          firstName != user.username ||
-          lastName != user.lastName ||
+      final needsUpdate =
+          (config.allowsUsername &&
+              username is String &&
+              username != user.username) ||
+          (config.allowsFirstName &&
+              firstName is String &&
+              firstName != user.username) ||
+          (config.allowsLastName &&
+              lastName is String &&
+              lastName != user.lastName) ||
           metadata?.isNotEmpty == true;
       if (needsUpdate || avatar is File) {
         if (needsUpdate) {
-          final newUser = user.copyWith(
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            unsafeMetadata: metadata,
-          );
-          await _api.updateUser(newUser, env.config).then(_housekeeping);
+          await _api
+              .updateUser(
+                username: config.allowsUsername ? username : null,
+                firstName: config.allowsFirstName ? firstName : null,
+                lastName: config.allowsLastName ? lastName : null,
+                metadata: metadata,
+              )
+              .then(_housekeeping);
         }
         if (avatar case File avatar) {
           await _api.updateAvatar(avatar).then(_housekeeping);

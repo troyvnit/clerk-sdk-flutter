@@ -135,7 +135,7 @@ abstract class ClerkSdkLocalizations {
   /// No description provided for @acceptTerms.
   ///
   /// In en, this message translates to:
-  /// **'I accept the Terms & Conditions and Privacy Policy'**
+  /// **'I agree to the Terms of Service and Privacy Policy'**
   String get acceptTerms;
 
   /// No description provided for @actionNotTimely.
@@ -216,6 +216,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Automatic suggestion'**
   String get automaticSuggestion;
 
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
   /// No description provided for @backupCode.
   ///
   /// In en, this message translates to:
@@ -234,11 +240,11 @@ abstract class ClerkSdkLocalizations {
   /// **'You are not authorized to delete your user'**
   String get cannotDeleteSelf;
 
-  /// No description provided for @clickOnTheLinkThatSBeenSentToAndThenCheckBackHere.
+  /// No description provided for @clickOnTheLinkThatsBeenSentTo.
   ///
   /// In en, this message translates to:
   /// **'Click on the link that‘s been sent to {identifier} and then check back here'**
-  String clickOnTheLinkThatSBeenSentToAndThenCheckBackHere(String identifier);
+  String clickOnTheLinkThatsBeenSentTo(String identifier);
 
   /// No description provided for @complete.
   ///
@@ -269,6 +275,12 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'Create organization'**
   String get createOrganization;
+
+  /// No description provided for @developmentMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Development mode'**
+  String get developmentMode;
 
   /// No description provided for @didntReceiveCode.
   ///
@@ -329,6 +341,12 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'Enter the code sent to you'**
   String get enterTheCodeSentToYou;
+
+  /// No description provided for @enterYourOrganizationDetailsToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your organization details to continue'**
+  String get enterYourOrganizationDetailsToContinue;
 
   /// No description provided for @expired.
   ///
@@ -431,6 +449,12 @@ abstract class ClerkSdkLocalizations {
   /// In en, this message translates to:
   /// **'missing requirements'**
   String get missingRequirements;
+
+  /// No description provided for @myOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'My Organization'**
+  String get myOrganization;
 
   /// No description provided for @name.
   ///
@@ -696,6 +720,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Send me the reset code'**
   String get sendMeTheCode;
 
+  /// No description provided for @setUpYourOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your organization'**
+  String get setUpYourOrganization;
+
   /// No description provided for @signIn.
   ///
   /// In en, this message translates to:
@@ -732,6 +762,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Sign in to {name}'**
   String signInTo(String name);
 
+  /// No description provided for @signInUsingEnterpriseSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in using Enterprise SSO'**
+  String get signInUsingEnterpriseSSO;
+
   /// No description provided for @signOut.
   ///
   /// In en, this message translates to:
@@ -762,6 +798,12 @@ abstract class ClerkSdkLocalizations {
   /// **'Sign up to {name}'**
   String signUpTo(String name);
 
+  /// No description provided for @slug.
+  ///
+  /// In en, this message translates to:
+  /// **'Slug'**
+  String get slug;
+
   /// No description provided for @slugUrl.
   ///
   /// In en, this message translates to:
@@ -774,11 +816,11 @@ abstract class ClerkSdkLocalizations {
   /// **'Switch to'**
   String get switchTo;
 
-  /// No description provided for @termsAndConditions.
+  /// No description provided for @termsOfService.
   ///
   /// In en, this message translates to:
-  /// **'Terms & Conditions'**
-  String get termsAndConditions;
+  /// **'Terms of Service'**
+  String get termsOfService;
 
   /// No description provided for @transferable.
   ///

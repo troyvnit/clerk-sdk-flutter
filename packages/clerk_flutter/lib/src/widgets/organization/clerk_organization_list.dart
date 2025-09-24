@@ -44,7 +44,7 @@ class ClerkOrganizationList extends StatefulWidget {
 
 class _ClerkOrganizationListState extends State<ClerkOrganizationList>
     with ClerkTelemetryStateMixin {
-  late final ClerkAuthState _authState = ClerkAuth.of(context);
+  late final ClerkAuthState _authState = ClerkAuth.of(context, listen: false);
   late final ClerkSdkLocalizations _localizations =
       ClerkAuth.localizationsOf(context);
 
@@ -54,6 +54,7 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
   _Organization? _previousOrg;
   _Organization? _currentlyAccepting;
   Timer? _invitationsRefreshTimer;
+  bool _isFirstBuild = true;
 
   static const _editArrow = Padding(
     padding: allPadding8,
@@ -66,6 +67,15 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
     return {
       'actions': actions.map((a) => a.label).join(';'),
     };
+  }
+
+  bool get _isAfterFirstBuild {
+    if (_isFirstBuild) {
+      _isFirstBuild = false; // for next time
+      return false;
+    }
+
+    return true;
   }
 
   List<ClerkUserAction> _defaultActions() {
@@ -85,24 +95,29 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
   ) async {
     await ClerkPage.show(
       context,
-      builder: (context) => CreateOrganizationPanel(
-        onSubmit: (String name, String? slug, File? image) async {
-          await authState.safelyCall(
-            context,
-            () => authState.createOrganization(
-              name: name,
-              slug: slug,
-              logo: image,
-            ),
-          );
-        },
+      builder: (context) => ClerkVerticalCard(
+        topPortion: CreateOrganizationPanel(
+          onSubmit: (String name, String slug, File? image) async {
+            await authState.safelyCall(
+              context,
+              () => authState.createOrganization(
+                name: name,
+                slug: slug,
+                logo: image,
+              ),
+            );
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
       ),
     );
   }
 
-  Future<void> _editCurrentOrg() async {
+  Future<void> _editCurrentOrg(_Organization organization) async {
     final membership = _authState.user!.organizationMemberships!.firstWhere(
-      (o) => o.id == _currentOrg?.id,
+      (o) => o.id == organization.id,
     );
     await ClerkPage.show(
       context,
@@ -110,11 +125,15 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
     );
   }
 
-  void _selectOrg([_Organization? org]) {
-    setState(() {
+  Future<void> _selectOrg(_Organization org) async {
+    if (org != _currentOrg) {
+      final authState = ClerkAuth.of(context, listen: false);
+      await authState.safelyCall(
+        context,
+        () => authState.setActiveOrganization(org.organization),
+      );
       _previousOrg = _currentOrg;
-      _currentOrg = org;
-    });
+    }
   }
 
   bool get _shouldRefreshInvitation =>
@@ -126,10 +145,8 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
       final invitations = await _authState.fetchOrganizationInvitations();
       _invitations.addOrReplaceAll(invitations, by: (i) => i.id);
       setState(() {});
-      _invitationsRefreshTimer = Timer(
-        _authState.config.clientRefreshPeriod,
-        _fetchInvitations,
-      );
+      _invitationsRefreshTimer =
+          Timer(_authState.config.clientRefreshPeriod, _fetchInvitations);
     }
   }
 
@@ -167,11 +184,9 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
         final orgs = user.organizationMemberships
                 ?.map(_Organization.fromMembership)
                 .toList() ??
-            [];
-        _currentOrg = _currentOrg is _Organization
-            ? orgs.firstWhereOrNull((o) => o.id == _currentOrg?.id)
-            : null;
-        final currentIsPersonal = _currentOrg == null;
+            const [];
+        final currentOrgId = authState.session?.lastActiveOrganizationId;
+        _currentOrg = orgs.firstWhereOrNull((o) => o.orgId == currentOrgId);
 
         _organizations.addOrReplaceAll(orgs, by: (m) => m.orgId);
         _organizations.sortBy((a) => a.name);
@@ -194,7 +209,7 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
                 Closeable(
                   key: Key('current:${current.orgId}'),
                   closed: false,
-                  startsClosed: true,
+                  startsClosed: _isAfterFirstBuild,
                   child: _OrganizationRow(
                     organization: current,
                     onTap: _editCurrentOrg,
@@ -208,14 +223,14 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
                   startsClosed: false,
                   child: _OrganizationRow(organization: previous),
                 ),
-              _OrganizationRow(
-                key: const Key('personal'),
-                organization: _Organization(
-                  name: _localizations.personalAccount,
-                  imageUrl: user.imageUrl,
+              if (authState.env.organization.allowsPersonalOrgs) //
+                _OrganizationRow(
+                  key: const Key('personal'),
+                  organization: const _Organization(
+                    organization: clerk.Organization.personal,
+                  ),
+                  onTap: _selectOrg,
                 ),
-                onTap: currentIsPersonal ? null : _selectOrg,
-              ),
               for (final org in _organizations) //
                 Closeable(
                   key: Key(org.id),
@@ -223,7 +238,7 @@ class _ClerkOrganizationListState extends State<ClerkOrganizationList>
                   child: _OrganizationRow(
                     key: Key(org.orgId),
                     organization: org,
-                    onTap: () => _selectOrg(org),
+                    onTap: _selectOrg,
                   ),
                 ),
               for (final invitation in _invitations.map(_invToOrg)) //
@@ -263,14 +278,21 @@ class _OrganizationRow extends StatelessWidget {
   });
 
   final _Organization organization;
-  final VoidCallback? onTap;
+  final ValueChanged<_Organization>? onTap;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    final authState = ClerkAuth.of(context, listen: false);
+    final imageUrl = organization.isPersonal
+        ? authState.user?.imageUrl
+        : organization.imageUrl;
+    final name = organization.isPersonal
+        ? authState.localizationsOf(context).personalAccount
+        : organization.name;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
+      onTap: () => onTap?.call(organization),
       child: DecoratedBox(
         decoration: const BoxDecoration(
           border: Border(bottom: _borderSide),
@@ -281,11 +303,11 @@ class _OrganizationRow extends StatelessWidget {
             children: [
               SizedBox.square(
                 dimension: 32,
-                child: organization.imageUrl?.isNotEmpty == true
+                child: imageUrl?.isNotEmpty == true
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: ClerkCachedImage(
-                          organization.imageUrl!,
+                          imageUrl!,
                           fit: BoxFit.cover,
                         ),
                       )
@@ -298,7 +320,7 @@ class _OrganizationRow extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      organization.name,
+                      name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: ClerkTextStyle.buttonTitleDark,
@@ -325,30 +347,32 @@ class _OrganizationRow extends StatelessWidget {
 
 class _Organization {
   const _Organization({
-    required this.name,
+    required this.organization,
     this.status = clerk.Status.complete,
     this.id = '',
-    this.orgId = '',
-    this.imageUrl,
     this.roleName,
   });
 
   final String id;
-  final String orgId;
-  final String name;
-  final String? imageUrl;
   final String? roleName;
+  final clerk.Organization organization;
   final clerk.Status status;
+
+  String get name => organization.name;
+
+  String get orgId => organization.id;
+
+  String? get imageUrl => organization.hasImage ? organization.imageUrl : null;
+
+  bool get isPersonal => organization.isPersonal;
 
   static _Organization fromMembership(
     clerk.OrganizationMembership membership,
   ) =>
       _Organization(
         id: membership.id,
-        orgId: membership.organization.id,
-        name: membership.organization.name,
+        organization: membership.organization,
         roleName: membership.roleName,
-        imageUrl: membership.organization.imageUrl,
       );
 
   static _Organization fromInvitation(
@@ -357,19 +381,16 @@ class _Organization {
   ) =>
       _Organization(
         id: invitation.id,
-        orgId: invitation.organizationData.id,
-        name: invitation.organizationData.name,
+        organization: invitation.organization,
         roleName:
             '${invitation.roleName} (${invitation.status.localizedMessage(localizations)})',
-        imageUrl: invitation.organizationData.hasImage
-            ? invitation.organizationData.imageUrl
-            : null,
         status: invitation.status,
       );
 
   @override
-  int get hashCode => orgId.hashCode;
+  int get hashCode => organization.hashCode;
 
   @override
-  operator ==(Object other) => other is _Organization && orgId == other.orgId;
+  operator ==(Object other) =>
+      other is _Organization && organization == other.organization;
 }

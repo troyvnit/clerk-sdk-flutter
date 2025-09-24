@@ -1,6 +1,5 @@
 import 'package:clerk_auth/src/clerk_auth/auth_error.dart';
 import 'package:clerk_auth/src/models/enums.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 /// [Strategy] Clerk object
@@ -9,7 +8,6 @@ import 'package:meta/meta.dart';
 /// 'oauth_token' and 'oauth_custom') also have a [provider]
 ///
 @immutable
-@JsonSerializable()
 class Strategy {
   /// Constructor for [Strategy]
   const Strategy({required this.name, this.provider});
@@ -92,6 +90,9 @@ class Strategy {
   /// saml strategy
   static const saml = Strategy(name: 'saml');
 
+  /// enterprise sso strategy
+  static const enterpriseSSO = Strategy(name: 'enterprise_sso');
+
   /// ticket strategy
   static const ticket = Strategy(name: 'ticket');
 
@@ -121,6 +122,7 @@ class Strategy {
     ticket.name: ticket,
     web3MetamaskSignature.name: web3MetamaskSignature,
     web3CoinbaseSignature.name: web3CoinbaseSignature,
+    enterpriseSSO.name: enterpriseSSO,
   };
 
   // identification strategies
@@ -152,6 +154,9 @@ class Strategy {
 
   /// is known?
   bool get isKnown => isUnknown == false;
+
+  /// is password?
+  bool get isPassword => this == password;
 
   /// is some variety of oauth?
   bool get isOauth => name == _oauth || isOauthCustom || isOauthToken;
@@ -195,9 +200,15 @@ class Strategy {
   /// required verification?
   bool get requiresVerification => requiresCode || requiresSignature;
 
+  /// is Enterprise SSO?
+  bool get isEnterpriseSSO => this == enterpriseSSO;
+
+  /// is SSO?
+  bool get isSSO => name == _oauth || isEnterpriseSSO;
+
   /// requires redirect?
   bool get requiresRedirect =>
-      name == _oauth || const [emailLink, saml].contains(this);
+      name == _oauth || const [emailLink, enterpriseSSO].contains(this);
 
   /// For a given [name] return the [Strategy] it identifies.
   /// Create one if necessary and possible

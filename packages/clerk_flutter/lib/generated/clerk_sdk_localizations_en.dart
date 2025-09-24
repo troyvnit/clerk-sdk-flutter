@@ -34,7 +34,7 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get acceptTerms =>
-      'I accept the Terms & Conditions and Privacy Policy';
+      'I agree to the Terms of Service and Privacy Policy';
 
   @override
   String get actionNotTimely =>
@@ -77,6 +77,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get automaticSuggestion => 'Automatic suggestion';
 
   @override
+  String get back => 'Back';
+
+  @override
   String get backupCode => 'backup code';
 
   @override
@@ -86,7 +89,7 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get cannotDeleteSelf => 'You are not authorized to delete your user';
 
   @override
-  String clickOnTheLinkThatSBeenSentToAndThenCheckBackHere(String identifier) {
+  String clickOnTheLinkThatsBeenSentTo(String identifier) {
     return 'Click on the link that‘s been sent to $identifier and then check back here';
   }
 
@@ -104,6 +107,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get createOrganization => 'Create organization';
+
+  @override
+  String get developmentMode => 'Development mode';
 
   @override
   String get didntReceiveCode => 'Didn\'t receive the code?';
@@ -136,6 +142,10 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get enterTheCodeSentToYou => 'Enter the code sent to you';
+
+  @override
+  String get enterYourOrganizationDetailsToContinue =>
+      'Enter your organization details to continue';
 
   @override
   String get expired => 'expired';
@@ -195,6 +205,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
 
   @override
   String get missingRequirements => 'missing requirements';
+
+  @override
+  String get myOrganization => 'My Organization';
 
   @override
   String get name => 'Name';
@@ -347,6 +360,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   String get sendMeTheCode => 'Send me the reset code';
 
   @override
+  String get setUpYourOrganization => 'Set up your organization';
+
+  @override
   String get signIn => 'Sign in';
 
   @override
@@ -372,6 +388,9 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   }
 
   @override
+  String get signInUsingEnterpriseSSO => 'Sign in using Enterprise SSO';
+
+  @override
   String get signOut => 'Sign out';
 
   @override
@@ -391,13 +410,16 @@ class ClerkSdkLocalizationsEn extends ClerkSdkLocalizations {
   }
 
   @override
+  String get slug => 'Slug';
+
+  @override
   String get slugUrl => 'Slug URL';
 
   @override
   String get switchTo => 'Switch to';
 
   @override
-  String get termsAndConditions => 'Terms & Conditions';
+  String get termsOfService => 'Terms of Service';
 
   @override
   String get transferable => 'transferable';

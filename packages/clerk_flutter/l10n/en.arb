@@ -30,7 +30,7 @@
     }
   },
   "abandoned": "abandoned",
-  "acceptTerms": "I accept the Terms & Conditions and Privacy Policy",
+  "acceptTerms": "I agree to the Terms of Service and Privacy Policy",
   "actionNotTimely": "Awaited user action not completed in required timeframe",
   "active": "active",
   "addAccount": "Add account",
@@ -44,11 +44,12 @@
   "authenticatorApp": "authenticator app",
   "automaticInvitation": "Automatic invitation",
   "automaticSuggestion": "Automatic suggestion",
+  "back": "Back",
   "backupCode": "backup code",
   "cancel": "Cancel",
   "cannotDeleteSelf": "You are not authorized to delete your user",
-  "clickOnTheLinkThatSBeenSentToAndThenCheckBackHere": "Click on the link that‘s been sent to {identifier} and then check back here",
-  "@clickOnTheLinkThatSBeenSentToAndThenCheckBackHere": {
+  "clickOnTheLinkThatsBeenSentTo": "Click on the link that‘s been sent to {identifier} and then check back here",
+  "@clickOnTheLinkThatsBeenSentTo": {
     "placeholders": {
       "identifier": {
         "type": "String"
@@ -60,6 +61,7 @@
   "connectedAccounts": "Connected accounts",
   "cont": "Continue",
   "createOrganization": "Create organization",
+  "developmentMode": "Development mode",
   "didntReceiveCode": "Didn't receive the code?",
   "domainName": "Domain name",
   "dontHaveAnAccount": "Don’t have an account?",
@@ -77,6 +79,7 @@
     }
   },
   "enterTheCodeSentToYou": "Enter the code sent to you",
+  "enterYourOrganizationDetailsToContinue": "Enter your organization details to continue",
   "expired": "expired",
   "failed": "failed",
   "firstName": "first name",
@@ -122,6 +125,7 @@
   "logo": "Logo",
   "manualInvitation": "Manual invitation",
   "missingRequirements": "missing requirements",
+  "myOrganization": "My Organization",
   "name": "Name",
   "needsFirstFactor": "needs first factor",
   "needsIdentifier": "needs identifier",
@@ -208,6 +212,7 @@
   "resetPassword": "Reset password and sign in",
   "selectAccount": "Select the account with which you wish to continue",
   "sendMeTheCode": "Send me the reset code",
+  "setUpYourOrganization": "Set up your organization",
   "signIn": "Sign in",
   "signInByClickingALinkSentToYouByEmail": "Sign in by clicking a link sent to you by email",
   "signInByEnteringACodeSentToYouByEmail": "Sign in by entering a code sent to you by email",
@@ -228,6 +233,7 @@
       }
     }
   },
+  "signInUsingEnterpriseSSO": "Sign in using Enterprise SSO",
   "signOut": "Sign out",
   "signOutIdentifier": "Sign out {identifier}",
   "@signOutIdentifier": {
@@ -247,9 +253,10 @@
       }
     }
   },
+  "slug": "Slug",
   "slugUrl": "Slug URL",
   "switchTo": "Switch to",
-  "termsAndConditions": "Terms & Conditions",
+  "termsOfService": "Terms of Service",
   "transferable": "transferable",
   "typeTypeInvalid": "Type '{type}' is invalid",
   "@typeTypeInvalid": {

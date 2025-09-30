@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:clerk_auth/clerk_auth.dart';
 import 'package:clerk_auth/src/clerk_api/api.dart';
 import 'package:clerk_auth/src/models/api/api_response.dart';
+import 'package:meta/meta.dart';
 
 /// [Auth] provides more abstracted access to the Clerk API.
 ///
@@ -117,6 +118,7 @@ class Auth {
   /// updating their systems when things change (e.g. the clerk_flutter
   /// ClerkAuth class)
   ///
+  @mustCallSuper
   void update() {}
 
   /// Initialisation of the [Auth] object
@@ -124,6 +126,7 @@ class Auth {
   /// [initialize] must be called before any further use of the [Auth]
   /// object is made
   ///
+  @mustCallSuper
   Future<void> initialize() async {
     await config.initialize();
     telemetry = Telemetry(config: config);
@@ -179,6 +182,7 @@ class Auth {
   /// Named [terminate] so as not to clash with [ChangeNotifier]'s [dispose]
   /// method, if that is mixed in e.g. in clerk_flutter
   ///
+  @mustCallSuper
   void terminate() {
     _pollTimer?.cancel();
     _clientTimer?.cancel();
@@ -494,21 +498,7 @@ class Auth {
               redirectUrl: redirectUrl,
             )
             .then(_housekeeping);
-
-        final signInCompleter = Completer<void>();
-
-        unawaited(
-          _pollForCompletion().then(
-            (client) {
-              this.client = client;
-              signInCompleter.complete();
-              update();
-            },
-          ),
-        );
-
-        update();
-        return signInCompleter.future;
+        unawaited(_pollForEmailLinkCompletion());
 
       case SignIn signIn
           when signIn.status.needsFactor &&
@@ -625,6 +615,7 @@ class Auth {
                     redirectUrl: redirectUrl,
                   )
                   .then(_housekeeping);
+              unawaited(_pollForEmailLinkCompletion());
             }
           }
 
@@ -966,20 +957,21 @@ class Auth {
     update();
   }
 
-  Future<Client> _pollForCompletion() async {
-    while (true) {
-      final client = await _api.currentClient();
-      if (client.user is User) return client;
-
-      final expiry = client.signIn?.firstFactorVerification?.expireAt;
-      if (expiry?.isAfter(DateTime.timestamp()) != true) {
-        throw const AuthError(
-          message: 'Awaited user action not completed in required timeframe',
-          code: AuthErrorCode.actionNotTimely,
-        );
-      }
-
+  Future<void> _pollForEmailLinkCompletion() async {
+    while (client.user == null) {
       await Future.delayed(const Duration(seconds: 1));
+
+      final client = await _api.currentClient();
+      if (client.user is User) {
+        this.client = client;
+        update();
+      } else {
+        final expiry = client.signIn?.firstFactorVerification?.expireAt ??
+            client.signUp?.verifications[Field.emailAddress]?.expireAt;
+        if (expiry == null || expiry.isBefore(DateTime.timestamp())) {
+          break;
+        }
+      }
     }
   }
 }

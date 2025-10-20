@@ -117,5 +117,65 @@ void main() {
         expect(httpService.isCompleted);
       });
     });
+
+    test('does not update SignUp when values are unchanged', () async {
+      await runWithLogging(() async {
+        await initialiseForTest('does_not_update_unchanged_values');
+
+        const email = 'newemail+clerk_test@somedomain.com';
+
+        // 1) Create initial sign up with emailCode and an email address
+        // Initial create
+        Client client = await auth.attemptSignUp(
+          strategy: Strategy.emailCode,
+          emailAddress: email,
+        );
+        expect(client.signUp?.status, Status.missingRequirements);
+        final hitCount = httpService.hitCount;
+
+        // 2) Call attemptSignUp again with the same email
+        // No HTTP expectation should be queued for this invocation.
+        client = await auth.attemptSignUp(
+          strategy: Strategy.emailCode,
+          emailAddress: email, // unchanged
+        );
+
+        // State should remain in missing requirements; no extra PATCH occurred.
+        expect(client.signUp?.status, Status.missingRequirements);
+
+        // hit count should not have changed
+        expect(httpService.hitCount, hitCount);
+      });
+    });
+
+    test('updates SignUp when provided value changes', () async {
+      await runWithLogging(() async {
+        await initialiseForTest('does_update_changed_values');
+
+        final firstEmail = '${env.username}+first@somedomain.com';
+        final secondEmail = '${env.username}+second@somedomain.com';
+
+        // 1) Create initial sign up with first email
+        Client client = await auth.attemptSignUp(
+          strategy: Strategy.emailCode,
+          emailAddress: firstEmail,
+        );
+        expect(client.signUp?.status, Status.missingRequirements);
+        final hitCount = httpService.hitCount;
+
+        // 2) Provide a different email -> should PATCH
+        client = await auth.attemptSignUp(
+          strategy: Strategy.emailCode,
+          emailAddress: secondEmail,
+        );
+
+        // Still in missing requirements, but email reflected the change via PATCH
+        expect(client.signUp?.status, Status.missingRequirements);
+        expect(client.signUp?.emailAddress, secondEmail);
+
+        // The hit count should have gone up by one
+        expect(httpService.hitCount, hitCount + 1);
+      });
+    });
   });
 }

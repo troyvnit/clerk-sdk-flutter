@@ -28,12 +28,6 @@ void main() {
         config: TestAuthConfig(publishableKey: publishableKey),
       );
       expect(result.domain, isA<String>());
-    });
-
-    test('will return correct domain from decoded key', () {
-      final result = Api(
-        config: TestAuthConfig(publishableKey: publishableKey),
-      );
       expect(result.domain, domain);
     });
   });

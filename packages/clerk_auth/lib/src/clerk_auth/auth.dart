@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:clerk_auth/clerk_auth.dart';
 import 'package:clerk_auth/src/clerk_api/api.dart';
 import 'package:clerk_auth/src/models/api/api_response.dart';
+import 'package:meta/meta.dart';
 
 /// [Auth] provides more abstracted access to the Clerk API.
 ///
@@ -117,6 +118,7 @@ class Auth {
   /// updating their systems when things change (e.g. the clerk_flutter
   /// ClerkAuth class)
   ///
+  @mustCallSuper
   void update() {}
 
   /// Initialisation of the [Auth] object
@@ -124,6 +126,7 @@ class Auth {
   /// [initialize] must be called before any further use of the [Auth]
   /// object is made
   ///
+  @mustCallSuper
   Future<void> initialize() async {
     await config.initialize();
     telemetry = Telemetry(config: config);
@@ -176,6 +179,7 @@ class Auth {
   /// Named [terminate] so as not to clash with [ChangeNotifier]'s [dispose]
   /// method, if that is mixed in e.g. in clerk_flutter
   ///
+  @mustCallSuper
   void terminate() {
     _pollTimer?.cancel();
     _clientTimer?.cancel();
@@ -188,16 +192,23 @@ class Auth {
     config.terminate();
   }
 
-  Future<void> _pollForSessionToken() async {
+  Future<SessionToken?> _pollForSessionToken() async {
     _pollTimer?.cancel();
 
     Duration delay = _defaultPollDelay;
+    SessionToken? sessionToken;
 
     try {
-      final sessionToken = await _api.updateSessionToken();
-      if (sessionToken case SessionToken token) {
-        _sessionTokens.add(token);
-        delay = token.expiry.difference(DateTime.timestamp());
+      if (isSignedIn) {
+        sessionToken = await _api.updateSessionToken();
+        if (sessionToken case SessionToken token) {
+          _sessionTokens.add(token);
+          if (token.expiry.difference(DateTime.timestamp())
+              case Duration tokenBasedDelay
+              when tokenBasedDelay > Duration.zero) {
+            delay = tokenBasedDelay;
+          }
+        }
       }
     } on AuthError catch (error) {
       addError(error);
@@ -211,6 +222,8 @@ class Auth {
     } finally {
       _pollTimer = Timer(delay, _pollForSessionToken);
     }
+
+    return sessionToken;
   }
 
   Future<void> _retryFetchClientAndEnv(_) async {
@@ -226,11 +239,9 @@ class Auth {
 
   Future<(Client, Environment)> _fetchClientAndEnv() async {
     try {
-      final [client, env] = await Future.wait([
-        _api.createClient().timeout(_initialisationTimeout),
-        _api.environment().timeout(_initialisationTimeout),
-      ]);
-      return (client as Client, env as Environment);
+      final client = await _api.createClient().timeout(_initialisationTimeout);
+      final env = await _api.environment().timeout(_initialisationTimeout);
+      return (client, env);
     } on Exception {
       // either get both or neither (shouldn't initialise with different
       // timestamped versions anyway)
@@ -312,12 +323,14 @@ class Auth {
     Organization? organization,
     String? templateName,
   }) async {
-    final org = env.organization.isEnabled
-        ? organization ?? Organization.personal
-        : null;
+    final org = env.organization.isEnabled ? organization : null;
     SessionToken? token = _api.sessionToken(org, templateName);
     if (token is! SessionToken) {
-      token = await _api.updateSessionToken(org, templateName);
+      if (org == null && templateName == null) {
+        token = await _pollForSessionToken(); // this resets the timer too
+      } else {
+        token = await _api.updateSessionToken(org, templateName);
+      }
       if (token is SessionToken) {
         _sessionTokens.add(token);
       } else {
@@ -530,19 +543,7 @@ class Auth {
               redirectUrl: redirectUrl,
             )
             .then(_housekeeping);
-
-        final signInCompleter = Completer<void>();
-
-        unawaited(
-          _pollForCompletion().then((client) {
-            this.client = client;
-            signInCompleter.complete();
-            update();
-          }),
-        );
-
-        update();
-        return signInCompleter.future;
+        unawaited(_pollForEmailLinkCompletion());
 
       case SignIn signIn
           when signIn.status.needsFactor &&
@@ -663,6 +664,7 @@ class Auth {
                     redirectUrl: redirectUrl,
                   )
                   .then(_housekeeping);
+              unawaited(_pollForEmailLinkCompletion());
             }
           }
 
@@ -696,19 +698,31 @@ class Auth {
         case SignUp signUp when hasInitialSignUp:
           // if we didn't create a SignUp object earlier,  now is the time to
           // update the preexisting SignUp object, in case of changes
-          await _api
-              .updateSignUp(
-                signUp,
-                strategy: strategy,
-                password: password,
-                firstName: firstName,
-                lastName: lastName,
-                username: username,
-                emailAddress: emailAddress,
-                phoneNumber: phoneNumber,
-                legalAccepted: legalAccepted,
-              )
-              .then(_housekeeping);
+          final needsUpdate =
+              (password?.isNotEmpty == true) ||
+              (firstName is String && firstName != signUp.firstName) ||
+              (lastName is String && lastName != signUp.lastName) ||
+              (username is String && username != signUp.username) ||
+              (emailAddress is String && emailAddress != signUp.emailAddress) ||
+              (phoneNumber is String && phoneNumber != signUp.phoneNumber) ||
+              // We don't have current state for legalAccepted in SignUp;
+              // if provided, assume it's a change worth sending
+              (legalAccepted is bool);
+          if (needsUpdate) {
+            await _api
+                .updateSignUp(
+                  signUp,
+                  strategy: strategy,
+                  password: password,
+                  firstName: firstName,
+                  lastName: lastName,
+                  username: username,
+                  emailAddress: emailAddress,
+                  phoneNumber: phoneNumber,
+                  legalAccepted: legalAccepted,
+                )
+                .then(_housekeeping);
+          }
       }
     }
 
@@ -980,7 +994,7 @@ class Auth {
   /// Delete the avatar of the current [User]
   ///
   Future<void> deleteUserImage() async {
-    await _api.deleteAvatar();
+    await _api.deleteAvatar().then(_housekeeping);
     update();
   }
 
@@ -991,31 +1005,35 @@ class Auth {
     String newPassword, {
     bool signOut = true,
   }) async {
-    await _api.updatePassword(currentPassword, newPassword, signOut);
+    await _api
+        .updatePassword(currentPassword, newPassword, signOut)
+        .then(_housekeeping);
     update();
   }
 
   /// Delete the password of the current [User]
   ///
   Future<void> deleteUserPassword(String currentPassword) async {
-    await _api.deletePassword(currentPassword);
+    await _api.deletePassword(currentPassword).then(_housekeeping);
     update();
   }
 
-  Future<Client> _pollForCompletion() async {
-    while (true) {
-      final client = await _api.currentClient();
-      if (client.user is User) return client;
-
-      final expiry = client.signIn?.firstFactorVerification?.expireAt;
-      if (expiry?.isAfter(DateTime.timestamp()) != true) {
-        throw const AuthError(
-          message: 'Awaited user action not completed in required timeframe',
-          code: AuthErrorCode.actionNotTimely,
-        );
-      }
-
+  Future<void> _pollForEmailLinkCompletion() async {
+    while (client.user == null) {
       await Future.delayed(const Duration(seconds: 1));
+
+      final client = await _api.currentClient();
+      if (client.user is User) {
+        this.client = client;
+        update();
+      } else {
+        final expiry =
+            client.signIn?.firstFactorVerification?.expireAt ??
+            client.signUp?.verifications[Field.emailAddress]?.expireAt;
+        if (expiry == null || expiry.isBefore(DateTime.timestamp())) {
+          break;
+        }
+      }
     }
   }
 }

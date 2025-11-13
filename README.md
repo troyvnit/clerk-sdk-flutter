@@ -18,6 +18,6 @@ The official [Clerk](https://clerk.com) Flutter/Dart client library.
 * [clerk_flutter](./packages/clerk_flutter): Flutter SDK
 
 
-## License
+### License
 
 These SDKs are licensed under the MIT license found in the [LICENSE](./LICENSE) file.

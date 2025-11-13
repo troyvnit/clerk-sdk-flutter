@@ -71,7 +71,10 @@ class ClerkAuthState extends clerk.Auth with ChangeNotifier {
   static const _kSsoRouteName = 'clerk_sso_popup';
 
   @override
-  void update() => notifyListeners();
+  void update() {
+    super.update();
+    notifyListeners();
+  }
 
   @override
   Future<void> signOut() async {
